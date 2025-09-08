@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct CarnivoreGolfApp: App {
+    @StateObject var settings = SettingsManager()
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(settings)
         }
     }
 }
