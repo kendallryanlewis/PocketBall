@@ -20,6 +20,8 @@ struct HomeView: View {
     @State private var showClearSuccess = false
     @State private var selectedRoundForScorecard: Round?
     @State private var showScorecardPopover = false
+    @State private var showScanSuccessAlert = false // Add success alert state
+    @State private var scannedHoleCount = 0 // Track scanned holes
     
     var body: some View {
         NavigationStack {
@@ -122,23 +124,14 @@ struct HomeView: View {
                                 )
                             }
                             
-                           /* NavigationLink(destination: TrophyRoomView()) {
+                            NavigationLink(destination: CreateCourseView()) {
                                 QuickActionCard(
-                                    icon: "trophy.fill",
-                                    title: "Trophy Room",
-                                    subtitle: "View achievements",
-                                    color: .orange
-                                )
-                            }
-                            
-                            Button(action: {}) {
-                                QuickActionCard(
-                                    icon: "chart.bar.fill",
-                                    title: "Statistics",
-                                    subtitle: "View your stats",
+                                    icon: "building.columns.fill",
+                                    title: "Create Course",
+                                    subtitle: "Design & manage",
                                     color: .blue
                                 )
-                            }*/
+                            }
                         }
                         .padding(.horizontal)
                     }
@@ -303,6 +296,29 @@ struct HomeView: View {
                 .frame(minWidth: 600, minHeight: 400)
             }
         }
+        .alert(isPresented: $showScanSuccessAlert) {
+            Alert(
+                title: Text("Scorecard Scanned"),
+                message: Text("Successfully imported \(scannedHoleCount) holes with par information"),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
+    
+    // Add function to handle scanned scorecard data
+    private func handleScannedScorecard(_ parsedHoles: [ParsedHole]) {
+        scannedHoleCount = parsedHoles.count
+        showScanSuccessAlert = true
+        
+        // For now, just show success. In the future, you could:
+        // 1. Create a new round with the scanned data
+        // 2. Update an existing round's par values
+        // 3. Save the course layout for future use
+        
+        print("Scanned \(parsedHoles.count) holes:")
+        for hole in parsedHoles {
+            print("Hole \(hole.holeNumber): Par \(hole.par ?? 0), \(hole.yardage ?? 0) yards")
+        }
     }
 }
 
@@ -328,7 +344,7 @@ struct QuickActionCard: View {
                     .foregroundColor(.secondary)
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 100) // Ensure fixed height
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)

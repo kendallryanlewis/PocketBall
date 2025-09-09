@@ -83,10 +83,10 @@ struct LandingView: View {
                             NavigationLink(destination: HomeView()) {
                                 Text("Get Started")
                                     .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color(UIColor.systemBackground))
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 48)
-                                    .background(Color.black)
+                                    .background(.primary)
                                     .cornerRadius(8)
                             }
                             .padding(.top, 20)

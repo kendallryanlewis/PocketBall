@@ -92,32 +92,28 @@ struct RoundSubView: View {
     private var headerView: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Type: \(round.roundType)")
-                    .font(.subheadline)
+                Text(round.date, style: .date)
                     .foregroundColor(.secondary)
+                    .font(.footnote)
                 Text(round.courseName)
                     .font(.system(size: 34, weight: .thin, design: .default))
                     .foregroundColor(.primary)
                     .lineSpacing(0)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(round.date, style: .date)
-                    .foregroundColor(.secondary)
-                    .font(.footnote)
+                
+                Button(action: {
+                    showEditRound = true
+                }) {
+                    Text("Edit Round Details")
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color(UIColor.systemBackground))
+                .background(Color.gray)
+                .cornerRadius(6)
+                .padding(.bottom, 16)
             }
-            
-            Button(action: {
-                showEditRound = true
-            }) {
-                Text("Edit Round Details")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            }
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundColor(Color(UIColor.systemBackground))
-            .background(Color.gray)
-            .cornerRadius(6)
-            .padding(.bottom, 16)
-            
             statsRow
                 .padding(.vertical, 18)
         }

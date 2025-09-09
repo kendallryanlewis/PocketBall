@@ -13,6 +13,7 @@ struct ScorecardView: View {
     let onBack: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showHoleView = false
+    @State private var showScorecardScanner = false // Add scanner state
     @State private var roundScoreData: RoundScoreData
     @State private var refreshTrigger = false // Add refresh trigger
     @State private var isEditingPars = false // Add edit mode state
@@ -80,6 +81,15 @@ struct ScorecardView: View {
                             .padding(.bottom, 16)
                     }
                     Spacer()
+                    
+                    // Add scanner button in the header
+                    Button(action: {
+                        showScorecardScanner = true
+                    }) {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
                 }
                 ScrollView{
                     scoreGrid
@@ -102,6 +112,20 @@ struct ScorecardView: View {
                             .cornerRadius(4)
                     }.padding(.top, 30)
                         .foregroundColor(.primary)
+                    
+                    // Add scan scorecard button
+                    Button(action: {
+                        showScorecardScanner = true
+                    }) {
+                        HStack {
+                            Image(systemName: "camera.doc")
+                            Text("Scan Scorecard")
+                        }
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.blue)
+                    }
+                    .padding(.top, 8)
+                    
                     Button(action: {
                         toggleEditMode()
                     }) {
@@ -120,6 +144,12 @@ struct ScorecardView: View {
         .popover(isPresented: $showHoleView) {
             HoleView(round: round, scores: playerScores, par: par)
                 .frame(minWidth: 400, minHeight: 800) // Adjust as needed
+        }
+        .sheet(isPresented: $showScorecardScanner) {
+            ScorecardScannerView { parsedHoles in
+                // Handle the scanned data by updating par values
+                updateParsFromScan(parsedHoles)
+            }
         }
         .onAppear {
             refreshScoreData()
@@ -730,6 +760,22 @@ struct ScorecardView: View {
         if tempParValues.indices.contains(index) {
             tempParValues[index] = max(3, tempParValues[index] - 1)
         }
+    }
+    
+    // Add function to handle scanned scorecard data
+    private func updateParsFromScan(_ parsedHoles: [ParsedHole]) {
+        // Update par values based on scanned data
+        for hole in parsedHoles {
+            let index = hole.holeNumber - 1
+            if index >= 0 && index < roundScoreData.par.count, let par = hole.par {
+                roundScoreData.par[index] = par
+            }
+        }
+        
+        // Save the updated par data
+        roundScoreData.updateLastModified()
+        ScoreDataManager.shared.saveScoreData(roundScoreData)
+        refreshTrigger.toggle()
     }
 }
 

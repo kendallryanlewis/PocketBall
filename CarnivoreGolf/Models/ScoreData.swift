@@ -1,5 +1,9 @@
 import Foundation
 
+// MARK: - ParsedHole Model for Scanner Integration
+
+
+
 // MARK: - Score Data Models
 
 struct PlayerScoreData: Codable, Equatable {
@@ -127,5 +131,221 @@ class ScoreDataManager {
 extension Array {
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Course Scorecard Models
+
+enum TeeColor: String, CaseIterable, Codable {
+    case black = "Black"
+    case blue = "Blue"
+    case white = "White"
+    case yellow = "Yellow"
+    case red = "Red"
+    case gold = "Gold"
+    case green = "Green"
+    
+    var colorHex: String {
+        switch self {
+        case .black: return "#000000"
+        case .blue: return "#0066CC"
+        case .white: return "#FFFFFF"
+        case .yellow: return "#FFD700"
+        case .red: return "#FF0000"
+        case .gold: return "#FFD700"
+        case .green: return "#008000"
+        }
+    }
+}
+
+struct CourseHole: Codable, Identifiable {
+    let id = UUID()
+    let holeNumber: Int
+    let par: Int
+    let handicap: Int
+    var yardages: [TeeColor: Int] // Yardages for each tee color
+    
+    init(holeNumber: Int, par: Int, handicap: Int, yardages: [TeeColor: Int] = [:]) {
+        self.holeNumber = holeNumber
+        self.par = par
+        self.handicap = handicap
+        self.yardages = yardages
+    }
+    
+    // Convenience methods
+    func yardage(for teeColor: TeeColor) -> Int? {
+        return yardages[teeColor]
+    }
+    
+    mutating func setYardage(_ yardage: Int, for teeColor: TeeColor) {
+        yardages[teeColor] = yardage
+    }
+}
+
+struct SavedCourseScorecard: Codable, Identifiable {
+    var id = UUID()
+    var courseName: String
+    var location: String?
+    var holes: [CourseHole]
+    var availableTees: [TeeColor]
+    var courseRating: [TeeColor: Double]?
+    var slopeRating: [TeeColor: Int]?
+    let dateCreated: Date
+    var lastUpdated: Date
+    
+    init(courseName: String, location: String? = nil, holes: [CourseHole] = [], availableTees: [TeeColor] = []) {
+        self.id = UUID()
+        self.courseName = courseName
+        self.location = location
+        self.holes = holes.isEmpty ? Self.defaultHoles() : holes
+        self.availableTees = availableTees.isEmpty ? [.white, .blue, .red] : availableTees
+        self.courseRating = [:]
+        self.slopeRating = [:]
+        self.dateCreated = Date()
+        self.lastUpdated = Date()
+    }
+    
+    mutating func updateLastModified() {
+        self.lastUpdated = Date()
+    }
+    
+    // Create default 18 holes with par 4
+    private static func defaultHoles() -> [CourseHole] {
+        return (1...18).map { holeNumber in
+            CourseHole(holeNumber: holeNumber, par: 4, handicap: holeNumber)
+        }
+    }
+    
+    // Calculate total par for the course
+    var totalPar: Int {
+        return holes.reduce(0) { $0 + $1.par }
+    }
+    
+    // Get front 9 holes
+    var frontNine: [CourseHole] {
+        return Array(holes.prefix(9))
+    }
+    
+    // Get back 9 holes
+    var backNine: [CourseHole] {
+        return holes.count >= 18 ? Array(holes.suffix(9)) : []
+    }
+    
+    // Calculate total yardage for a specific tee
+    func totalYardage(for teeColor: TeeColor) -> Int {
+        return holes.compactMap { $0.yardage(for: teeColor) }.reduce(0, +)
+    }
+}
+
+// MARK: - Course Scorecard Manager
+
+class CourseManager {
+    static let shared = CourseManager()
+    private let fileName = "saved_courses.json"
+    private var fileURL: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(fileName)
+    }
+    private init() {}
+    
+    // Save a course scorecard
+    @discardableResult
+    func saveCourse(_ course: SavedCourseScorecard) -> Result<Void, Error> {
+        var savedCourses = (try? loadAllCourses().get()) ?? []
+        
+        // Remove existing course if it exists (update scenario)
+        savedCourses.removeAll { $0.id == course.id }
+        
+        // Add the course
+        var updatedCourse = course
+        updatedCourse.updateLastModified()
+        savedCourses.insert(updatedCourse, at: 0)
+        
+        // Keep only the most recent 50 courses
+        if savedCourses.count > 50 {
+            savedCourses = Array(savedCourses.prefix(50))
+        }
+        
+        return saveCourses(savedCourses)
+    }
+    
+    // Load a specific course by ID
+    func loadCourse(by id: UUID) -> Result<SavedCourseScorecard?, Error> {
+        let allCourses = (try? loadAllCourses().get()) ?? []
+        let course = allCourses.first { $0.id == id }
+        return .success(course)
+    }
+    
+    // Load all saved courses
+    func loadAllCourses() -> Result<[SavedCourseScorecard], Error> {
+        guard let url = fileURL else {
+            return .failure(NSError(domain: "FileURL", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get file URL"]))
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let courses = try JSONDecoder().decode([SavedCourseScorecard].self, from: data)
+            return .success(courses.sorted { $0.lastUpdated > $1.lastUpdated })
+        } catch {
+            if (error as NSError).code == NSFileReadNoSuchFileError {
+                return .success([])
+            }
+            return .failure(error)
+        }
+    }
+    
+    // Delete a course
+    @discardableResult
+    func deleteCourse(by id: UUID) -> Result<Void, Error> {
+        var savedCourses = (try? loadAllCourses().get()) ?? []
+        savedCourses.removeAll { $0.id == id }
+        return saveCourses(savedCourses)
+    }
+    
+    // Search courses by name
+    func searchCourses(by name: String) -> Result<[SavedCourseScorecard], Error> {
+        let allCourses = (try? loadAllCourses().get()) ?? []
+        let filteredCourses = allCourses.filter {
+            $0.courseName.localizedCaseInsensitiveContains(name) ||
+            $0.location?.localizedCaseInsensitiveContains(name) == true
+        }
+        return .success(filteredCourses)
+    }
+    
+    // Create course from parsed holes (integration with your scanner)
+    func createCourseFromParsedHoles(_ parsedHoles: [ParsedHole], courseName: String, location: String? = nil) -> SavedCourseScorecard {
+        let courseHoles = parsedHoles.map { parsedHole in
+            var yardages: [TeeColor: Int] = [:]
+            if let yardage = parsedHole.yardage {
+                yardages[.white] = yardage // Default to white tees
+            }
+            
+            return CourseHole(
+                holeNumber: parsedHole.holeNumber,
+                par: parsedHole.par ?? 4,
+                handicap: parsedHole.handicap ?? parsedHole.holeNumber,
+                yardages: yardages
+            )
+        }
+        
+        return SavedCourseScorecard(
+            courseName: courseName,
+            location: location,
+            holes: courseHoles,
+            availableTees: [.white, .blue, .red]
+        )
+    }
+    
+    private func saveCourses(_ courses: [SavedCourseScorecard]) -> Result<Void, Error> {
+        do {
+            let data = try JSONEncoder().encode(courses)
+            if let url = fileURL {
+                try data.write(to: url)
+                return .success(())
+            } else {
+                return .failure(NSError(domain: "FileURL", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get file URL"]))
+            }
+        } catch {
+            return .failure(error)
+        }
     }
 }
