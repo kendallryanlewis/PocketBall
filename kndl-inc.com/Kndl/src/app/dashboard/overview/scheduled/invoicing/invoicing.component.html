@@ -1,0 +1,243 @@
+<!-- Wrapper -->
+<div style="display:grid; grid-template-columns: 1fr; gap:16px;">
+
+    <!-- Top summary cards -->
+    <div style="display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:12px;">
+        <div style="border:1px solid #333; border-radius:12px; padding:14px;">
+            <div style="opacity:.8; font-size:12px;">Current Balance</div>
+            <div style="font-size:22px; font-weight:700; margin-top:6px;">
+                {{ currentBalance() | currency:'USD':'symbol':'1.0-0' }}
+            </div>
+            <div style="opacity:.75; font-size:12px;">(Due + Overdue)</div>
+        </div>
+
+        <div style="border:1px solid #333; border-radius:12px; padding:14px;">
+            <div style="opacity:.8; font-size:12px;">Next Charge</div>
+            <div *ngIf="nextCharge(); else noUpcoming" style="display:flex; gap:8px; align-items:baseline;">
+                <div style="font-size:22px; font-weight:700;">
+                    {{ nextCharge()!.amount | currency: nextCharge()!.currency : 'symbol' : '1.0-0' }}
+                </div>
+                <div style="opacity:.8;">on {{ nextCharge()!.date | date:'MMM d, y' }}</div>
+            </div>
+            <ng-template #noUpcoming>
+                <div style="opacity:.8; font-size:12px;">No upcoming charges</div>
+            </ng-template>
+        </div>
+
+        <div style="border:1px solid #333; border-radius:12px; padding:14px;">
+            <div style="opacity:.8; font-size:12px;">Active Add‑ons</div>
+            <div style="font-size:22px; font-weight:700; margin-top:6px;">
+                {{ activeAddOns().length }}
+            </div>
+            <div style="opacity:.75; font-size:12px;">managed add‑ons</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="border:1px solid #333; border-radius:12px; padding:12px;">
+        <div style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">
+            <div>
+                <label style="font-size:12px; opacity:.8;">Status</label><br />
+                <select [(ngModel)]="filters().status" (ngModelChange)="setStatus($event)"
+                    style="background:#121212; border:1px solid #333; border-radius:8px; padding:6px 8px;">
+                    <option value="all">All</option>
+                    <option value="paid">Paid</option>
+                    <option value="due">Due</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="void">Void</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-size:12px; opacity:.8;">Start date</label><br />
+                <input type="date" [(ngModel)]="filters().start"
+                    style="background:#121212; border:1px solid #333; border-radius:8px; padding:6px 8px;">
+            </div>
+
+            <div>
+                <label style="font-size:12px; opacity:.8;">End date</label><br />
+                <input type="date" [(ngModel)]="filters().end"
+                    style="background:#121212; border:1px solid #333; border-radius:8px; padding:6px 8px;">
+            </div>
+
+            <button (click)="clearDates()"
+                style="margin-left:auto; border:1px solid #333; border-radius:8px; padding:8px 10px; cursor:pointer;">
+                Clear Dates
+            </button>
+
+            <button (click)="exportInvoicesCSV()"
+                style="border:1px solid #333; border-radius:8px; padding:8px 10px; cursor:pointer;">
+                Export CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Upcoming Invoices -->
+    <div style="border:1px solid #333; border-radius:12px; padding:12px;">
+        <h3 style="margin:0 0 10px;">Upcoming Invoices</h3>
+        <div *ngIf="upcoming().length; else noUpc">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="text-align:left; opacity:.8;">
+                        <th style="padding:8px;">Invoice #</th>
+                        <th style="padding:8px;">Scheduled For</th>
+                        <th style="padding:8px;">Total</th>
+                        <th style="padding:8px;">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let inv of upcoming()" style="border-top:1px solid #333;">
+                        <td style="padding:8px;">{{ inv.number }}</td>
+                        <td style="padding:8px;">{{ inv.scheduledFor | date:'MMM d, y' }}</td>
+                        <td style="padding:8px;">{{ invoiceTotal(inv) | currency:inv.currency:'symbol':'1.0-0' }}</td>
+                        <td style="padding:8px;">{{ inv.notes || '—' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <ng-template #noUpc>
+            <div style="opacity:.8;">No upcoming invoices.</div>
+        </ng-template>
+    </div>
+
+    <!-- Add-ons -->
+    <div style="border:1px solid #333; border-radius:12px; padding:12px;">
+        <h3 style="margin:0 0 10px;">Add‑ons</h3>
+
+        <div style="display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px;">
+            <div>
+                <h4 style="margin:0 0 8px; opacity:.9;">Active</h4>
+                <div *ngIf="activeAddOns().length; else noActive" style="display:grid; gap:8px;">
+                    <div *ngFor="let a of activeAddOns()"
+                        style="border:1px solid #333; border-radius:10px; padding:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:8px;">
+                            <div>
+                                <div style="font-weight:600;">{{ a.name }}</div>
+                                <div style="opacity:.8; font-size:12px;">
+                                    {{ a.billingCycle | titlecase }} • since {{ a.startedOn | date:'MMM d, y' }}
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:700;">
+                                    {{ a.price | currency:a.currency:'symbol':'1.0-0' }}
+                                </div>
+                                <button (click)="cancelAddOn(a)"
+                                    style="margin-top:6px; border:1px solid #444; border-radius:8px; padding:6px 8px; cursor:pointer;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        <div *ngIf="a.notes" style="margin-top:6px; opacity:.85;">{{ a.notes }}</div>
+                    </div>
+                </div>
+                <ng-template #noActive>
+                    <div style="opacity:.8;">No active add‑ons.</div>
+                </ng-template>
+            </div>
+
+            <div>
+                <h4 style="margin:0 0 8px; opacity:.9;">Past</h4>
+                <div *ngIf="inactiveAddOns().length; else noPast" style="display:grid; gap:8px;">
+                    <div *ngFor="let a of inactiveAddOns()"
+                        style="border:1px dashed #333; border-radius:10px; padding:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:8px;">
+                            <div>
+                                <div style="font-weight:600;">{{ a.name }}</div>
+                                <div style="opacity:.8; font-size:12px;">
+                                    Ended {{ a.endsOn | date:'MMM d, y' }}
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:700;">
+                                    {{ a.price | currency:a.currency:'symbol':'1.0-0' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="a.notes" style="margin-top:6px; opacity:.85;">{{ a.notes }}</div>
+                    </div>
+                </div>
+                <ng-template #noPast>
+                    <div style="opacity:.8;">No past add‑ons.</div>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice History (filtered) -->
+    <div style="border:1px solid #333; border-radius:12px; padding:12px;">
+        <h3 style="margin:0 0 10px;">Invoices</h3>
+        <div *ngIf="filteredInvoices().length; else noInv">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="text-align:left; opacity:.8;">
+                        <th style="padding:8px;">#</th>
+                        <th style="padding:8px;">Status</th>
+                        <th style="padding:8px;">Issued</th>
+                        <th style="padding:8px;">Due / Scheduled</th>
+                        <th style="padding:8px;">Total</th>
+                        <th style="padding:8px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let inv of filteredInvoices()" style="border-top:1px solid #333;">
+                        <td style="padding:8px;">{{ inv.number }}</td>
+                        <td style="padding:8px;">
+                            <span [style.background]="inv.status==='paid' ? 'rgba(16,185,129,.2)' :
+                                         inv.status==='overdue' ? 'rgba(239,68,68,.2)' :
+                                         inv.status==='due' ? 'rgba(245,158,11,.2)' :
+                                         inv.status==='scheduled' ? 'rgba(59,130,246,.2)' : 'rgba(156,163,175,.2)'"
+                                style="padding:4px 8px; border-radius:999px; font-size:12px;">
+                                {{ inv.status | titlecase }}
+                            </span>
+                        </td>
+                        <td style="padding:8px;">{{ inv.issueDate | date:'MMM d, y' }}</td>
+                        <td style="padding:8px;">
+                            {{ inv.dueDate ? (inv.dueDate | date:'MMM d, y') : (inv.scheduledFor ? (inv.scheduledFor |
+                            date:'MMM d, y') : '—') }}
+                        </td>
+                        <td style="padding:8px;">{{ invoiceTotal(inv) | currency:inv.currency:'symbol':'1.0-0' }}</td>
+                        <td style="padding:8px;">
+                            <button (click)="markPaid(inv)" *ngIf="inv.status==='due' || inv.status==='overdue'"
+                                style="border:1px solid #444; border-radius:8px; padding:6px 8px; cursor:pointer;">
+                                Mark Paid
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <ng-template #noInv>
+            <div style="opacity:.8;">No invoices match your filters.</div>
+        </ng-template>
+    </div>
+
+    <!-- Payments -->
+    <div style="border:1px solid #333; border-radius:12px; padding:12px;">
+        <h3 style="margin:0 0 10px;">Payments Received</h3>
+        <div *ngIf="payments().length; else noPays">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="text-align:left; opacity:.8;">
+                        <th style="padding:8px;">Date</th>
+                        <th style="padding:8px;">Amount</th>
+                        <th style="padding:8px;">Method</th>
+                        <th style="padding:8px;">Invoice #</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let p of payments()" style="border-top:1px solid #333;">
+                        <td style="padding:8px;">{{ p.date | date:'MMM d, y' }}</td>
+                        <td style="padding:8px;">{{ p.amount | currency:p.currency:'symbol':'1.0-0' }}</td>
+                        <td style="padding:8px; text-transform:uppercase;">{{ p.method }}</td>
+                        <td style="padding:8px;">{{ p.invoiceNumber || '—' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <ng-template #noPays>
+            <div style="opacity:.8;">No payments yet.</div>
+        </ng-template>
+    </div>
+
+</div>

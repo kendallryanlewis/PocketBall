@@ -1,0 +1,16 @@
+<header class="navbar">
+    <p appAnimateOnScroll animationClass="fade-left">Pixels & Post<br><span class="logo text-center">KNDL</span></p>
+    <nav appAnimateOnScroll animationClass="fade">
+        <a (click)="scrollToSection('app-kndl-about-us')" style="cursor: pointer;">About</a>
+        <a (click)="scrollToSection('app-kndl-detailed-services')" style="cursor: pointer;">Services</a>
+        <a (click)="scrollToSection('app-kndl-pricing')" style="cursor: pointer;">Plans</a>
+        <a (click)="scrollToSection('app-kndl-call-to-action')" style="cursor: pointer;">Contact</a>
+    </nav>
+    <div appAnimateOnScroll animationClass="fade-right" class="gap-1 d-none d-lg-flex">
+        <button class="get-demo border bg-transparent text-dark"><i class="fa fa-bell"></i></button>
+        <button class="get-demo" [routerLink]="'/login'">
+            <i class="fas fa-sign-in-alt"></i>
+            {{ isLoggingIn ? 'Sign In' : 'Dashboard' }}
+        </button>
+    </div>
+</header>

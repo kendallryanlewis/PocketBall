@@ -1,0 +1,25 @@
+.contact-container {
+    background: #272727d9;
+    color: white;
+}
+
+input {
+    background-color: transparent;
+    border: none;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.contact-button {
+    background-color: #d8d7fb61; // Bootstrap primary color
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+
+    &:hover {
+        background-color: tan; // Darker shade on hover
+    }
+}

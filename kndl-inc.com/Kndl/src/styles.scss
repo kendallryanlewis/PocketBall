@@ -1,0 +1,710 @@
+@import "bootstrap/scss/bootstrap";
+
+// Responsive breakpoints
+$breakpoints: (
+    xs: 0,
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+    xxl: 1400px
+);
+
+// Mobile-first responsive mixin
+@mixin respond-to($breakpoint) {
+    @if map-has-key($breakpoints, $breakpoint) {
+        @media (min-width: map-get($breakpoints, $breakpoint)) {
+            @content;
+        }
+    }
+}
+
+:root {
+    --c-gray-900: #18181b;
+    /* Deep charcoal background */
+    --c-gray-800: #23232b;
+    /* Slightly lighter dark */
+    --c-gray-700: #2a2a32;
+    /* Navigation bar background */
+    /* Card backgrounds */
+    --c-gray-500: #7c7c8a;
+    /* Muted text */
+    --c-gray-400: #b0b0c3;
+    /* Borders, subtle accents */
+    --c-gray-300: #d1d1e0;
+    /* Light backgrounds */
+    --c-gray-200: #f3f3fa;
+    /* Off-white backgrounds */
+    --c-gray-100: #ffffff;
+    /* Pure white */
+    --c-green-500: #45ffbc;
+    /* Accent green */
+    --c-olive-500: #e3ffa8;
+    /* Accent olive */
+    --c-blue-500: #3a7afe;
+    /* Accent blue for links/buttons */
+    --c-tan-500: #d2b48c;
+    /* Tan accent for highlights */
+
+    --c-white: var(--c-gray-100);
+    --light-gray: #cccccc;
+    --c-text-primary: tan;
+    /* Main text color */
+    --c-text-secondary: #5a83b5;
+    /* Subtle text */
+    --c-text-tertiary: var(--c-gray-500);
+    /* Muted text */
+    --c-text-accent: var(--c-blue-500);
+    /* Accent text */
+}
+
+// Base responsive styling
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px; // Mobile base
+
+    @include respond-to(sm) {
+        font-size: 15px;
+    }
+
+    @include respond-to(md) {
+        font-size: 16px;
+    }
+}
+
+body {
+    overflow-x: hidden; // Prevent horizontal scroll
+}
+
+a {
+    cursor: pointer;
+    color: inherit;
+}
+
+.blur-bg {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.text-tan {
+    color: var(--c-text-primary);
+}
+
+.text-blue {
+    color: (--c-text-secondary);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.space-lines {
+    line-height: 35px;
+}
+
+.bg-tan {
+    background-color: var(--c-text-primary);
+}
+
+.text-beige {
+    color: beige;
+}
+
+.section-wrapper {
+    font-family: 'Inter', sans-serif;
+    background: #f8f8f8;
+    color: #111;
+    height: auto;
+    padding: 5rem;
+    //background: linear-gradient(180deg, #f4f4f4, transparent);
+}
+
+/****************************************************************************/
+/****************************** Animations **********************************/
+/****************************************************************************/
+
+/* Base (keep or adjust to your setup) */
+.animate {
+    opacity: 0;
+    transition: opacity .8s ease, transform .8s ease, filter .8s ease;
+    will-change: opacity, transform, filter;
+}
+
+/* ===== NEW VARIANTS ===== */
+
+.animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+
+.animate.fade-up.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.animate.fade-left {
+    transform: translateX(-40px);
+}
+
+.animate.fade-left.in-view {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.animate.fade-right {
+    transform: translateX(40px);
+}
+
+.animate.fade-right.in-view {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* 1) Plain fade (no movement) */
+.animate.fade {
+    transform: none;
+}
+
+.animate.fade.in-view {
+    opacity: 1;
+}
+
+/* 2) Fade down (enters from above) */
+.animate.fade-down {
+    transform: translateY(-30px);
+}
+
+.animate.fade-down.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 3) Zoom in (subtle scale-up) */
+.animate.zoom-in {
+    transform: scale(.95);
+}
+
+.animate.zoom-in.in-view {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/****************************** Mobile & Responsive Styles **********************************/
+
+// Mobile-first container adjustments
+.container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+
+    @include respond-to(md) {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+// Mobile navigation
+.mobile-nav-toggle {
+    display: block;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+
+    @include respond-to(md) {
+        display: none;
+    }
+}
+
+.mobile-nav {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background: var(--c-gray-800);
+    z-index: 1050;
+    transition: left 0.3s ease;
+    padding: 2rem 1rem;
+
+    &.show {
+        left: 0;
+    }
+
+    .nav-item {
+        display: block;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--c-gray-700);
+        color: white;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--c-tan-500);
+        }
+    }
+}
+
+.mobile-nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+
+    &.show {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+// Responsive text scaling
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6 {
+    @media (max-width: 767px) {
+        font-size: calc(1.5rem + 1.5vw);
+    }
+}
+
+h1 {
+    @media (max-width: 767px) {
+        font-size: 1.8rem;
+    }
+}
+
+h2 {
+    @media (max-width: 767px) {
+        font-size: 1.5rem;
+    }
+}
+
+h3 {
+    @media (max-width: 767px) {
+        font-size: 1.3rem;
+    }
+}
+
+// Mobile-friendly cards
+.card {
+    margin-bottom: 1rem;
+
+    @include respond-to(md) {
+        margin-bottom: 1.5rem;
+    }
+}
+
+// Mobile button improvements
+.btn {
+    min-height: 44px; // iOS touch target minimum
+
+    @media (max-width: 767px) {
+        width: 100%;
+        margin-bottom: 0.5rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+
+
+// Responsive tables
+.table-responsive {
+    @media (max-width: 767px) {
+        font-size: 0.875rem;
+
+        th,
+        td {
+            padding: 0.5rem;
+        }
+    }
+}
+
+// Mobile-friendly forms
+.form-control,
+.form-select {
+    min-height: 44px;
+
+    @media (max-width: 767px) {
+        font-size: 16px; // Prevents zoom on iOS
+    }
+}
+
+// Hide on mobile utility
+.d-mobile-none {
+    @media (max-width: 767px) {
+        display: none !important;
+    }
+}
+
+// Show only on mobile utility
+.d-mobile-block {
+    display: none !important;
+
+    @media (max-width: 767px) {
+        display: block !important;
+    }
+}
+
+.d-mobile-flex {
+    display: none !important;
+
+    @media (max-width: 767px) {
+        display: flex !important;
+    }
+}
+
+/****************************** Dashboard Mobile Styles **********************************/
+
+.dashboard {
+    @media (max-width: 767px) {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .dashboard-container {
+        @media (max-width: 767px) {
+            height: 100vh;
+        }
+    }
+
+    // Mobile header adjustments
+    header {
+        @media (max-width: 767px) {
+            min-height: 50px !important;
+            padding: 0.5rem 0;
+
+            .logo-title {
+                font-size: 1.5rem;
+            }
+        }
+    }
+
+    // Mobile sidebar becomes bottom tabs on mobile
+    aside {
+        @media (max-width: 767px) {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--c-gray-800);
+            z-index: 1000;
+            padding: 0.5rem;
+            border-top: 1px solid var(--c-gray-700);
+
+            .navigation {
+                display: flex;
+                justify-content: space-around;
+                margin: 0;
+
+                a {
+                    flex: 1;
+                    text-align: center;
+                    padding: 0.5rem 0.25rem;
+                    margin: 0;
+                    font-size: 0.75rem;
+
+                    i {
+                        display: block;
+                        margin-bottom: 0.25rem;
+                        font-size: 1rem;
+                    }
+
+                    span {
+                        display: block;
+                        font-size: 0.6rem;
+                    }
+                }
+            }
+        }
+    }
+
+    main {
+        @media (max-width: 767px) {
+            padding-bottom: 80px; // Space for bottom navigation
+        }
+    }
+}
+
+// Mobile tab content adjustments
+.app-body-main-content {
+    @media (max-width: 767px) {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+// Mobile cards and components
+.admin-dashboard {
+    @media (max-width: 767px) {
+        padding: 1rem !important;
+
+        .admin-header {
+            margin-bottom: 1rem !important;
+
+            .admin-title {
+                font-size: 1.5rem;
+            }
+
+            .admin-subtitle {
+                font-size: 0.875rem;
+            }
+        }
+
+        .row {
+            margin: 0;
+
+            >[class*="col-"] {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
+
+        .card {
+            margin-bottom: 1rem;
+        }
+    }
+}
+
+// Mobile table improvements
+.table-responsive {
+    @media (max-width: 767px) {
+        border: none;
+
+        .table {
+            font-size: 0.75rem;
+
+            th,
+            td {
+                padding: 0.25rem 0.5rem;
+                white-space: nowrap;
+            }
+
+            // Hide less important columns on mobile
+            th:nth-child(n+4),
+            td:nth-child(n+4) {
+                display: none;
+            }
+        }
+    }
+}
+
+// Mobile modal improvements
+.modal {
+    @media (max-width: 767px) {
+        .modal-dialog {
+            margin: 0;
+            max-width: none;
+            height: 100vh;
+
+            .modal-content {
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+        }
+    }
+}
+
+// Landing page mobile improvements
+.kndl {
+    @media (max-width: 767px) {
+        .main-switcher {
+            display: none !important;
+        }
+    }
+}
+
+// Mobile-friendly offcanvas
+.offcanvas {
+    @media (max-width: 767px) {
+        width: 280px !important;
+    }
+}
+
+// Login page mobile
+.login-wrapper {
+    @media (max-width: 767px) {
+        grid-template-columns: 1fr !important;
+
+        .login-panel {
+            grid-column: 1 / -1;
+        }
+
+        .hero-panel {
+            display: none !important;
+        }
+    }
+}
+
+/* 4) Zoom out (subtle scale-down) */
+.animate.zoom-out {
+    transform: scale(1.05);
+}
+
+.animate.zoom-out.in-view {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* 5) Blur in (sharpens as it appears) */
+.animate.blur-in {
+    filter: blur(6px);
+    transform: none;
+}
+
+.animate.blur-in.in-view {
+    opacity: 1;
+    filter: blur(0);
+}
+
+/* 6) Rotate in (tiny tilt) */
+.animate.rotate-in {
+    transform: rotate(-3deg) translateY(10px);
+    transform-origin: 50% 50%;
+}
+
+.animate.rotate-in.in-view {
+    opacity: 1;
+    transform: rotate(0) translateY(0);
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .animate {
+        transition: none;
+    }
+}
+
+// Admin Sites Component Styling
+.admin-sites {
+    .company-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        &.selected {
+            box-shadow: 0 0 0 2px var(--c-tan-500);
+        }
+    }
+
+    .nav-btn {
+        transition: all 0.2s ease;
+        cursor: pointer;
+
+        &:hover:not(.active) {
+            background: rgba(var(--c-tan-500), 0.1) !important;
+            color: var(--c-tan-500) !important;
+        }
+    }
+
+    .stat-item {
+        transition: all 0.2s ease;
+
+        &:hover {
+            transform: translateY(-1px);
+        }
+    }
+
+    .modal-overlay {
+        backdrop-filter: blur(4px);
+    }
+
+    .form-control:focus {
+        border-color: var(--c-tan-500) !important;
+        box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.25) !important;
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--c-tan-500) !important;
+            color: var(--c-tan-500) !important;
+            background: rgba(210, 180, 140, 0.05) !important;
+        }
+    }
+
+    .activity-item {
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--c-gray-600) !important;
+        }
+    }
+
+    .search-header .form-control::placeholder {
+        color: var(--c-gray-500);
+    }
+
+    .results-count {
+        font-weight: 500;
+    }
+}
+
+// Responsive adjustments for admin sites
+@media (max-width: 992px) {
+    .admin-sites {
+        .company-details-panel {
+            margin-top: 1rem;
+        }
+
+        .stats-row {
+            .col-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+
+                &:nth-child(n+3) {
+                    margin-top: 1rem;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-sites {
+        .company-meta {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+            align-items: flex-start !important;
+        }
+
+        .details-header .d-flex {
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+
+        .stats-row .col-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .nav-btn {
+            padding: 0.5rem !important;
+            font-size: 0.875rem;
+
+            i {
+                display: none;
+            }
+        }
+    }
+}

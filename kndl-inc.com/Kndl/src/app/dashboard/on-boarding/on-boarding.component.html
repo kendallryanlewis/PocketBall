@@ -1,0 +1,390 @@
+<div class="onboarding-flow d-flex justify-content-between flex-column h-100">
+    <!-- Progress Bar -->
+    <div class="progress-container mb-4">
+        <div class="progress">
+            <div class="progress-bar bg-tan" [style.width.%]="getProgress()"></div>
+        </div>
+        <div class="progress-steps d-flex justify-content-between mt-2">
+            <small [class.text-tan]="currentStep >= 1">1. Welcome</small>
+            <small [class.text-tan]="currentStep >= 2">2. Choose Package</small>
+            <small [class.text-tan]="currentStep >= 3">3. Add-Ons</small>
+            <small [class.text-tan]="currentStep >= 4">4. Domain</small>
+            <small [class.text-tan]="currentStep >= 5">5. Summary & Checkout</small>
+        </div>
+    </div>
+
+    <!-- Step 1: Welcome -->
+    <div *ngIf="currentStep === 1" class="d-flex justify-content-between flex-column h-100 overflow-auto">
+        <app-welcome class="h-100" (projectStarted)="onProjectStarted()"></app-welcome>
+    </div>
+
+    <!-- Step 2: Package Selection -->
+    <div *ngIf="currentStep === 2" class="justify-content-between d-flex flex-column h-100 overflow-auto pt-5">
+        <div class="pricing-header text-start">
+            <h1>Business <span appAnimateOnScroll animationClass="fade"
+                    class="text-tan animate fade in-view">Plans</span>
+            </h1>
+            <hr class="my-5" style="width: 200px;">
+            <p appAnimateOnScroll animationClass="fade" ng-reflect-animation-class="fade" class="animate fade in-view">
+                Every business has different needs.
+                Whether you’re just starting out, expanding
+                your digital footprint, or building a fully custom experience, we have a plan tailored for you. Add
+                extras
+                anytime as your business grows.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4" *ngFor="let package of packages">
+                <div class="card package-card h-100 p-5" [class.selected]="selectedPackage?.id === package.id"
+                    (click)="onPackageSelected(package.id)" style="cursor: pointer;">
+                    <div appAnimateOnScroll animationClass="fade-up" class="pricing-card animate fade-up in-view"
+                        style="cursor: pointer;">
+                        <div>
+                            <h3>{{ package.name }}</h3>
+                            <div class="price-range">$ {{ package.price | number }}</div>
+                            <p>{{ package.description }}</p>
+                            <ul class="features list-unstyled mt-3">
+                                <li *ngFor="let feature of package.features" class="mb-2">
+                                    <i class="fa fa-check text-tan me-2"></i>
+                                    {{ feature }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button class="mt-auto border-0 p-3 rounded w-100"
+                        (click)="$event.stopPropagation(); onPackageSelected(package.id)"
+                        [ngClass]="package.id === selectedPackage?.id ? 'text-tan bg-white' : 'bg-black text-white'">
+                        <i class="fa me-2" [ngClass]="package.id === selectedPackage?.id ? 'fa-check' : ''"></i>
+                        {{ package.id === selectedPackage?.id ? 'Selected' : 'Choose' }}
+                        {{ package.id === selectedPackage?.id ? '': package.name }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+            <button class="btn text-white border-0" [disabled]="!selectedPackage"
+                [class.bg-body-secondary]="!selectedPackage" [class.bg-black]="selectedPackage" (click)="nextStep()">
+                Continue with {{ selectedPackage?.name || 'Package' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 3: Add-Ons Selection -->
+    <div *ngIf="currentStep === 3" class="justify-content-between d-flex flex-column h-100 overflow-auto pt-5">
+        <div>
+            <div class="pricing-header text-start">
+                <h1>Optional <span appAnimateOnScroll animationClass="fade"
+                        class="text-tan animate fade in-view">Services</span>
+                </h1>
+                <hr class="my-5" style="width: 200px;">
+                <p appAnimateOnScroll animationClass="fade" ng-reflect-animation-class="fade"
+                    class="animate fade in-view">
+                    Enhance your package with monthly management or additional services. Perfect for ongoing growth and
+                    hands-off marketing.</p>
+            </div>
+
+            <!-- Monthly Management Options -->
+            <div class="mb-5">
+                <h4 class="text-tan mb-3">📊 Monthly Management Plans</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-4" *ngFor="let addOn of getMonthlyManagementAddOns()">
+                        <div class="card addon-card h-100" [class.selected]="isAddOnSelected(addOn.id)"
+                            (click)="onAddOnToggled(addOn)" style="cursor: pointer;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title">{{ addOn.name }}</h5>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="isAddOnSelected(addOn.id)" readonly>
+                                    </div>
+                                </div>
+                                <p class="card-text text-muted">{{ addOn.description }}</p>
+                                <div class="price-tag">
+                                    <span class="h5 text-black">${{ addOn.price }}</span>
+                                    <small class="text-muted">/month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Growth Services -->
+            <div class="mb-5">
+                <h4 class="text-tan mb-3">🚀 Digital Growth Services</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-4" *ngFor="let addOn of getDigitalGrowthAddOns()">
+                        <div class="card addon-card h-100" [class.selected]="isAddOnSelected(addOn.id)"
+                            (click)="onAddOnToggled(addOn)" style="cursor: pointer;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title">{{ addOn.name }}</h5>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="isAddOnSelected(addOn.id)" readonly>
+                                    </div>
+                                </div>
+                                <p class="card-text text-muted">{{ addOn.description }}</p>
+                                <div class="price-tag">
+                                    <span class="h5 text-black">${{ addOn.price }}</span>
+                                    <small class="text-muted">{{ addOn.recurring ? '/month' : ' one-time' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creative & Other Services -->
+            <div class="mb-5">
+                <h4 class="text-tan mb-3">🎨 Creative & Additional Services</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-4" *ngFor="let addOn of getCreativeAddOns()">
+                        <div class="card addon-card h-100" [class.selected]="isAddOnSelected(addOn.id)"
+                            (click)="onAddOnToggled(addOn)" style="cursor: pointer;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title">{{ addOn.name }}</h5>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="isAddOnSelected(addOn.id)" readonly>
+                                    </div>
+                                </div>
+                                <p class="card-text text-muted">{{ addOn.description }}</p>
+                                <div class="price-tag">
+                                    <span class="h5 text-black">${{ addOn.price }}</span>
+                                    <small class="text-muted">{{ addOn.recurring ? '/month' : ' one-time' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+            <button class="btn bg-black text-white" (click)="nextStep()">
+                Continue to Domain
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 4: Domain Selection -->
+    <div *ngIf="currentStep === 4" class="justify-content-between d-flex flex-column h-100 overflow-auto pt-5">
+        <div>
+            <div class="pricing-header text-start">
+                <h1>Choose Your <span appAnimateOnScroll animationClass="fade"
+                        class="text-tan animate fade in-view">Domain</span>
+                </h1>
+                <hr class="my-5" style="width: 200px;">
+                <p appAnimateOnScroll animationClass="fade" class="animate fade in-view">
+                    Select how you'd like to handle your domain. We can register a new one for you or help you connect
+                    an existing domain.</p>
+            </div>
+
+            <div class="row">
+                <!-- Allow Us Option -->
+                <div class="col-md-6 mb-4">
+                    <div class="card domain-card h-100" [class.selected]="domainOption === 'allowus'"
+                        (click)="onDomainOptionSelected('allowus')" style="cursor: pointer;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fa fa-globe fs-1 text-tan"></i>
+                            </div>
+                            <h5 class="card-title">Allow Us</h5>
+                            <p class="card-text text-muted">We'll handle the domain search, registration, and setup for
+                                you.
+                            </p>
+                            <div *ngIf="domainOption === 'allowus'" class="mt-4">
+                                <div class="form-group">
+                                    <label for="newDomain" class="form-label">Preferred domain (optional):</label>
+                                    <input type="text" id="newDomain" class="form-control"
+                                        placeholder="yourbusiness.com" [(ngModel)]="newDomainName" name="newDomain">
+                                    <small class="text-muted">
+                                        Setup: $275 (domain cost varies by name and will be billed separately after
+                                        registration)
+                                    </small>
+                                    <div class="alert alert-info mt-3" role="alert">
+                                        <i class="fa fa-info-circle me-2"></i>
+                                        <strong>Note:</strong> Domain prices vary by name and extension. We'll confirm
+                                        the cost
+                                        before purchase and bill separately.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Use Existing Domain Option -->
+                <div class="col-md-6 mb-4">
+                    <div class="card domain-card h-100" [class.selected]="domainOption === 'existing'"
+                        (click)="onDomainOptionSelected('existing')" style="cursor: pointer;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fa fa-link fs-1 text-tan"></i>
+                            </div>
+                            <h5 class="card-title">Use Existing Domain</h5>
+                            <p class="card-text text-muted">Already have a domain? We'll help you convert or take over
+                                management.</p>
+                            <div *ngIf="domainOption === 'existing'" class="mt-4">
+                                <div class="form-group">
+                                    <label for="existingDomain" class="form-label">Enter your domain:</label>
+                                    <input type="text" id="existingDomain" class="form-control"
+                                        placeholder="yourdomain.com" [(ngModel)]="existingDomainName"
+                                        name="existingDomain">
+                                    <small class="text-muted">Setup: $100 (includes transfer or DNS help)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+            <button class="btn bg-black text-white" [disabled]="!isDomainSelectionValid()" (click)="nextStep()">
+                Continue to Summary
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 5: Order Summary & Checkout -->
+    <div *ngIf="currentStep === 5" class="justify-content-between d-flex flex-column h-100 overflow-auto pt-5">
+        <div class="mb-5">
+            <div class="pricing-header text-start">
+                <h1>Plan <span appAnimateOnScroll animationClass="fade"
+                        class="text-tan animate fade in-view">Summary</span>
+                </h1>
+                <hr class="my-5" style="width: 200px;">
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Selected Package -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Selected Package</h5>
+                        </div>
+                        <div class="card-body" *ngIf="selectedPackage">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6>{{ selectedPackage.name }}</h6>
+                                    <p class="text-muted mb-0">{{ selectedPackage.description }}</p>
+                                    <small class="text-muted">Timeline: {{ selectedPackage.timeline }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="h5 text-warning">${{ selectedPackage.price | number }}</strong>
+                                    <br>
+                                    <small class="text-muted">one-time</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Domain Selection Summary -->
+                    <div class="card mb-4" *ngIf="domainOption">
+                        <div class="card-header">
+                            <h5 class="mb-0">Domain Selection</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 *ngIf="domainOption === 'allowus'">Allow Us (Full Service)</h6>
+                                    <h6 *ngIf="domainOption === 'existing'">Use Existing Domain</h6>
+
+                                    <p class="text-muted mb-0" *ngIf="domainOption === 'allowus'">{{ newDomainName ||
+                                        'Domain to be determined' }}</p>
+                                    <p class="text-muted mb-0" *ngIf="domainOption === 'existing'">{{ existingDomainName
+                                        }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="h5 text-warning" *ngIf="domainOption === 'allowus'">$275</strong>
+                                    <strong class="h5 text-warning" *ngIf="domainOption === 'existing'">$100</strong>
+                                    <br>
+                                    <small class="text-muted" *ngIf="domainOption === 'allowus'">setup fee (domain cost
+                                        billed separately)</small>
+                                    <small class="text-muted" *ngIf="domainOption === 'existing'">setup fee</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Add-Ons -->
+                    <div class="card mb-4" *ngIf="selectedAddOns.length > 0">
+                        <div class="card-header bg-body-secondary">
+                            <h5 class="mb-0">Selected Add-Ons</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3"
+                                *ngFor="let addOn of selectedAddOns">
+                                <div>
+                                    <h6 class="mb-1">{{ addOn.name }}</h6>
+                                    <small class="text-muted">{{ addOn.description }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong>${{ addOn.price }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ addOn.recurring ? 'monthly' : 'one-time' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Pricing Summary -->
+                    <div class="card pricing-summary">
+                        <div class="card-header bg-tan text-beige">
+                            <h5 class="mb-0">Pricing Breakdown</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Package:</span>
+                                <strong class="h5 text-warning">${{ selectedPackage?.price | number }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3"
+                                *ngIf="domainOption === 'allowus' || domainOption === 'existing'">
+                                <span>Domain Setup:</span>
+                                <strong class="h5 text-warning">${{ getDomainSetupCost() }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3" *ngIf="getOrderSummary().monthlyTotal > 0">
+                                <span>Monthly Services:</span>
+                                <strong class="h5 text-info">${{ getOrderSummary().monthlyTotal | number
+                                    }}/month</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3" *ngIf="domainOption === 'allowus'">
+                                <small class="text-muted">* Includes domain renewal (${{ getDomainMonthlyCost()
+                                    }}/month)</small>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fw-bold">One-Time Total:</span>
+                                <strong class="h4 text-success">${{ getOrderSummary().oneTimeTotal | number }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3" *ngIf="getOrderSummary().monthlyTotal > 0">
+                                <span class="fw-bold">Monthly Total:</span>
+                                <strong class="h4 text-info">${{ getOrderSummary().monthlyTotal | number
+                                    }}/month</strong>
+                            </div>
+                            <p class="text-center mt-3 small text-muted">
+                                Satisfaction guaranteed · Revisions included
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+            <button class="btn btn-success btn-lg">Proceed to Payment</button>
+        </div>
+    </div>
+</div>
