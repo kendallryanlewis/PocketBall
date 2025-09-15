@@ -8,14 +8,18 @@
 import SwiftUI
 
 struct LandingView: View {
+    @Environment(\.colorScheme) var colorScheme
     @State private var latestRound: Round? = RoundHistoryManager.shared.latestRound()
     @State private var showResume: Bool = false
     @State private var showTrophyRoom: Bool = false
     @State private var showNewRoundSheet: Bool = false
     @State private var showHome: Bool = false
     @State private var showRound: Bool = false
+    @State private var showAboutSheet: Bool = false
+    
     var body: some View {
         ZStack {
+            BackgroundView()
             if showHome {
                 HomeView()
                     .sheet(isPresented: $showRound) {
@@ -32,52 +36,41 @@ struct LandingView: View {
                             .padding(.bottom, 0)
                         // Main headline
                         Text("Pocket\nBall")
-                            .font(.system(size: 54, weight: .thin, design: .default))
+                            .font(.system(size: 80, weight: .ultraLight))
                             .foregroundColor(.primary)
                             .lineSpacing(0)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.bottom, 16)
-                        // Subheadline
-                        Text("GOLF   •   STATS   •   ROUNDS   •   MORE")
-                            .font(.system(size: 10, weight: .medium, design: .default))
-                            .foregroundColor(.primary)
-                            .textCase(.uppercase)
-                            .kerning(2)
-                            .padding(.bottom, 4)
                         Spacer()
                         // Bottom buttons
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 30) {
                             // About text button
-                            Button(action: { showNewRoundSheet = true }) {
+                            Button(action: { showAboutSheet = true }) {
                                 Text("About")
-                                    .font(.system(size: 18, weight: .medium))
+                                    .font(.system(size: 30, weight: .light))
                                     .foregroundColor(.primary)
-                                    .padding(.vertical, 8)
                             }
                             // Resume or Trophy Room text button
                             if latestRound != nil && latestRound?.isCompleted == false {
                                 NavigationLink(destination: RoundView(), isActive: $showResume) {
                                     Text("Resume")
-                                        .font(.system(size: 18, weight: .medium))
+                                        .font(.system(size: 30, weight: .light))
                                         .foregroundColor(.primary)
-                                        .padding(.vertical, 8)
                                 }
                                 .simultaneousGesture(TapGesture().onEnded { showResume = true })
                             } else {
                                 NavigationLink(destination: TrophyRoomView(), isActive: $showTrophyRoom) {
                                     Text("Trophy Room")
-                                        .font(.system(size: 18, weight: .medium))
+                                        .font(.system(size: 30, weight: .light))
                                         .foregroundColor(.primary)
-                                        .padding(.vertical, 8)
                                 }
                                 .simultaneousGesture(TapGesture().onEnded { showTrophyRoom = true })
                             }
                             // Get Started text button
                             Button(action: { showNewRoundSheet = true }) {
                                 Text("Quick Start")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.green)
-                                    .padding(.vertical, 8)
+                                    .font(.system(size: 30, weight: .light))
+                                    .foregroundColor(.primary)
                             }
                             // Home solid black button (full width)
                             NavigationLink(destination: HomeView()) {
@@ -86,34 +79,45 @@ struct LandingView: View {
                                     .foregroundColor(Color(UIColor.systemBackground))
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 48)
-                                    .background(.primary)
+                                    .background(colorScheme == .light ? Color.black : Color.white)
                                     .cornerRadius(8)
                             }
-                            .padding(.top, 20)
-                            
-                        // Supporting text
-                        Text("Your pocket companion for golf. Start your next round now.")
-                            .font(.system(size: 15, weight: .regular, design: .default))
-                            .foregroundColor(.secondary)
+                            HStack(alignment: .center) {
+                                let items = ["GOLF", "STATS", "ROUNDS", "MORE"]
+                                ForEach(0..<items.count, id: \.self) { idx in
+                                    Text(items[idx])
+                                    if idx < items.count - 1 {
+                                        Spacer()
+                                        Text("•")
+                                        Spacer()
+                                    }
+                                }
+                            }
+                            .font(.system(size: 10, weight: .medium, design: .default))
+                            .foregroundColor(.primary)
+                            .textCase(.uppercase)
+                            .kerning(2)
                             .multilineTextAlignment(.center)
-                            .padding(.bottom, 12)
                         }
                         .padding(.top, 40)
                         .padding(.bottom, 40)
                     }
-                    .background(Color(.systemBackground))
                     .padding().padding(.top, 60)
                     .padding(.horizontal, 28)
                     .onAppear {
                         latestRound = RoundHistoryManager.shared.latestRound()
                     }
                 }
+                .font(.system(size: 54, weight: .thin, design: .default))
                 .sheet(isPresented: $showNewRoundSheet) {
                     NewRoundView(onStartRound: {
                         showNewRoundSheet = false
                         showHome = true
                         showRound = true
                     })
+                }
+                .sheet(isPresented: $showAboutSheet) {
+                    EmptyView()
                 }
             }
         }

@@ -153,4 +153,26 @@ class RoundHistoryManager {
         let rounds = (try? loadRounds().get()) ?? []
         return rounds.first { $0.id == id }
     }
+    
+    // Add method to delete a round by ID
+    @discardableResult
+    func deleteRound(by id: UUID) -> Result<Void, Error> {
+        var rounds = (try? loadRounds().get()) ?? []
+        let newRounds = rounds.filter { $0.id != id }
+        if newRounds.count == rounds.count {
+            // No round was deleted (id not found)
+            return .failure(NSError(domain: "RoundHistoryManager", code: 404, userInfo: [NSLocalizedDescriptionKey: "Round not found"]))
+        }
+        do {
+            let data = try JSONEncoder().encode(newRounds)
+            if let url = fileURL {
+                try data.write(to: url)
+                return .success(())
+            } else {
+                return .failure(NSError(domain: "FileURL", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get file URL"]))
+            }
+        } catch {
+            return .failure(error)
+        }
+    }
 }

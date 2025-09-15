@@ -1,6 +1,20 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Background Mode
+
+enum BackgroundMode: String, CaseIterable, Identifiable {
+    case system, light, dark
+    var id: String { rawValue }
+    var displayName: String {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
+
 class SettingsManager: ObservableObject {
     // Personal Info
     @Published var userName: String {
@@ -39,6 +53,11 @@ class SettingsManager: ObservableObject {
     }
     @Published var autoSaveRounds: Bool {
         didSet { UserDefaults.standard.set(autoSaveRounds, forKey: "autoSaveRounds") }
+    }
+    @Published var backgroundMode: BackgroundMode {
+        didSet {
+            UserDefaults.standard.set(backgroundMode.rawValue, forKey: "backgroundMode")
+        }
     }
 
     // Club names (order matters for UI)
@@ -80,6 +99,10 @@ class SettingsManager: ObservableObject {
         self.enableNotifications = UserDefaults.standard.bool(forKey: "enableNotifications")
         self.trackStatistics = UserDefaults.standard.bool(forKey: "trackStatistics")
         self.autoSaveRounds = UserDefaults.standard.bool(forKey: "autoSaveRounds")
+
+        // Background Mode
+        let stored = UserDefaults.standard.string(forKey: "backgroundMode")
+        self.backgroundMode = BackgroundMode(rawValue: stored ?? "system") ?? .system
     }
 
     // MARK: - Club Distance/Visibility Helpers

@@ -6,6 +6,35 @@ import Foundation
 
 // MARK: - Score Data Models
 
+// Structure to hold complete hole information from course
+struct HoleInfo: Codable, Equatable {
+    let holeNumber: Int
+    let par: Int
+    let handicap: Int
+    let yardages: [String: Int] // TeeColor -> yardage mapping
+    
+    init(from courseHole: CourseHole) {
+        self.holeNumber = courseHole.holeNumber
+        self.par = courseHole.par
+        self.handicap = courseHole.handicap
+        
+        // Convert CourseHole yardages to dictionary
+        var yardageMap: [String: Int] = [:]
+        for (teeColor, yardage) in courseHole.yardages {
+            yardageMap[teeColor.rawValue] = yardage
+        }
+        self.yardages = yardageMap
+    }
+    
+    // Fallback initializer for default holes
+    init(holeNumber: Int, par: Int = 4, handicap: Int = 1, yardages: [String: Int] = [:]) {
+        self.holeNumber = holeNumber
+        self.par = par
+        self.handicap = handicap
+        self.yardages = yardages
+    }
+}
+
 struct PlayerScoreData: Codable, Equatable {
     var scores: [Int]
     var putts: [Int]
@@ -27,12 +56,14 @@ struct PlayerScoreData: Codable, Equatable {
 struct RoundScoreData: Codable, Equatable {
     let roundId: UUID
     var playerScores: [String: PlayerScoreData] // Player name -> their score data
-    var par: [Int] // Par for each hole
+    var par: [Int] // Par for each hole - kept for backward compatibility
+    var holeInfo: [HoleInfo]? // Complete hole information including yardages
     var lastUpdated: Date
     
     init(roundId: UUID, players: [String], holes: Int) {
         self.roundId = roundId
         self.par = Array(repeating: 4, count: holes) // Default par 4 for all holes
+        self.holeInfo = nil // Will be set when course data is available
         self.lastUpdated = Date()
         
         // Initialize empty score data for each player
@@ -43,8 +74,47 @@ struct RoundScoreData: Codable, Equatable {
         self.playerScores = playerScores
     }
     
+    // Convenience initializer with course hole data
+    init(roundId: UUID, players: [String], courseHoles: [CourseHole]) {
+        self.roundId = roundId
+        self.par = courseHoles.map { $0.par }
+        self.holeInfo = courseHoles.map { HoleInfo(from: $0) }
+        self.lastUpdated = Date()
+        
+        // Initialize empty score data for each player
+        var playerScores: [String: PlayerScoreData] = [:]
+        for player in players {
+            playerScores[player] = PlayerScoreData(holes: courseHoles.count)
+        }
+        self.playerScores = playerScores
+    }
+    
     mutating func updateLastModified() {
         self.lastUpdated = Date()
+    }
+    
+    // Get par for a specific hole (1-based index)
+    func getParForHole(_ holeNumber: Int) -> Int {
+        if let holeInfo = holeInfo, holeNumber > 0, holeNumber <= holeInfo.count {
+            return holeInfo[holeNumber - 1].par
+        }
+        return par[safe: holeNumber - 1] ?? 4
+    }
+    
+    // Get yardage for a specific hole and tee color (1-based index)
+    func getYardageForHole(_ holeNumber: Int, teeColor: String) -> Int? {
+        guard let holeInfo = holeInfo, holeNumber > 0, holeNumber <= holeInfo.count else {
+            return nil
+        }
+        return holeInfo[holeNumber - 1].yardages[teeColor]
+    }
+    
+    // Get handicap for a specific hole (1-based index)
+    func getHandicapForHole(_ holeNumber: Int) -> Int {
+        if let holeInfo = holeInfo, holeNumber > 0, holeNumber <= holeInfo.count {
+            return holeInfo[holeNumber - 1].handicap
+        }
+        return holeNumber // Default to hole number as handicap
     }
 }
 
@@ -130,7 +200,14 @@ class ScoreDataManager {
 
 extension Array {
     subscript(safe index: Index) -> Element? {
-        return indices.contains(index) ? self[index] : nil
+        get {
+            indices.contains(index) ? self[index] : nil
+        }
+        set {
+            if let value = newValue, indices.contains(index) {
+                self[index] = value
+            }
+        }
     }
 }
 
@@ -322,7 +399,7 @@ class CourseManager {
             return CourseHole(
                 holeNumber: parsedHole.holeNumber,
                 par: parsedHole.par ?? 4,
-                handicap: parsedHole.handicap ?? parsedHole.holeNumber,
+                handicap: parsedHole.holeNumber,
                 yardages: yardages
             )
         }

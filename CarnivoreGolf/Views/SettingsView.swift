@@ -19,227 +19,210 @@ struct SettingsView: View {
     let roundTypes = ["Stroke", "Match", "Scramble", "Carnivore", "Randomize", "Reverse Mulligans"]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header matching LandingView style
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.primary)
-                            Text("Settings")
-                                .font(.system(size: 54, weight: .thin, design: .default))
-                                .foregroundColor(.primary)
+        ZStack{
+            VStack(alignment: .leading, spacing: 0) {
+                // Header matching LandingView style
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Button(action: { dismiss() }) {
+                            GenericHeader(title: "Settings", iconName: "chevron.left")
                         }
-                        .padding(.vertical, 16) // Add vertical padding
+                        Spacer()
+                        Button(isEditing ? "Done" : "Edit") {
+                            isEditing.toggle()
+                        }
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(isEditing ? .green : .primary)
                     }
-                    Spacer()
-                    Button(isEditing ? "Done" : "Edit") {
-                        isEditing.toggle()
-                    }
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(isEditing ? .green : .primary)
                 }
-                Text("PERSONAL   •   CLUBS   •   PREFERENCES   •   DATA")
-                    .font(.system(size: 8, weight: .medium, design: .default))
-                    .foregroundColor(.primary)
-                    .textCase(.uppercase)
-                    .kerning(2)
-                    .padding(.bottom, 4)
-                Text("Customize your golf experience and club preferences.")
-                    .font(.system(size: 15, weight: .regular, design: .default))
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 12)
-            }
-            .padding(.horizontal, 28)
-            .padding(.top, 20)
-            
-            Spacer()
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Personal Information Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        SectionHeader(title: "Personal Information")
-                        VStack(alignment: .leading, spacing: 20) {
-                            // Profile Avatar (centered)
-                            HStack {
-                                Spacer()
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(.systemGray5))
-                                        .frame(width: 72, height: 72)
-                                    Text(getInitials(from: settings.userName))
-                                        .font(.system(size: 32, weight: .bold))
-                                        .foregroundColor(.primary)
-                                }
-                                Spacer()
-                            }
-                            if isEditing {
-                                Button(action: {}) {
-                                    Text("Edit Photo")
-                                        .font(.caption)
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                            Divider()
-                            VStack(alignment: .leading, spacing: 16) {
-                                PersonalInfoRow(label: "Name", value: $settings.userName, isEditing: isEditing, placeholder: "Enter your name")
-                                PersonalInfoRow(label: "Email", value: $settings.email, isEditing: isEditing, placeholder: "Enter your email")
-                                PersonalInfoRow(label: "Handicap", value: $settings.handicap, isEditing: isEditing, placeholder: "Enter your handicap")
-                                PersonalInfoRow(label: "Home Club", value: $settings.homeClub, isEditing: isEditing, placeholder: "Enter your home club")
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(16)
-                        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.systemGray4), lineWidth: 0.5)
-                        )
-                        .padding(.horizontal, 28)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    // Club Distances Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        SectionHeader(title: "Club Distances (yards)")
-                        VStack(spacing: 12) {
-                            ForEach(settings.allClubNames, id: \.self) { club in
-                                if settings.clubVisibility[club] ?? false || isEditing {
-                                    ClubDistanceRowWithVisibility(
-                                        club: club,
-                                        distance: Binding(
-                                            get: { settings.clubDistances[club] ?? "" },
-                                            set: { settings.clubDistances[club] = $0 }
-                                        ),
-                                        visible: Binding(
-                                            get: { settings.clubVisibility[club] ?? false },
-                                            set: { settings.clubVisibility[club] = $0 }
-                                        ),
-                                        isEditing: isEditing
-                                    )
-                                }
-                            }
-                            if isEditing {
-                                Button("Reset") {
-                                    showResetClubsAlert = true
-                                }
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.orange)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding(.top, 8)
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .padding(.horizontal, 28)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-
-                    // App Preferences Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        SectionHeader(title: "App Preferences")
+                .padding(.horizontal, 28)
+                .padding(.top, 20)
+                
+                Spacer()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Personal Information Section
                         VStack(alignment: .leading, spacing: 16) {
-                            if isEditing {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    HStack(alignment: .center) {
-                                        Text("Default Round Type")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                        Picker("Round Type", selection: $settings.defaultRoundType) {
-                                            ForEach(roundTypes, id: \.self) { type in
-                                                Text(type).tag(type)
+                            SectionHeader(title: "Personal Information")
+                            VStack(alignment: .leading, spacing: 20) {
+                                // Profile Avatar (centered)
+                                HStack {
+                                    Spacer()
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(.systemGray5))
+                                            .frame(width: 72, height: 72)
+                                        Text(getInitials(from: settings.userName))
+                                            .font(.system(size: 32, weight: .bold))
+                                            .foregroundColor(.primary)
+                                    }
+                                    Spacer()
+                                }
+                                if isEditing {
+                                    Button(action: {}) {
+                                        Text("Edit Photo")
+                                            .font(.caption)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                Divider()
+                                VStack(alignment: .leading, spacing: 16) {
+                                    PersonalInfoRow(label: "Name", value: $settings.userName, isEditing: isEditing, placeholder: "Enter your name")
+                                    PersonalInfoRow(label: "Email", value: $settings.email, isEditing: isEditing, placeholder: "Enter your email")
+                                    PersonalInfoRow(label: "Handicap", value: $settings.handicap, isEditing: isEditing, placeholder: "Enter your handicap")
+                                    PersonalInfoRow(label: "Home Club", value: $settings.homeClub, isEditing: isEditing, placeholder: "Enter your home club")
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color(.systemGray4), lineWidth: 0.5)
+                            )
+                            .padding(.horizontal, 28)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // Club Distances Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            SectionHeader(title: "Club Distances (yards)")
+                            VStack(spacing: 12) {
+                                ForEach(settings.allClubNames, id: \.self) { club in
+                                    if settings.clubVisibility[club] ?? false || isEditing {
+                                        ClubDistanceRowWithVisibility(
+                                            club: club,
+                                            distance: Binding(
+                                                get: { settings.clubDistances[club] ?? "" },
+                                                set: { settings.clubDistances[club] = $0 }
+                                            ),
+                                            visible: Binding(
+                                                get: { settings.clubVisibility[club] ?? false },
+                                                set: { settings.clubVisibility[club] = $0 }
+                                            ),
+                                            isEditing: isEditing
+                                        )
+                                    }
+                                }
+                                if isEditing {
+                                    Button("Reset") {
+                                        showResetClubsAlert = true
+                                    }
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.orange)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.top, 8)
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .padding(.horizontal, 28)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        // App Preferences Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            SectionHeader(title: "App Preferences")
+                            VStack(alignment: .leading, spacing: 16) {
+                                if isEditing {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        HStack(alignment: .center) {
+                                            Text("Default Round Type")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                            Picker("Round Type", selection: $settings.defaultRoundType) {
+                                                ForEach(roundTypes, id: \.self) { type in
+                                                    Text(type).tag(type)
+                                                }
+                                            }
+                                            .pickerStyle(MenuPickerStyle())
+                                        }
+                                        Divider()
+                                        HStack(alignment: .center) {
+                                            Text("Default Holes")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                            Stepper(value: $settings.defaultHoles, in: 1...18) {
+                                                Text("\(settings.defaultHoles)")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
                                             }
                                         }
-                                        .pickerStyle(MenuPickerStyle())
+                                        Divider()
+                                        SettingsToggle(title: "Enable Notifications", isOn: $settings.enableNotifications)
+                                        SettingsToggle(title: "Track Statistics", isOn: $settings.trackStatistics)
+                                        SettingsToggle(title: "Auto-Save Rounds", isOn: $settings.autoSaveRounds)
                                     }
-                                    Divider()
-                                    HStack(alignment: .center) {
-                                        Text("Default Holes")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                        Stepper(value: $settings.defaultHoles, in: 1...18) {
-                                            Text("\(settings.defaultHoles)")
-                                                .font(.subheadline)
-                                                .fontWeight(.semibold)
-                                        }
-                                    }
-                                    Divider()
-                                    SettingsToggle(title: "Enable Notifications", isOn: $settings.enableNotifications)
-                                    SettingsToggle(title: "Track Statistics", isOn: $settings.trackStatistics)
-                                    SettingsToggle(title: "Auto-Save Rounds", isOn: $settings.autoSaveRounds)
+                                } else {
+                                    SettingsReadOnlyField(title: "Default Round Type", value: settings.defaultRoundType)
+                                    SettingsReadOnlyField(title: "Default Holes", value: String(settings.defaultHoles))
+                                    SettingsReadOnlyField(title: "Enable Notifications", value: settings.enableNotifications ? "On" : "Off")
+                                    SettingsReadOnlyField(title: "Track Statistics", value: settings.trackStatistics ? "On" : "Off")
+                                    SettingsReadOnlyField(title: "Auto-Save Rounds", value: settings.autoSaveRounds ? "On" : "Off")
                                 }
-                            } else {
-                                SettingsReadOnlyField(title: "Default Round Type", value: settings.defaultRoundType)
-                                SettingsReadOnlyField(title: "Default Holes", value: String(settings.defaultHoles))
-                                SettingsReadOnlyField(title: "Enable Notifications", value: settings.enableNotifications ? "On" : "Off")
-                                SettingsReadOnlyField(title: "Track Statistics", value: settings.trackStatistics ? "On" : "Off")
-                                SettingsReadOnlyField(title: "Auto-Save Rounds", value: settings.autoSaveRounds ? "On" : "Off")
                             }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .padding(.horizontal, 28)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    // Data Management Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        SectionHeader(title: "Data Management")
-                        VStack(spacing: 12) {
-                            Button(action: { showClearDataAlert = true }) {
-                                HStack {
-                                    Image(systemName: "trash")
-                                    Text("Clear All Round Data")
-                                }
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.red)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
-                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .padding(.horizontal, 28)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 28)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Bottom buttons in VStack (LandingView style)
-                    if isEditing {
-                        VStack(alignment: .leading, spacing: 20) {
-                            Button(action: { showSaveAlert = true }) {
-                                Text("Save Settings")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.green)
-                                    .padding(.vertical, 8)
-                            }
-                            Button(action: { dismiss() }) {
-                                Text("Done")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(.white)
+                        // Data Management Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            SectionHeader(title: "Data Management")
+                            VStack(spacing: 12) {
+                                Button(action: { showClearDataAlert = true }) {
+                                    HStack {
+                                        Image(systemName: "trash")
+                                        Text("Clear All Round Data")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.red)
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: 48)
-                                    .background(Color.black)
-                                    .cornerRadius(8)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(8).padding(.bottom, 40)
+                                }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 28)
                         }
-                        .padding(.horizontal, 28)
-                        .padding(.top, 40)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // Bottom buttons in VStack (LandingView style)
+                        if isEditing {
+                            VStack(alignment: .leading, spacing: 20) {
+                                Button(action: { showSaveAlert = true }) {
+                                    Text("Save Settings")
+                                        .font(.system(size: 18, weight: .medium))
+                                        .foregroundColor(.green)
+                                        .padding(.vertical, 8)
+                                }
+                                Button(action: { dismiss() }) {
+                                    Text("Done")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 48)
+                                        .background(Color.black)
+                                        .cornerRadius(8)
+                                }
+                            }
+                            .padding(.horizontal, 28)
+                            .padding(.top, 40)
+                        }
                     }
                 }
             }
         }
-        .background(Color(.systemBackground))
         .navigationBarBackButtonHidden(true)
         .alert("Clear All Data?", isPresented: $showClearDataAlert) {
             Button("Cancel", role: .cancel) { }

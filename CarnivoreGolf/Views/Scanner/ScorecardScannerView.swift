@@ -24,19 +24,8 @@ struct ScorecardScannerView: View {
                     VStack(spacing: 30) {
                         Image(systemName: "camera.viewfinder")
                             .font(.system(size: 80))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.gray)
                         
-                        VStack(spacing: 12) {
-                            Text("AI Scorecard Scanner")
-                                .font(.title)
-                                .fontWeight(.bold)
-                            
-                            Text("Advanced AI will analyze and extract scorecard data with high accuracy")
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                            
                             if holeRowDetected {
                                 VStack(spacing: 8) {
                                     HStack {
@@ -68,7 +57,7 @@ struct ScorecardScannerView: View {
                                 HStack {
                                     Image(systemName: "brain")
                                         .foregroundColor(.orange)
-                                    Text("AI analyzing text...")
+                                    Text("Analyzing text...")
                                         .foregroundColor(.orange)
                                 }
                                 .padding(.horizontal)
@@ -93,37 +82,24 @@ struct ScorecardScannerView: View {
                         }) {
                             HStack {
                                 Image(systemName: "brain.head.profile")
-                                Text("Start AI Scanner")
+                                Text("Scan Score Card")
                             }
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding()
-                            .background(Color.blue)
+                            .background(.green)
                             .cornerRadius(10)
                         }
                         
-                        Button("Manual Entry") {
-                            let sampleHoles = [
-                                ParsedHole(holeNumber: 1, par: 4, yardage: 380, handicap: 5),
-                                ParsedHole(holeNumber: 2, par: 3, yardage: 165, handicap: 17),
-                                ParsedHole(holeNumber: 3, par: 5, yardage: 520, handicap: 1),
-                            ]
-                            self.parsedHoles = sampleHoles
-                            self.showingResults = true
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                        .padding()
-                        
                         if isProcessing {
                             VStack(spacing: 8) {
-                                ProgressView("AI Processing...")
+                                ProgressView("Processing...")
                                     .padding()
-                                Text("Analyzing text with machine learning...")
+                                Text("Analyzing score card with machine learning...")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                        }
+                        
                     }
                 } else {
                     ScorecardParseResultsView(
@@ -141,17 +117,9 @@ struct ScorecardScannerView: View {
                         }
                     )
                 }
-            }
-            .navigationTitle("AI Scorecard Scanner")
+        }.font(.body)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
             .alert("Camera Access Required", isPresented: $showingPermissionAlert) {
                 Button("Settings") {
                     if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
@@ -191,22 +159,6 @@ struct ScorecardScannerView: View {
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                    
-                    Button("Manual Entry") {
-                        let sampleHoles = [
-                            ParsedHole(holeNumber: 1, par: 4, yardage: 380, handicap: 5),
-                            ParsedHole(holeNumber: 2, par: 3, yardage: 165, handicap: 17),
-                            ParsedHole(holeNumber: 3, par: 5, yardage: 520, handicap: 1),
-                        ]
-                        self.parsedHoles = sampleHoles
-                        self.showingResults = true
-                        self.showingScanner = false
-                    }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
                 }
                 .padding()
             }

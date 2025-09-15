@@ -5,6 +5,7 @@ struct CourseDetailView: View {
     @State private var course: SavedCourseScorecard
     @State private var showingEditMode = false
     @State private var selectedTeeColor: TeeColor = .white
+    @State private var showingNewRound = false
     
     let onUpdate: (SavedCourseScorecard) -> Void
     
@@ -20,37 +21,41 @@ struct CourseDetailView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack {
-                // Course Header - break this into a separate computed property
-                courseHeaderView
+        ZStack{
+            BackgroundView()
                 
-                // Tee Selection
-                if course.availableTees.count > 1 {
-                    teeSelectionView
+            NavigationView {
+                VStack (spacing: 30) {
+                    // Course Header - break this into a separate computed property
+                    courseHeaderView
+                    
+                    // Tee Selection
+                    if course.availableTees.count > 1 {
+                        teeSelectionView
+                    }
+                    
+                    // Holes List
+                    holesListView
+                    
+                    // Start Round Button
+                    startRoundButton
+                }.font(.body).padding(40)
+                .sheet(isPresented: $showingEditMode) {
+                    EditCourseView(course: course) { updatedCourse in
+                        course = updatedCourse
+                        onUpdate(updatedCourse)
+                    }
                 }
-                
-                // Holes List
-                holesListView
-                
-                // Start Round Button
-                startRoundButton
             }
-            .navigationTitle("Course Details")
-            .navigationBarItems(
-                leading: Button("Close") {
+        }
+        .sheet(isPresented: $showingNewRound) {
+            NewRoundView(
+                onStartRound: {
+                    showingNewRound = false
                     presentationMode.wrappedValue.dismiss()
                 },
-                trailing: Button("Edit") {
-                    showingEditMode = true
-                }
+                prefilledCourse: course
             )
-            .sheet(isPresented: $showingEditMode) {
-                EditCourseView(course: course) { updatedCourse in
-                    course = updatedCourse
-                    onUpdate(updatedCourse)
-                }
-            }
         }
     }
     
@@ -58,54 +63,53 @@ struct CourseDetailView: View {
     
     private var courseHeaderView: some View {
         VStack(spacing: 12) {
-            Text(course.courseName)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            if let location = course.location {
-                Text(location)
-                    .font(.title3)
-                    .foregroundColor(.secondary)
+            HStack{
+                GenericHeader(title: course.courseName, iconName: "")
+                Spacer()
+                Button("Edit") {
+                    showingEditMode = true
+                }
             }
-            
             courseStatsView
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
     
     private var courseStatsView: some View {
-        HStack(spacing: 20) {
-            VStack {
-                Text("\(course.totalPar)")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Text("Par")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        HStack(){
+            Spacer()
+            HStack(spacing: 30) {
+                VStack {
+                    Text("\(course.totalPar)")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Par")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack {
+                    Text("\(course.holes.count)")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Holes")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack {
+                    let totalYardage = course.totalYardage(for: selectedTeeColor)
+                    Text("\(totalYardage)")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Yards")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
-            
-            VStack {
-                Text("\(course.holes.count)")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Text("Holes")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack {
-                let totalYardage = course.totalYardage(for: selectedTeeColor)
-                Text("\(totalYardage)")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Text("Yards")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
+            Spacer()
+        }.padding()
     }
     
     private var teeSelectionView: some View {
@@ -123,19 +127,18 @@ struct CourseDetailView: View {
             }
         }
         .pickerStyle(SegmentedPickerStyle())
-        .padding(.horizontal)
     }
     
     private var holesListView: some View {
-        List {
-            Section(header: Text("Front 9")) {
+        ScrollView(.vertical, showsIndicators: false) {
+            Section(header: Text("Front 9").font(.title)) {
                 ForEach(course.frontNine) { hole in
                     HoleRowView(hole: hole, teeColor: selectedTeeColor)
                 }
             }
             
             if !course.backNine.isEmpty {
-                Section(header: Text("Back 9")) {
+                Section(header: Text("Back 9").font(.title)) {
                     ForEach(course.backNine) { hole in
                         HoleRowView(hole: hole, teeColor: selectedTeeColor)
                     }
@@ -145,28 +148,33 @@ struct CourseDetailView: View {
     }
     
     private var startRoundButton: some View {
-        Button(action: startRound) {
-            HStack {
-                Image(systemName: "play.fill")
-                Text("Start Round with This Course")
+        VStack(){
+            Button(action: startRound) {
+                HStack {
+                    Image(systemName: "play.fill")
+                    Text("Start Round with This Course")
+                        .padding()
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .background(Color.green)
+                .cornerRadius(12)
             }
-            .font(.headline)
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.green)
-            .cornerRadius(12)
-        }
-        .padding(.horizontal)
-        .padding(.bottom)
+            
+            if let location = course.location {
+                Text(location)
+                    .padding(0)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+        }.padding(.bottom)
     }
     
     private func startRound() {
-        // TODO: Integrate with your existing round creation flow
-        // This would typically navigate to your round setup view
-        // and pre-populate it with the course data
-        print("Starting round with course: \(course.courseName)")
-        presentationMode.wrappedValue.dismiss()
+        print(course)
+        // Show the NewRoundView with pre-populated course data
+        showingNewRound = true
     }
 }
 
@@ -181,7 +189,7 @@ struct HoleRowView: View {
                 .font(.headline)
                 .foregroundColor(.white)
                 .frame(width: 30, height: 30)
-                .background(Color.blue)
+                .background(.green)
                 .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 2) {

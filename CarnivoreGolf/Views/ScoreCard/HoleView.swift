@@ -19,19 +19,29 @@ struct HoleView: View {
     let round: Round
     let scores: [[Int]]
     let par: [Int]
-    let backgroundColor = Color(red: 40/255, green: 44/255, blue: 50/255)
     @Environment(\.dismiss) private var dismiss
-    @State private var currentHole = 1
+    @State private var currentHole: Int
     @State private var currentPlayerIndex = 0
     @State private var roundScoreData: RoundScoreData
     @State private var scrollOffset: CGFloat = 0
+    @Environment(\.colorScheme) var colorScheme
+    
+    let onScoresChanged: ((RoundScoreData) -> Void)?
+
+    // Add club randomization state
+    @StateObject private var clubRandomizer = ClubRandomizer.shared
+    @State private var selectedClub: GolfClub? = nil
+    @State private var showClubRandomizer = false
     
     // Initialize with proper score data loading
-    init(round: Round, scores: [[Int]], par: [Int]) {
+    init(round: Round, scores: [[Int]], par: [Int], initialHole: Int? = nil, initialPlayerIndex: Int? = nil, onScoresChanged: ((RoundScoreData) -> Void)? = nil) {
         self.round = round
         self.scores = scores
         self.par = par
-        
+        self.onScoresChanged = onScoresChanged
+        // Set initial hole and player
+        _currentHole = State(initialValue: initialHole ?? 1)
+        _currentPlayerIndex = State(initialValue: initialPlayerIndex ?? 0)
         // Load existing score data or create new
         if let existingData = try? ScoreDataManager.shared.loadScoreData(for: round.id).get() {
             self._roundScoreData = State(initialValue: existingData)
@@ -40,6 +50,11 @@ struct HoleView: View {
             let newScoreData = RoundScoreData(roundId: round.id, players: round.players, holes: round.holes)
             self._roundScoreData = State(initialValue: newScoreData)
         }
+    }
+    
+    // Computed property for round type
+    private var roundTypeEnum: RoundType {
+        RoundType.from(string: round.roundType)
     }
     
     private var currentPlayer: String {
@@ -52,8 +67,28 @@ struct HoleView: View {
 
     var body: some View {
         ZStack {
-            backgroundColor
+            BackgroundView().ignoresSafeArea()
             VStack(spacing: 0) {
+                // --- ROUND TYPE INDICATOR ---
+                VStack() {
+                    Text(roundTypeEnum.displayName)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    HStack(spacing: 5) {
+                        Image(systemName: roundTypeEnum.icon)
+                            .font(.system(size: 10))
+                            .foregroundColor(roundTypeEnum.color)
+                            .frame(width: 20, height: 20)
+                            .background(roundTypeEnum.color.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        Text(roundTypeEnum.shortDescription)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.bottom, 8)
+                .padding(.top, 40)
+                // --- END ROUND TYPE INDICATOR ---
                 headerView.padding()
                     .shadow(color: Color.black.opacity(scrollOffset > 2 ? 0.18 : 0), radius: 8, y: 4)
                 Divider().background(Color.white.opacity(0.1))
@@ -64,14 +99,14 @@ struct HoleView: View {
                     }
                     .frame(height: 0)
                     mainContentView
-                }
+                }.padding(.bottom)
                 .coordinateSpace(name: "scrollView")
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                     scrollOffset = -value
                 }
                 bottomNavigation
             }
-        }
+        }.font(.body)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             initializeScores()
@@ -86,11 +121,11 @@ struct HoleView: View {
                     Text("Hole #\(currentHole)")
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     HStack(spacing: 4) {
                         Text("PAR")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.primary.opacity(0.7))
                         Button(action: { showParEditDialog() }) {
                             Text("\(currentPar)")
                                 .font(.caption)
@@ -98,7 +133,7 @@ struct HoleView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.white.opacity(0.2))
+                                .background(Color.primary.opacity(0.2))
                                 .cornerRadius(4)
                         }
                     }
@@ -123,13 +158,13 @@ struct HoleView: View {
                             return (32, 1.0, .green, 1.8)
                         case 1:
                             // Adjacent holes: white, 0.5 opacity, medium size
-                            return (22, 0.3, .white, 1.6)
+                            return (22, 0.3, (colorScheme == .dark ? Color.white : Color.black), 1.6)
                         case 2:
                             // Two away: white, 0.2 opacity, small size
-                            return (16, 0.1, .white, 1.6)
+                            return (16, 0.1, (colorScheme == .dark ? Color.white : Color.black), 1.6)
                         default:
                             // Should not appear, but fallback
-                            return (16, 0.0, .white, 1.6)
+                            return (16, 0.0, (colorScheme == .dark ? Color.white : Color.black), 1.6)
                         }
                     }()
                     Button(action: { currentHole = hole }) {
@@ -147,32 +182,28 @@ struct HoleView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
-        }
-        .background(Color(red: 40/255, green: 44/255, blue: 50/255))
+        }.background(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1)).cornerRadius(4
+        )
     }
     
     // Add function to show par edit dialog
     private func showParEditDialog() {
         let alert = UIAlertController(title: "Edit Par", message: "Hole \(currentHole)", preferredStyle: .alert)
-        
         alert.addTextField { textField in
             textField.placeholder = "Par (3, 4, or 5)"
             textField.keyboardType = .numberPad
             textField.text = "\(currentPar)"
         }
-        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Save", style: .default) { _ in
             if let text = alert.textFields?.first?.text,
                let newPar = Int(text), newPar >= 3 && newPar <= 5 {
-                // Update the persistent par data
                 roundScoreData.par[currentHole - 1] = newPar
                 roundScoreData.updateLastModified()
                 ScoreDataManager.shared.saveScoreData(roundScoreData)
+                onScoresChanged?(roundScoreData)
             }
         })
-        
-        // Present the alert
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
             window.rootViewController?.present(alert, animated: true)
@@ -209,7 +240,7 @@ struct HoleView: View {
                                     Text(player.prefix(2).uppercased())
                                         .font(.caption)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
                                 )
                             if index == currentPlayerIndex {
                                 Circle()
@@ -229,147 +260,231 @@ struct HoleView: View {
     
     private var scoringDetails: some View {
         VStack(spacing: 16) {
-            scoringRow(title: "Score", value: getCurrentScore(), binding: .constant(getCurrentScore()))
-            scoringRow(title: "Putts", value: getCurrentPutts(), binding: .constant(getCurrentPutts()))
-            scoringRow(title: "Sand Shots", value: getCurrentSandShots(), binding: .constant(getCurrentSandShots()))
-            scoringRow(title: "Penalties", value: getCurrentPenalties(), binding: .constant(getCurrentPenalties()))
-            
-            booleanRow(title: "Fairway", value: getCurrentFairway()) { value in
-                setFairway(value)
+            // Add club randomization section for specific game types
+            if roundTypeEnum == .randomize || roundTypeEnum == .sticktalk {
+                clubRandomizationSection
+            }
+            scoringRow(title: "Score", value: getCurrentScore(), binding: scoreBinding())
+            scoringRow(title: "Putts", value: getCurrentPutts(), binding: puttsBinding())
+            scoringRow(title: "Sand Shots", value: getCurrentSandShots(), binding: sandShotsBinding())
+            scoringRow(title: "Penalties", value: getCurrentPenalties(), binding: penaltiesBinding())
+            booleanRow(title: "Fairway", value: getCurrentFairway(), binding: fairwayBinding())
+            booleanRow(title: "GIR", value: getCurrentGIR(), binding: girBinding())
+        }
+    }
+    
+    // MARK: - Bindings for current player/hole
+    private func scoreBinding() -> Binding<Int> {
+        Binding<Int>(
+            get: { roundScoreData.playerScores[currentPlayer]?.scores[safe: currentHole - 1] ?? 0 },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.scores[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+    private func puttsBinding() -> Binding<Int> {
+        Binding<Int>(
+            get: { roundScoreData.playerScores[currentPlayer]?.putts[safe: currentHole - 1] ?? 0 },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.putts[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+    private func sandShotsBinding() -> Binding<Int> {
+        Binding<Int>(
+            get: { roundScoreData.playerScores[currentPlayer]?.sandShots[safe: currentHole - 1] ?? 0 },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.sandShots[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+    private func penaltiesBinding() -> Binding<Int> {
+        Binding<Int>(
+            get: { roundScoreData.playerScores[currentPlayer]?.penalties[safe: currentHole - 1] ?? 0 },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.penalties[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+    private func fairwayBinding() -> Binding<Bool?> {
+        Binding<Bool?>(
+            get: { roundScoreData.playerScores[currentPlayer]?.fairways[safe: currentHole - 1] ?? nil },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.fairways[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+    private func girBinding() -> Binding<Bool?> {
+        Binding<Bool?>(
+            get: { roundScoreData.playerScores[currentPlayer]?.gir[safe: currentHole - 1] ?? nil },
+            set: { newValue in
+                if roundScoreData.playerScores[currentPlayer] == nil {
+                    roundScoreData.playerScores[currentPlayer] = PlayerScoreData(holes: round.holes)
+                }
+                roundScoreData.playerScores[currentPlayer]?.gir[safe: currentHole - 1] = newValue
+                saveScoreData()
+                onScoresChanged?(roundScoreData)
+            }
+        )
+    }
+
+    private var clubRandomizationSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: roundTypeEnum.icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(roundTypeEnum.color)
+                Text(roundTypeEnum == .randomize ? "Assigned Club" : "Club Randomizer")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Spacer()
             }
             
-            booleanRow(title: "GIR", value: getCurrentGIR()) { value in
-                setGIR(value)
+            if roundTypeEnum == .randomize {
+                // For "Randomize" game type: show pre-assigned club
+                randomizeClubDisplay
+            } else if roundTypeEnum == .sticktalk {
+                // For "Stick Talk" game type: show randomizer button
+                stickTalkRandomizer
+            }
+        }
+        .padding()
+        .background(roundTypeEnum.color.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
+    private var randomizeClubDisplay: some View {
+        VStack(spacing: 8) {
+            if let assignedClub = clubRandomizer.getAssignedClub(for: currentPlayer, holeNumber: currentHole, roundId: round.id) {
+                HStack {
+                    Image(systemName: assignedClub.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(.orange)
+                    Text(assignedClub.displayName)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            } else {
+                Text("No club assigned for this hole")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .italic()
             }
         }
     }
     
-    private func scoringRow(title: String, value: Int, binding: Binding<Int>) -> some View {
-        HStack {
-            Text(title)
-                .font(.body)
+    private var stickTalkRandomizer: some View {
+        VStack(spacing: 12) {
+            if let selectedClub = selectedClub {
+                // Show selected club
+                HStack {
+                    Image(systemName: selectedClub.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(.blue)
+                    VStack(alignment: .leading) {
+                        Text(selectedClub.displayName)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                        Text("Use this club for your shot")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button(action: { clearSelectedClub() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
+            }
+            
+            // Randomize button
+            Button(action: { randomizeClubForCurrentPlayer() }) {
+                HStack {
+                    Image(systemName: "shuffle")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text(selectedClub == nil ? "Randomize Club" : "Get New Club")
+                        .font(.system(size: 16, weight: .semibold))
+                }
                 .foregroundColor(.white)
-                .frame(width: 100, alignment: .leading)
-            
-            Spacer()
-            
-            Button(action: { decrementValue(for: title) }) {
-                Image(systemName: "minus")
-                    .foregroundColor(.white)
-                    .frame(width: 30, height: 30)
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(4)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(Color.blue)
+                .cornerRadius(8)
             }
-            
-            Text("\(value)")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.green)
-                .frame(width: 40)
-            
-            Button(action: { incrementValue(for: title) }) {
-                Image(systemName: "plus")
-                    .foregroundColor(.white)
-                    .frame(width: 30, height: 30)
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(4)
-            }
-        }.padding(.bottom)
-    }
-    
-    private func booleanRow(title: String, value: Bool?, action: @escaping (Bool?) -> Void) -> some View {
-        HStack {
-            Text(title)
-                .font(.body)
-                .foregroundColor(.white)
-                .frame(width: 100, alignment: .leading)
-            
-            Spacer()
-            
-            HStack(spacing: 13) {
-                Button(action: { action(false) }) {
-                    Image(systemName: value == false ? "xmark" : "xmark")
-                        .foregroundColor(value == false ? .primary : .primary.opacity(0.3))
-                        .frame(width: 30, height: 30)
-                        .background(value == false ? Color.green : Color.white.opacity(0.1))
-                        .cornerRadius(4)
-                }
-                
-                Button(action: { action(true) }) {
-                    Image(systemName: value == true ? "checkmark" : "checkmark")
-                        .foregroundColor(value == true ? .primary : .primary.opacity(0.3))
-                        .frame(width: 30, height: 30)
-                        .background(value == true ? Color.green : Color.white.opacity(0.1))
-                        .cornerRadius(4)
-                }
-                
-                Button(action: { action(nil) }) {
-                    Image(systemName: "arrow.right")
-                        .foregroundColor(value == nil ? .primary : .primary.opacity(0.3))
-                        .frame(width: 30, height: 30)
-                        .background(value == nil ? Color.green : Color.white.opacity(0.1))
-                        .cornerRadius(4)
-                }
-            }
-        }.padding(.bottom)
-    }
-    
-    private var bottomNavigation: some View {
-        let accentColor = Color(red: 210/255, green: 233/255, blue: 90/255)
-        return HStack(spacing: 0) {
-            // Previous Arrow
-            Button(action: { previousHole() }) {
-                Image(systemName: "arrow.left")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 15, height: 15)
-                    .foregroundColor(.black)
-                    .padding(.top, 30)
-            }
-            .frame(width:100)
-            .frame(maxHeight: .infinity)
-            .background(accentColor)
-
-            // Scorecard Button
-            Button(action: { dismiss() }) {
-                VStack(spacing: 4) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 22)
-                        .foregroundColor(.white)
-                    Text("Scorecard")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                }
-                .padding(.top, 30)
-                .frame(maxWidth: .infinity, maxHeight: 50)
-            }
-            .background(.white.opacity(0.1))
-
-            // Next Arrow
-            Button(action: { nextHole() }) {
-                Image(systemName: "arrow.right")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 15, height: 15)
-                    .foregroundColor(.black)
-                    .padding(.top, 30)
-            }
-            .frame(width: 100)
-            .frame(maxHeight: .infinity)
-            .background(accentColor)
+            .buttonStyle(PlainButtonStyle())
         }
-        .frame(height: 50)
-        .background(Color(red: 40/255, green: 44/255, blue: 50/255))
     }
     
-    // MARK: - Helper Methods
+    // MARK: - Club Randomization Helper Methods
     
+    private func randomizeClubForCurrentPlayer() {
+        let randomClub = clubRandomizer.getRandomClubForPlayer(
+            playerName: currentPlayer,
+            holeNumber: currentHole,
+            roundId: round.id
+        )
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            selectedClub = randomClub
+        }
+    }
+    
+    private func clearSelectedClub() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            selectedClub = nil
+        }
+    }
+    
+    // Update the onAppear method to handle club assignments
     private func initializeScores() {
         // Score data is now managed by roundScoreData, no additional initialization needed
         saveScoreData()
+        
+        // Initialize club assignments for "Randomize" game type
+        if roundTypeEnum == .randomize && clubRandomizer.getAssignments(for: round.id) == nil {
+            // Pre-randomize clubs for all players and holes
+            let _ = clubRandomizer.preRandomizeClubsForRound(round)
+        }
+        
+        // Load existing club assignment for current player/hole if it exists
+        if roundTypeEnum == .sticktalk {
+            selectedClub = clubRandomizer.getAssignedClub(for: currentPlayer, holeNumber: currentHole, roundId: round.id)
+        }
     }
     
     private func getCurrentScore() -> Int {
@@ -477,6 +592,109 @@ struct HoleView: View {
             currentHole -= 1
         }
     }
+    
+    private func scoringRow(title: String, value: Int, binding: Binding<Int>) -> some View {
+        HStack {
+            Text(title)
+                .font(.body)
+                .foregroundColor(.primary)
+                .frame(width: 100, alignment: .leading)
+            Spacer()
+            Button(action: { binding.wrappedValue = max(0, binding.wrappedValue - 1) }) {
+                Image(systemName: "minus")
+                    .foregroundColor(.primary)
+                    .frame(width: 30, height: 30)
+                    .background(Color.primary.opacity(0.1))
+                    .cornerRadius(4)
+            }
+            Text("\(binding.wrappedValue)")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.green)
+                .frame(width: 40)
+            Button(action: { binding.wrappedValue += 1 }) {
+                Image(systemName: "plus")
+                    .foregroundColor(.primary)
+                    .frame(width: 30, height: 30)
+                    .background(Color.primary.opacity(0.1))
+                    .cornerRadius(4)
+            }
+        }.padding(.bottom)
+    }
+    private func booleanRow(title: String, value: Bool?, binding: Binding<Bool?>) -> some View {
+        HStack {
+            Text(title)
+                .font(.body)
+                .foregroundColor(.primary)
+                .frame(width: 100, alignment: .leading)
+            Spacer()
+            HStack(spacing: 13) {
+                Button(action: { binding.wrappedValue = false }) {
+                    Image(systemName: value == false ? "xmark" : "xmark")
+                        .foregroundColor(value == false ? .primary : Color(UIColor.systemBackground).opacity(0.7))
+                        .frame(width: 30, height: 30)
+                        .background(value == false ? Color.green : Color.primary.opacity(0.1))
+                        .cornerRadius(4)
+                }
+                Button(action: { binding.wrappedValue = true }) {
+                    Image(systemName: value == true ? "checkmark" : "checkmark")
+                        .foregroundColor(value == true ? .primary : Color(UIColor.systemBackground).opacity(0.7))
+                        .frame(width: 30, height: 30)
+                        .background(value == true ? Color.green : Color.primary.opacity(0.1))
+                        .cornerRadius(4)
+                }
+                Button(action: { binding.wrappedValue = nil }) {
+                    Image(systemName: "arrow.right")
+                        .foregroundColor(value == nil ? .primary : Color(UIColor.systemBackground).opacity(0.7))
+                        .frame(width: 30, height: 30)
+                        .background(value == nil ? Color.green : Color.primary.opacity(0.1))
+                        .cornerRadius(4)
+                }
+            }
+        }.padding(.bottom)
+    }
+    
+    private var bottomNavigation: some View {
+        return HStack(spacing: 0) {
+            // Previous Arrow
+            Button(action: { previousHole() }) {
+                Image(systemName: "arrow.left")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
+                    .foregroundColor(.black)
+            }
+            .frame(width:100)
+            .frame(maxHeight: .infinity)
+            .background(.green)
+
+            // Scorecard Button
+            Button(action: { dismiss() }) {
+                VStack(spacing: 4) {
+                    Text("Scorecard")
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+                .font(.caption)
+                .frame(maxWidth: .infinity, maxHeight: 50)
+            }
+            .background(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1))
+
+            // Next Arrow
+            Button(action: { nextHole() }) {
+                Image(systemName: "arrow.right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
+                    .foregroundColor(.black)
+            }
+            .frame(width: 100)
+            .frame(maxHeight: .infinity)
+            .background(.green)
+        }
+        .frame(height: 50)
+        .cornerRadius(4).padding()
+    }
 }
 
 // User detail card for selected player
@@ -486,13 +704,15 @@ struct UserDetailCard: View {
     let stat1: Double
     let stat2: Int
     let isCurrentUser: Bool
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(name)
                     .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 HStack(spacing: 8) {
                     Text(String(format: "%.1f", stat1))
                         .font(.caption)
@@ -526,12 +746,12 @@ struct UserDetailCard: View {
             Text(score > 0 ? "+\(score)" : "\(score)")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .padding(.top, 2)
         }
         .padding()
-        .background(Color(red: 40/255, green: 44/255, blue: 50/255))
-        .cornerRadius(12)
+        .background(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1))
+        .cornerRadius(4)
     }
 }
 

@@ -15,6 +15,8 @@ struct RoundSubView: View {
     @State private var showScorecard = false
     @State private var showEditRound = false // Add state for showing edit view
     @State private var roundScoreData: RoundScoreData?
+    @State private var showRoundTypeDescription = false // For info sheet
+    @State private var selectedHoleAndPlayer: SelectedHoleAndPlayer? = nil // Add for HoleView integration
     
     // Remove the inline editing states since we'll use NewRoundView
     // @State private var isEditingDetails = false
@@ -26,6 +28,10 @@ struct RoundSubView: View {
     // Add initializer to accept round parameter
     init(round: Round) {
         self._round = State(initialValue: round)
+    }
+    
+    private var roundTypeEnum: RoundType {
+        RoundType.from(string: round.roundType)
     }
 
     var body: some View {
@@ -42,10 +48,38 @@ struct RoundSubView: View {
                 }
             } else {
                 Color(.systemBackground).ignoresSafeArea()
-                VStack {
+                VStack(spacing: 0) {
+                    // --- ROUND TYPE INDICATOR ---
+                    HStack(spacing: 16) {
+                        Image(systemName: roundTypeEnum.icon)
+                            .font(.system(size: 32))
+                            .foregroundColor(roundTypeEnum.color)
+                            .frame(width: 44, height: 44)
+                            .background(roundTypeEnum.color.opacity(0.12))
+                            .clipShape(Circle())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(roundTypeEnum.displayName)
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Text(roundTypeEnum.shortDescription)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Button(action: { showRoundTypeDescription = true }) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 22))
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.bottom, 8)
+                    .padding(.top, 8)
+                    .sheet(isPresented: $showRoundTypeDescription) {
+                        RoundTypeDescriptionView(roundType: roundTypeEnum)
+                    }
+                    // --- END ROUND TYPE INDICATOR ---
                     headerView
-                    Divider()
-                        .background(.primary)
+                    Divider().background(.primary)
                     roundResultsView
                     Spacer()
                     bottomButtonsView
@@ -95,24 +129,38 @@ struct RoundSubView: View {
                 Text(round.date, style: .date)
                     .foregroundColor(.secondary)
                     .font(.footnote)
-                Text(round.courseName)
-                    .font(.system(size: 34, weight: .thin, design: .default))
-                    .foregroundColor(.primary)
-                    .lineSpacing(0)
-                    .fixedSize(horizontal: false, vertical: true)
                 
-                Button(action: {
-                    showEditRound = true
-                }) {
-                    Text("Edit Round Details")
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                Button(action: { dismiss() }) {
+                    GenericHeader(title: round.courseName, iconName: "chevron.left")
                 }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Color(UIColor.systemBackground))
-                .background(Color.gray)
-                .cornerRadius(6)
-                .padding(.bottom, 16)
+                HStack{
+                    Button(action: {
+                        showEditRound = true
+                    }) {
+                        Text("Edit Details")
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color(UIColor.systemBackground))
+                    .background(Color.gray)
+                    .cornerRadius(6)
+                    .padding(.bottom, 16)
+                    // Round type badge
+                    HStack(spacing: 8) {
+                        Image(systemName: roundTypeEnum.icon)
+                            .font(.system(size: 16))
+                            .foregroundColor(roundTypeEnum.color)
+                        
+                        Text(roundTypeEnum.displayName)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(roundTypeEnum.color.opacity(0.1))
+                    .cornerRadius(8)
+                }
             }
             statsRow
                 .padding(.vertical, 18)
@@ -212,13 +260,6 @@ struct RoundSubView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.gray)
-                    .cornerRadius(10)
-            }
-            Button(action: { dismiss() }) {
-                Text("Back")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.green)
-                    .frame(maxWidth: .infinity)
                     .cornerRadius(10)
             }
         }
