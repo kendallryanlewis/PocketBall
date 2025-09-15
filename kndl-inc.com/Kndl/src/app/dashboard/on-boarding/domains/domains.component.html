@@ -1,0 +1,390 @@
+<div class="domain-setup-container">
+    <!-- Step 1: Choose Your Domain Option -->
+    <div *ngIf="currentStep === 1" class="step-container">
+        <div class="step-header">
+            <h2>Domain Setup</h2>
+            <p>Choose how you'd like to handle your domain name</p>
+        </div>
+
+        <div class="domain-options-grid">
+            <div *ngFor="let option of domainOptions" class="domain-option-card"
+                [class.recommended]="option.recommended" (click)="selectOption(option)">
+                <div class="option-header">
+                    <h3>{{ option.title }}</h3>
+                    <div class="price">
+                        <span *ngIf="option.price === 0">Free</span>
+                        <span *ngIf="option.price > 0">${{ option.price }}</span>
+                    </div>
+                </div>
+                <p class="option-description">{{ option.description }}</p>
+                <ul class="feature-list">
+                    <li *ngFor="let feature of option.features">
+                        <i class="fas fa-check"></i>
+                        {{ feature }}
+                    </li>
+                </ul>
+                <div *ngIf="option.recommended" class="recommended-badge">
+                    <i class="fas fa-star"></i>
+                    Recommended
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Domain Search (if self-service) -->
+    <div *ngIf="currentStep === 2 && selectedOption?.id === 'self-service'" class="step-container">
+        <div class="step-header">
+            <button class="back-button" (click)="prevStep()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <h2>Find Your Perfect Domain</h2>
+            <p>Search for your ideal domain name or choose from our suggestions</p>
+        </div>
+
+        <div class="domain-search">
+            <div class="search-input-container">
+                <input type="text" [(ngModel)]="domainName" [placeholder]="getDomainSearchPlaceholder()"
+                    class="domain-search-input" [class.invalid]="!isDomainNameValid() && domainName.length > 0"
+                    (keyup.enter)="searchDomain()" (input)="searchError = ''">
+                <button class="search-button" [disabled]="isSearching || !isDomainNameValid()" (click)="searchDomain()">
+                    <i class="fas fa-search" *ngIf="!isSearching"></i>
+                    <i class="fas fa-spinner fa-spin" *ngIf="isSearching"></i>
+                </button>
+                <button class="clear-button" *ngIf="domainName.length > 0" (click)="domainName = ''; clearSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Selected Domain Display -->
+            <div class="selected-domain-display" *ngIf="selectedDomain">
+                <div class="selected-domain-info">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Selected: <strong>{{ selectedDomain.domain }}</strong></span>
+                    <span class="selected-price">${{ selectedDomain.price }}/year</span>
+                </div>
+                <button class="change-selection" (click)="selectedDomain = null">
+                    Change Selection
+                </button>
+            </div>
+
+            <div class="domain-suggestions" *ngIf="domainSuggestions.length > 0">
+                <h4>Domain Availability & Pricing:</h4>
+                <div class="suggestion-grid">
+                    <div *ngFor="let suggestion of domainSuggestions" class="domain-suggestion"
+                        [class.unavailable]="!suggestion.available"
+                        [class.selected]="isDomainSelected(suggestion.domain)">
+
+                        <!-- Domain Header -->
+                        <div class="domain-header">
+                            <div class="domain-name-section">
+                                <span class="domain-name">{{ suggestion.domain }}</span>
+                                <span class="domain-tld-badge"
+                                    [attr.data-category]="suggestion.category?.toLowerCase()">
+                                    .{{ suggestion.tld }}
+                                </span>
+                            </div>
+                            <div class="availability-status" [class.available]="suggestion.available"
+                                [class.unavailable]="!suggestion.available">
+                                <i class="fas fa-check-circle" *ngIf="suggestion.available"></i>
+                                <i class="fas fa-times-circle" *ngIf="!suggestion.available"></i>
+                                {{ suggestion.available ? 'Available' : 'Taken' }}
+                            </div>
+                        </div>
+
+                        <!-- Domain Details (only if available) -->
+                        <div class="domain-details" *ngIf="suggestion.available">
+                            <p class="domain-description">{{ suggestion.description }}</p>
+
+                            <!-- Pricing Information -->
+                            <div class="pricing-info" *ngIf="suggestion.multiRegistrarData">
+                                <div class="price-comparison">
+                                    <div class="best-price" *ngIf="suggestion.multiRegistrarData.bestPrice">
+                                        <span class="price-label">Best Price:</span>
+                                        <span class="price-value">${{ suggestion.multiRegistrarData.bestPrice.price
+                                            }}</span>
+                                        <span class="registrar-name">at {{
+                                            suggestion.multiRegistrarData.bestPrice.registrar }}</span>
+                                    </div>
+                                    <div class="recommended-price"
+                                        *ngIf="suggestion.multiRegistrarData.recommended && suggestion.multiRegistrarData.recommended !== suggestion.multiRegistrarData.bestPrice">
+                                        <span class="price-label">Recommended:</span>
+                                        <span class="price-value">${{ suggestion.multiRegistrarData.recommended.price
+                                            }}</span>
+                                        <span class="registrar-name">at {{
+                                            suggestion.multiRegistrarData.recommended.registrar }}</span>
+                                    </div>
+                                </div>
+                                <div class="price-range" *ngIf="suggestion.multiRegistrarData.results.length > 1">
+                                    <span class="price-label">Price range: ${{
+                                        getMinPrice(suggestion.multiRegistrarData) }} - ${{
+                                        getMaxPrice(suggestion.multiRegistrarData) }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Fallback pricing for non-multi-registrar data -->
+                            <div class="pricing-info" *ngIf="!suggestion.multiRegistrarData">
+                                <div class="price-main">
+                                    <span class="price-label">First Year:</span>
+                                    <span class="price-value">${{ suggestion.price }}</span>
+                                </div>
+                                <div class="price-renewal" *ngIf="suggestion.renewalPrice !== suggestion.price">
+                                    <span class="price-label">Renewal:</span>
+                                    <span class="price-value">${{ suggestion.renewalPrice }}/year</span>
+                                </div>
+                            </div>
+
+                            <!-- Domain Features -->
+                            <div class="domain-features" *ngIf="suggestion.features && suggestion.features.length > 0">
+                                <div class="feature-list">
+                                    <span *ngFor="let feature of suggestion.features.slice(0, 3)" class="feature-tag">
+                                        <i class="fas fa-star"></i> {{ feature }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="domain-actions">
+                                <button class="select-domain-btn" [class.selected]="isDomainSelected(suggestion.domain)"
+                                    (click)="selectDomain(suggestion)">
+                                    <span *ngIf="isDomainSelected(suggestion.domain)">
+                                        <i class="fas fa-check"></i> Selected
+                                    </span>
+                                    <span *ngIf="!isDomainSelected(suggestion.domain)">
+                                        <i class="fas fa-heart"></i> Select
+                                    </span>
+                                </button>
+
+                                <!-- Quick Purchase Button -->
+                                <div class="purchase-options">
+                                    <button class="purchase-btn primary" (click)="purchaseDomain(suggestion)">
+                                        <i class="fas fa-shopping-cart"></i> Buy Now
+                                    </button>
+
+                                    <!-- Registrar Options Dropdown -->
+                                    <div class="registrar-dropdown">
+                                        <button class="dropdown-toggle" type="button">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <div class="registrar-header">Choose Registrar:</div>
+                                            <div *ngFor="let registrar of suggestion.registrars"
+                                                class="registrar-option"
+                                                (click)="purchaseDomain(suggestion, registrar)">
+                                                <div class="registrar-info">
+                                                    <span class="registrar-name">{{ registrar.name }}</span>
+                                                    <div class="registrar-rating">
+                                                        <span *ngFor="let star of [1,2,3,4,5]" class="star"
+                                                            [class.filled]="star <= registrar.rating">
+                                                            <i class="fas fa-star"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="registrar-price">${{ registrar.price }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unavailable Domain Message -->
+                        <div class="unavailable-message" *ngIf="!suggestion.available">
+                            <p>This domain is already registered.</p>
+                            <button class="suggest-alternatives" (click)="searchDomain()">
+                                <i class="fas fa-search"></i> Find Alternatives
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Status Messages -->
+                <div class="search-status">
+                    <div class="search-error" *ngIf="searchError">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ searchError }}
+                    </div>
+
+                    <div class="search-help" *ngIf="domainSuggestions.length === 0 && !isSearching && !searchError">
+                        <i class="fas fa-lightbulb"></i>
+                        <p>Try searching for your business name to see domain availability and pricing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-step-actions">
+            <div class="domain-setup-summary" *ngIf="selectedDomain">
+                <div class="summary-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Domain selected: <strong>{{ selectedDomain.domain }}</strong></span>
+                    <span class="price-note">${{ selectedDomain.price }}/year</span>
+                </div>
+            </div>
+
+            <button class="continue-btn" (click)="nextStep()">
+                <span *ngIf="selectedDomain">Continue with {{ selectedDomain.domain }}</span>
+                <span *ngIf="!selectedDomain">Continue to Setup Guide</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <p class="help-text" *ngIf="!selectedDomain">
+                You can continue without selecting a domain now. The setup guide will help you choose one later.
+            </p>
+        </div>
+    </div>
+
+    <!-- Step 3: Self-Service Guide -->
+    <div *ngIf="currentStep === 3 && selectedOption?.id === 'self-service'" class="step-container">
+        <div class="step-header">
+            <button class="back-button" (click)="prevStep()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <h2>Domain Setup Guide</h2>
+            <p>Follow these steps to purchase and configure your domain</p>
+        </div>
+
+        <div class="setup-guide">
+            <div class="progress-overview">
+                <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="(getCompletedSteps() / selfPurchaseSteps.length) * 100">
+                    </div>
+                </div>
+                <span class="progress-text">
+                    {{ getCompletedSteps() }} of {{ selfPurchaseSteps.length }} completed
+                </span>
+            </div>
+
+            <div class="setup-steps">
+                <div *ngFor="let step of selfPurchaseSteps; let i = index" class="setup-step"
+                    [class.completed]="step.completed">
+                    <div class="step-number">
+                        <i class="fas fa-check" *ngIf="step.completed"></i>
+                        <span *ngIf="!step.completed">{{ i + 1 }}</span>
+                    </div>
+                    <div class="step-content">
+                        <h4>{{ step.title }}</h4>
+                        <p>{{ step.description }}</p>
+                        <label class="completion-checkbox">
+                            <input type="checkbox" [checked]="step.completed" (change)="toggleStepCompletion(i)">
+                            <span class="checkmark"></span>
+                            Mark as completed
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="helpful-links">
+                <h4>Recommended Registrars:</h4>
+                <div class="registrar-links">
+                    <a href="https://www.namecheap.com" target="_blank" class="registrar-link">
+                        <i class="fas fa-external-link-alt"></i>
+                        Namecheap
+                    </a>
+                    <a href="https://domains.google.com" target="_blank" class="registrar-link">
+                        <i class="fas fa-external-link-alt"></i>
+                        Google Domains
+                    </a>
+                    <a href="https://www.porkbun.com" target="_blank" class="registrar-link">
+                        <i class="fas fa-external-link-alt"></i>
+                        Porkbun
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-step-actions">
+            <button class="continue-btn" [disabled]="getCompletedSteps() < selfPurchaseSteps.length"
+                (click)="proceedToNext()">
+                Continue to Next Step
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 2: Pixel & Post Managed Service -->
+    <div *ngIf="currentStep === 2 && selectedOption?.id === 'pixel-post-managed'" class="step-container">
+        <div class="step-header">
+            <button class="back-button" (click)="prevStep()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <h2>We'll Handle Everything</h2>
+            <p>Let us take care of your domain setup completely</p>
+        </div>
+
+        <div class="managed-service-details">
+            <div class="service-overview">
+                <div class="service-icon">
+                    <i class="fas fa-concierge-bell"></i>
+                </div>
+                <h3>Full-Service Domain Management</h3>
+                <p>Our team will handle every aspect of your domain setup, so you can focus on your business.</p>
+            </div>
+
+            <div class="service-features">
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-search"></i>
+                        <h4>Domain Research</h4>
+                        <p>We'll help you find the perfect domain name that represents your brand</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h4>Purchase & Registration</h4>
+                        <p>We'll handle the entire purchase process and registration</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-cogs"></i>
+                        <h4>Technical Setup</h4>
+                        <p>Complete DNS configuration and hosting connection</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Email Configuration</h4>
+                        <p>Professional email setup with forwarding to your existing email</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-sync-alt"></i>
+                        <h4>Renewal Management</h4>
+                        <p>We'll manage renewals so your domain never expires</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-headset"></i>
+                        <h4>Ongoing Support</h4>
+                        <p>Priority technical support for any domain-related questions</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-summary">
+                <div class="price-breakdown">
+                    <div class="price-item">
+                        <span>Domain Setup Service</span>
+                        <span>$75</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Domain Registration (1st year)</span>
+                        <span>Included</span>
+                    </div>
+                    <div class="price-item total">
+                        <span>Total</span>
+                        <span>$75</span>
+                    </div>
+                </div>
+                <p class="pricing-note">
+                    <i class="fas fa-info-circle"></i>
+                    This is a one-time setup fee. Annual domain renewals (~$15/year) will be managed by us.
+                </p>
+            </div>
+        </div>
+
+        <div class="next-step-actions">
+            <button class="continue-btn" (click)="proceedToNext()">
+                Add to My Package
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>

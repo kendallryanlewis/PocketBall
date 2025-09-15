@@ -1,0 +1,203 @@
+<div class="dashboard p-2 p-md-5">
+    <div class="dashboard-container position-relative overflow-auto">
+        <!-- Mobile Navigation Toggle -->
+        <button class="mobile-nav-toggle d-md-none position-fixed top-0 start-0 m-3" style="z-index: 1060;"
+            (click)="toggleMobileNav()">
+            <i class="fa fa-bars"></i>
+        </button>
+
+        <!-- Mobile Navigation Overlay -->
+        <div class="mobile-nav-overlay" [class.show]="showMobileNav" (click)="closeMobileNav()"></div>
+
+        <!-- Mobile Navigation Menu -->
+        <nav class="mobile-nav d-md-none" [class.show]="showMobileNav">
+            <div class="text-center mb-4">
+                <h6 class="text-white mb-0">
+                    <span class="opacity-50">Pixel & Post</span>
+                    <h4 class="text-tan m-0">KNDL</h4>
+                </h6>
+            </div>
+
+            <ng-container *ngIf="!administrator">
+                <a class="nav-item" (click)="onTabChange('onboarding'); closeMobileNav()"
+                    [class.active]="selectedTab === 'onboarding'">
+                    <i class="fa fa-rocket me-2"></i>Getting Started
+                </a>
+                <a class="nav-item" (click)="onTabChange('dashboard'); closeMobileNav()"
+                    [class.active]="selectedTab === 'dashboard'">
+                    <i class="fa fa-home me-2"></i>Dashboard
+                </a>
+                <a class="nav-item" (click)="onTabChange('designs'); closeMobileNav()"
+                    [class.active]="selectedTab === 'designs'">
+                    <i class="fa fa-paint-brush me-2"></i>Designs
+                </a>
+                <a class="nav-item" (click)="onTabChange('billing'); closeMobileNav()"
+                    [class.active]="selectedTab === 'billing'">
+                    <i class="fa fa-credit-card me-2"></i>Billing
+                </a>
+                <a class="nav-item" (click)="onTabChange('support'); closeMobileNav()"
+                    [class.active]="selectedTab === 'support'">
+                    <i class="fa fa-life-ring me-2"></i>Support
+                </a>
+            </ng-container>
+
+            <ng-container *ngIf="administrator">
+                <a class="nav-item" (click)="onTabChange('admin'); closeMobileNav()"
+                    [class.active]="selectedTab === 'admin-dashboard'">
+                    <i class="fa fa-home me-2"></i>Dashboard
+                </a>
+                <a class="nav-item" (click)="onTabChange('adminTasks'); closeMobileNav()"
+                    [class.active]="selectedTab === 'adminTasks'">
+                    <i class="fa fa-tasks me-2"></i>Tasks
+                </a>
+                <a class="nav-item" (click)="onTabChange('adminSites'); closeMobileNav()"
+                    [class.active]="selectedTab === 'adminSites'">
+                    <i class="fa fa-globe me-2"></i>Sites
+                </a>
+                <a class="nav-item" (click)="onTabChange('users'); closeMobileNav()"
+                    [class.active]="selectedTab === 'users'">
+                    <i class="fa fa-users me-2"></i>Users
+                </a>
+                <a class="nav-item" (click)="onTabChange('adminBilling'); closeMobileNav()"
+                    [class.active]="selectedTab === 'adminBilling'">
+                    <i class="fa fa-life-ring me-2"></i>Billing
+                </a>
+                <a class="nav-item" (click)="onTabChange('adminWiki'); closeMobileNav()"
+                    [class.active]="selectedTab === 'adminWiki'">
+                    <i class="fa fa-book me-2"></i>Wiki
+                </a>
+            </ng-container>
+
+            <a class="nav-item" (click)="logout()">
+                <i class="fa fa-sign-out me-2"></i>Logout
+            </a>
+        </nav>
+
+        <img src="../../assets/Images/accent.png" class="d-none d-md-block position-fixed bottom-0 end-0 opacity-5"
+            style="transform: scaleX(-1); z-index: 0; pointer-events: none;" alt="Dashboard Background">
+        <div class="d-none d-md-block position-fixed bottom-0 start-0 p-5 opacity-50">
+            <footer class="footer small mt-auto p-5">
+                <h1>Pixel & Post<small>©</small></h1>
+                <div>
+                    KNDL ©<br />
+                    All Rights Reserved 2025
+                </div>
+            </footer>
+        </div>
+        <div class="d-flex flex-column h-100 overflow-hidden">
+            <!-- Top nav bar -->
+            <header class="d-flex flex-wrap align-items-center mb-2 mb-md-4 flex-shrink-0" style="min-height:60px;">
+                <div class="d-flex align-items-center col-12 col-md-1">
+                    <div class="logo me-3 w-100 d-mobile-none">
+                        <h6 class="text-white mb-0 cursor-pointer" routerLink="/">
+                            <span class="opacity-50 text-body">Pixel & Post</span>
+                            <h1 class="logo-title m-0 text-tan">KNDL</h1>
+                        </h6>
+                    </div>
+                    <!-- Mobile logo -->
+                    <div class="d-mobile-flex w-100 justify-content-center">
+                        <h6 class="text-white mb-0 cursor-pointer" routerLink="/">
+                            <span class="text-tan fw-bold">KNDL</span>
+                        </h6>
+                    </div>
+                </div>
+                <div class="px-2 px-md-5 d-none d-md-flex col-md-11">
+                    <div class="tabs justify-content-between d-flex w-100">
+                        <nav class="col-9 mt-auto pb-3">
+                            <div class="justify-content-start">
+                                <a *ngFor="let tabConfig of availableSectionIds" (click)="onSubTabChange(tabConfig)"
+                                    [class.active]="subTab === tabConfig">
+                                    {{ tabConfig | RemoveDashesAndCapitalize }}
+                                </a>
+                            </div>
+                        </nav>
+                        <div class="d-flex align-items-center pe-2 justify-content-between">
+                            <button class="user-profile w-100">
+                                <span class="w-100 text-end d-none d-lg-inline">Kendall Lewis</span>
+                                <span>
+                                    <img src="assets/Images/team.jpg" />
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex ms-3 my-auto icons ps-4">
+                        <button class="icon-button large me-2">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        <button class="icon-button large">
+                            <i class="fa fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- main body -->
+            <div class="d-flex flex-column flex-md-row flex-grow-1 overflow-hidden">
+                <aside class="d-none d-md-flex col-md-1 flex-column justify-content-between">
+                    <nav class="navigation mb-3">
+                        <ng-container *ngIf="!administrator">
+                            <a (click)="onTabChange('onboarding')" [class.active]="selectedTab === 'onboarding'">
+                                <i class="fa fa-rocket"></i>
+                                <span class="d-none d-lg-inline">Getting Started</span>
+                            </a>
+                            <a (click)="onTabChange('dashboard')" [class.active]="selectedTab === 'dashboard'">
+                                <i class="fa fa-home"></i>
+                                <span class="d-none d-lg-inline">Dashboard</span>
+                            </a>
+                            <a (click)="onTabChange('designs')" [class.active]="selectedTab === 'designs'">
+                                <i class="fa fa-paint-brush"></i>
+                                <span class="d-none d-lg-inline">Designs</span>
+                            </a>
+                            <a (click)="onTabChange('billing')" [class.active]="selectedTab === 'billing'">
+                                <i class="fa fa-credit-card"></i>
+                                <span class="d-none d-lg-inline">Billing</span>
+                            </a>
+                            <a (click)="onTabChange('support')" [class.active]="selectedTab === 'support'">
+                                <i class="fa fa-life-ring"></i>
+                                <span class="d-none d-lg-inline">Support</span>
+                            </a>
+                        </ng-container>
+                        <ng-container *ngIf="administrator">
+                            <a (click)="onTabChange('admin')" [class.active]="selectedTab === 'admin-dashboard'">
+                                <i class="fa fa-home"></i>
+                                <span class="d-none d-lg-inline">Dashboard</span>
+                            </a>
+                            <a (click)="onTabChange('adminTasks')" [class.active]="selectedTab === 'adminTasks'">
+                                <i class="fa fa-tasks"></i>
+                                <span class="d-none d-lg-inline">Tasks</span>
+                            </a>
+                            <a (click)="onTabChange('adminSites')" [class.active]="selectedTab === 'adminSites'">
+                                <i class="fa fa-globe"></i>
+                                <span class="d-none d-lg-inline">Sites</span>
+                            </a>
+                            <a (click)="onTabChange('users')" [class.active]="selectedTab === 'users'">
+                                <i class="fa fa-users"></i>
+                                <span class="d-none d-lg-inline">Users</span>
+                            </a>
+                            <a (click)="onTabChange('adminBilling')" [class.active]="selectedTab === 'adminBilling'">
+                                <i class="fa fa-life-ring"></i>
+                                <span class="d-none d-lg-inline">Billing</span>
+                            </a>
+                            <a (click)="onTabChange('adminWiki')" [class.active]="selectedTab === 'adminWiki'">
+                                <i class="fa fa-book"></i>
+                                <span class="d-none d-lg-inline">Wiki</span>
+                            </a>
+                        </ng-container>
+                        <a (click)="logout()">
+                            <i class="fa fa-sign-out"></i>
+                            <span class="d-none d-lg-inline">Logout</span>
+                        </a>
+                    </nav>
+                </aside>
+                <main class="col d-flex flex-column h-100">
+                    <div class="app-body-main-content w-100 flex-fill d-flex flex-column px-2 px-md-5 h-100">
+                        <app-tab-viewer [selectedTab]="selectedTab" [subTab]="subTab"
+                            (subTabChange)="onSubTabChange($any($event))"
+                            (selectedTabChange)="onSetSubTab($any($event))" (sectionIds)="onSectionIds($any($event))"
+                            (scroll)="updateActiveTabOnScroll()"
+                            class="flex-fill d-flex flex-column h-100 w-100 overflow-auto pe-0 pe-md-5"></app-tab-viewer>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+</div>

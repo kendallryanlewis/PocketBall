@@ -1,0 +1,563 @@
+<section class="admin-billing">
+    <div class="billing-sidebar">
+        <h3>Billing Management</h3>
+        <p class="sidebar-description">Monitor and manage all customer billing and payments</p>
+        <ul>
+            <li [class.active]="selectedTab === 'overview'" (click)="selectTab('overview')">
+                <i class="fa fa-chart-line"></i> Revenue Overview
+            </li>
+            <li [class.active]="selectedTab === 'customers'" (click)="selectTab('customers')">
+                <i class="fa fa-users"></i> Customer Billing
+            </li>
+            <li [class.active]="selectedTab === 'payments'" (click)="selectTab('payments')">
+                <i class="fa fa-credit-card"></i> Payment History
+            </li>
+            <li [class.active]="selectedTab === 'invoices'" (click)="selectTab('invoices')">
+                <i class="fa fa-file-invoice"></i> Invoices
+            </li>
+            <li [class.active]="selectedTab === 'subscriptions'" (click)="selectTab('subscriptions')">
+                <i class="fa fa-sync"></i> Subscriptions
+            </li>
+            <li [class.active]="selectedTab === 'pricing'" (click)="selectTab('pricing')">
+                <i class="fa fa-tags"></i> Service Pricing
+            </li>
+        </ul>
+        <div class="billing-stats">
+            <div class="stat-item">
+                <span class="stat-value">{{ formatCurrency(monthlyRevenue) }}</span>
+                <span class="stat-label">Monthly Revenue</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ activeCustomers }}</span>
+                <span class="stat-label">Active Customers</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ overdueInvoices }}</span>
+                <span class="stat-label">Overdue Invoices</span>
+            </div>
+        </div>
+    </div>
+    <div class="billing-content">
+        <!-- Revenue Overview -->
+        <div *ngIf="selectedTab === 'overview'">
+            <div class="content-header">
+                <h2>Revenue Overview</h2>
+                <p class="content-description">Track your company's financial performance and revenue trends</p>
+            </div>
+            <div class="revenue-cards">
+                <div class="revenue-card">
+                    <h4>Total Revenue</h4>
+                    <span class="amount">{{ formatCurrency(totalRevenue) }}</span>
+                    <span class="growth positive">+{{ totalGrowthPercentage }}% this month</span>
+                </div>
+                <div class="revenue-card">
+                    <h4>Monthly Recurring Revenue</h4>
+                    <span class="amount">{{ formatCurrency(monthlyRevenue) }}</span>
+                    <span class="growth positive">+{{ monthlyGrowthPercentage }}% this month</span>
+                </div>
+                <div class="revenue-card">
+                    <h4>Average Customer Value</h4>
+                    <span class="amount">{{ formatCurrency(averageCustomerValue) }}</span>
+                    <span class="growth positive">+{{ averageValueGrowthPercentage }}% this month</span>
+                </div>
+                <div class="revenue-card">
+                    <h4>Pending Payments</h4>
+                    <span class="amount">{{ pendingPayments }}</span>
+                    <span class="growth neutral">{{ overdueInvoices }} overdue</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Billing -->
+        <div *ngIf="selectedTab === 'customers'">
+            <div class="content-header">
+                <h2>Customer Billing</h2>
+                <p class="content-description">View and manage individual customer billing details and payment status
+                </p>
+            </div>
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Next Payment</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let customer of customers">
+                        <td>
+                            <div class="customer-info">
+                                <strong>{{ customer.name }}</strong>
+                                <span>{{ customer.email }}</span>
+                            </div>
+                        </td>
+                        <td><span class="plan-badge" [ngClass]="getPlanBadgeClass(customer.plan)">{{ customer.plan
+                                }}</span></td>
+                        <td>{{ formatDate(customer.nextPayment) }}</td>
+                        <td>{{ formatCurrency(customer.amount) }}</td>
+                        <td><span class="status-badge" [ngClass]="getStatusBadgeClass(customer.status)">{{
+                                customer.status }}</span></td>
+                        <td class="action-buttons">
+                            <button class="btn-view" (click)="viewCustomer(customer)" title="View Customer">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            <button class="btn-edit" (click)="editCustomer(customer)" title="Edit Customer">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payment History -->
+        <div *ngIf="selectedTab === 'payments'">
+            <div class="content-header">
+                <h2>Payment History</h2>
+                <p class="content-description">Complete record of all payments received from customers</p>
+            </div>
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Transaction ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let payment of paymentHistory">
+                        <td>{{ formatDate(payment.date) }}</td>
+                        <td>{{ payment.customer }}</td>
+                        <td>{{ formatCurrency(payment.amount) }}</td>
+                        <td>{{ payment.method }}</td>
+                        <td><span class="status-badge" [ngClass]="getStatusBadgeClass(payment.status)">{{ payment.status
+                                }}</span></td>
+                        <td class="transaction-id">{{ payment.transactionId }}</td>
+                        <td class="action-buttons">
+                            <button class="btn-download" (click)="downloadPaymentReceipt(payment)"
+                                title="Download Receipt">
+                                <i class="fa fa-download"></i>
+                            </button>
+                            <button *ngIf="payment.status === 'Failed'" class="btn-retry"
+                                (click)="retryFailedPayment(payment)" title="Retry Payment">
+                                <i class="fa fa-redo"></i>
+                            </button>
+                            <button *ngIf="payment.status === 'Completed'" class="btn-refund"
+                                (click)="refundPayment(payment)" title="Refund Payment">
+                                <i class="fa fa-undo"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Invoices -->
+        <div *ngIf="selectedTab === 'invoices'">
+            <div class="content-header">
+                <h2>Invoices</h2>
+                <p class="content-description">Manage and track all customer invoices and billing statements</p>
+            </div>
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let invoice of invoices">
+                        <td>{{ invoice.number }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ formatCurrency(invoice.amount) }}</td>
+                        <td>{{ formatDate(invoice.dueDate) }}</td>
+                        <td><span class="status-badge" [ngClass]="getStatusBadgeClass(invoice.status)">{{ invoice.status
+                                }}</span></td>
+                        <td class="action-buttons">
+                            <button class="btn-view" (click)="viewInvoice(invoice)" title="View Invoice">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            <button class="btn-download" (click)="downloadInvoice(invoice)" title="Download Invoice">
+                                <i class="fa fa-download"></i>
+                            </button>
+                            <button *ngIf="invoice.status === 'Draft' || invoice.status === 'Sent'" class="btn-send"
+                                (click)="sendInvoice(invoice)" title="Send Invoice">
+                                <i class="fa fa-envelope"></i>
+                            </button>
+                            <button *ngIf="invoice.status === 'Sent' || invoice.status === 'Overdue'" class="btn-paid"
+                                (click)="markInvoicePaid(invoice)" title="Mark as Paid">
+                                <i class="fa fa-check"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Subscriptions -->
+        <div *ngIf="selectedTab === 'subscriptions'">
+            <div class="content-header">
+                <h2>Subscriptions</h2>
+                <p class="content-description">Monitor all active and cancelled subscription plans</p>
+            </div>
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Started</th>
+                        <th>Next Billing</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let subscription of subscriptions">
+                        <td>{{ subscription.customer }}</td>
+                        <td>
+                            <span class="plan-badge" [ngClass]="getPlanBadgeClass(subscription.plan)">{{
+                                subscription.plan }}</span>
+                            <span *ngIf="subscription.discount" class="discount-badge">-{{ subscription.discount
+                                }}%</span>
+                        </td>
+                        <td>{{ formatDate(subscription.startDate) }}</td>
+                        <td>{{ formatDate(subscription.nextBilling) }}</td>
+                        <td><span class="status-badge" [ngClass]="getStatusBadgeClass(subscription.status)">{{
+                                subscription.status }}</span></td>
+                        <td class="action-buttons">
+                            <button *ngIf="subscription.status === 'Active'" class="btn-pause"
+                                (click)="pauseSubscription(subscription)" title="Pause Subscription">
+                                <i class="fa fa-pause"></i>
+                            </button>
+                            <button *ngIf="subscription.status === 'Paused'" class="btn-play"
+                                (click)="reactivateSubscription(subscription)" title="Reactivate Subscription">
+                                <i class="fa fa-play"></i>
+                            </button>
+                            <button *ngIf="subscription.status !== 'Cancelled'" class="btn-cancel"
+                                (click)="cancelSubscription(subscription)" title="Cancel Subscription">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <button *ngIf="subscription.status === 'Cancelled'" class="btn-reactivate"
+                                (click)="reactivateSubscription(subscription)" title="Reactivate Subscription">
+                                <i class="fa fa-undo"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Service Pricing -->
+        <div *ngIf="selectedTab === 'pricing'">
+            <div class="content-header">
+                <h2>Service Pricing Management</h2>
+                <p class="content-description">Manage pricing for subscription plans and individual services</p>
+            </div>
+
+            <!-- Service Plans Section -->
+            <div class="pricing-section">
+                <div class="section-header">
+                    <h3>Subscription Plans</h3>
+                    <button class="btn-primary" (click)="createNewServicePlan()">
+                        <i class="fa fa-plus"></i> Add New Plan
+                    </button>
+                </div>
+                <div class="plans-grid">
+                    <div class="plan-card" *ngFor="let plan of servicePlans"
+                        [ngClass]="{'deprecated': plan.status === 'Deprecated', 'popular': plan.isPopular}">
+                        <div class="plan-header">
+                            <h4>{{ plan.name }}</h4>
+                            <span class="popular-badge" *ngIf="plan.isPopular">Most Popular</span>
+                            <span class="status-badge" [ngClass]="getStatusBadgeClass(plan.status)">{{ plan.status
+                                }}</span>
+                        </div>
+                        <div class="plan-pricing">
+                            <div class="price-display">
+                                <span class="monthly-price">{{ formatCurrency(plan.monthlyPrice)
+                                    }}<small>/month</small></span>
+                                <span class="yearly-price">{{ formatCurrency(plan.yearlyPrice)
+                                    }}<small>/year</small></span>
+                            </div>
+                        </div>
+                        <div class="plan-description">
+                            <p>{{ plan.description }}</p>
+                        </div>
+                        <div class="plan-features">
+                            <ul>
+                                <li *ngFor="let feature of plan.features">
+                                    <i class="fa fa-check"></i> {{ feature }}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="plan-actions">
+                            <button class="btn-edit" (click)="editServicePlan(plan)" title="Edit Plan">
+                                <i class="fa fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-toggle" (click)="toggleServicePlanStatus(plan)"
+                                [title]="plan.status === 'Active' ? 'Deactivate Plan' : 'Activate Plan'">
+                                <i class="fa" [ngClass]="plan.status === 'Active' ? 'fa-pause' : 'fa-play'"></i>
+                                {{ plan.status === 'Active' ? 'Deactivate' : 'Activate' }}
+                            </button>
+                            <button class="btn-delete" (click)="deleteServicePlan(plan)" title="Delete Plan">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        <div class="plan-meta">
+                            <small>Last modified: {{ formatDate(plan.lastModified) }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Services Section -->
+            <div class="pricing-section">
+                <div class="section-header">
+                    <h3>Individual Services (Hourly Rates)</h3>
+                    <button class="btn-primary" (click)="createNewService()">
+                        <i class="fa fa-plus"></i> Add New Service
+                    </button>
+                </div>
+                <table class="billing-table services-table">
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Category</th>
+                            <th>Hourly Rate</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Last Modified</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let service of services">
+                            <td><strong>{{ service.name }}</strong></td>
+                            <td>
+                                <span class="category-badge" [ngClass]="getCategoryBadgeClass(service.category)">
+                                    {{ service.category }}
+                                </span>
+                            </td>
+                            <td class="price-cell">{{ formatCurrency(service.hourlyRate) }}/hr</td>
+                            <td class="description-cell">{{ service.description }}</td>
+                            <td>
+                                <span class="status-badge" [ngClass]="getStatusBadgeClass(service.status)">
+                                    {{ service.status }}
+                                </span>
+                            </td>
+                            <td>{{ formatDate(service.lastModified) }}</td>
+                            <td class="action-buttons">
+                                <button class="btn-edit" (click)="editService(service)" title="Edit Service">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn-toggle" (click)="toggleServiceStatus(service)"
+                                    [title]="service.status === 'Active' ? 'Deactivate Service' : 'Activate Service'">
+                                    <i class="fa" [ngClass]="service.status === 'Active' ? 'fa-pause' : 'fa-play'"></i>
+                                </button>
+                                <button class="btn-delete" (click)="deleteService(service)" title="Delete Service">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Management Modal -->
+    <div class="modal-overlay" *ngIf="showPricingModal && (selectedPlan || selectedService)"
+        (click)="closePricingModal()">
+        <div class="modal-content pricing-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>{{ selectedPlan ? (selectedPlan.id === 0 ? 'Create New Service Plan' : 'Edit Service Plan') :
+                    (selectedService!.id === 0 ? 'Create New Service' : 'Edit Service') }}</h3>
+                <button class="modal-close" (click)="closePricingModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Service Plan Form -->
+            <div class="pricing-form" *ngIf="selectedPlan">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="planName">Plan Name</label>
+                        <input type="text" id="planName" [(ngModel)]="selectedPlan.name" placeholder="Enter plan name"
+                            class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="planStatus">Status</label>
+                        <select id="planStatus" [(ngModel)]="selectedPlan.status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Deprecated">Deprecated</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="planDescription">Description</label>
+                    <textarea id="planDescription" [(ngModel)]="selectedPlan.description"
+                        placeholder="Enter plan description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="monthlyPrice">Monthly Price ($)</label>
+                        <input type="number" id="monthlyPrice" [(ngModel)]="selectedPlan.monthlyPrice"
+                            placeholder="0.00" class="form-control" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="yearlyPrice">Yearly Price ($)</label>
+                        <input type="number" id="yearlyPrice" [(ngModel)]="selectedPlan.yearlyPrice" placeholder="0.00"
+                            class="form-control" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="features-header">
+                        <label>Features</label>
+                        <button type="button" class="btn-add-feature" (click)="addFeatureToSelectedPlan()">
+                            <i class="fa fa-plus"></i> Add Feature
+                        </button>
+                    </div>
+                    <div class="features-list">
+                        <div class="feature-item"
+                            *ngFor="let feature of selectedPlan.features; let i = index; trackBy: trackByFeature">
+                            <input type="text" [(ngModel)]="selectedPlan.features[i]"
+                                placeholder="Enter feature description" class="form-control">
+                            <button type="button" class="btn-remove-feature" (click)="removeFeatureFromSelectedPlan(i)">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" [(ngModel)]="selectedPlan.isPopular"> Mark as Popular Plan
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" (click)="closePricingModal()">Cancel</button>
+                    <button class="btn-primary" (click)="saveServicePlan()">
+                        {{ selectedPlan.id === 0 ? 'Create Plan' : 'Save Changes' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Service Form -->
+            <div class="pricing-form" *ngIf="selectedService">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="serviceName">Service Name</label>
+                        <input type="text" id="serviceName" [(ngModel)]="selectedService.name"
+                            placeholder="Enter service name" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceCategory">Category</label>
+                        <select id="serviceCategory" [(ngModel)]="selectedService.category" class="form-control">
+                            <option value="Web Design">Web Design</option>
+                            <option value="Development">Development</option>
+                            <option value="SEO">SEO</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Consulting">Consulting</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="hourlyRate">Hourly Rate ($)</label>
+                        <input type="number" id="hourlyRate" [(ngModel)]="selectedService.hourlyRate" placeholder="0.00"
+                            class="form-control" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceStatus">Status</label>
+                        <select id="serviceStatus" [(ngModel)]="selectedService.status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="serviceDescription">Description</label>
+                    <textarea id="serviceDescription" [(ngModel)]="selectedService.description"
+                        placeholder="Enter service description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" (click)="closePricingModal()">Cancel</button>
+                    <button class="btn-primary" (click)="saveService()">
+                        {{ selectedService.id === 0 ? 'Create Service' : 'Save Changes' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Detail Modal -->
+    <div class="modal-overlay" *ngIf="showInvoiceModal && selectedInvoice" (click)="closeInvoiceModal()">
+        <div class="modal-content invoice-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Invoice {{ selectedInvoice.number }}</h3>
+                <button class="modal-close" (click)="closeInvoiceModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-info">
+                    <div class="info-section">
+                        <h4>Bill To</h4>
+                        <p><strong>{{ selectedInvoice.customer }}</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>Invoice Details</h4>
+                        <p><strong>Issue Date:</strong> {{ formatDate(selectedInvoice.issueDate) }}</p>
+                        <p><strong>Due Date:</strong> {{ formatDate(selectedInvoice.dueDate) }}</p>
+                        <p><strong>Status:</strong> <span class="status-badge"
+                                [ngClass]="getStatusBadgeClass(selectedInvoice.status)">{{ selectedInvoice.status
+                                }}</span></p>
+                    </div>
+                </div>
+                <div class="invoice-items" *ngIf="selectedInvoice.items">
+                    <h4>Items</h4>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of selectedInvoice.items">
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ formatCurrency(item.rate) }}</td>
+                                <td>{{ formatCurrency(item.amount) }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3"><strong>Total</strong></td>
+                                <td><strong>{{ formatCurrency(selectedInvoice.amount) }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" (click)="closeInvoiceModal()">Close</button>
+                    <button class="btn-primary" (click)="downloadInvoice(selectedInvoice)">Download PDF</button>
+                    <button *ngIf="selectedInvoice.status === 'Draft' || selectedInvoice.status === 'Sent'"
+                        class="btn-primary" (click)="sendInvoice(selectedInvoice)">Send Invoice</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

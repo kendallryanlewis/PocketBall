@@ -1,0 +1,45 @@
+<div class="options pt-5">
+    <ng-container *ngFor="let option of optionList; let i = index">
+        <div appAnimateOnScroll [animationClass]="getAnimationClass(i)" class="option position-relative overflow-hidden"
+            [ngStyle]="!initialAnimationDone[i] && i !== 1 ? {'transition-delay': '0.6s', 'transition-duration': '2s'} : {'transition-duration': 's'}"
+            [class.active]="hoverIndex === i" (mouseenter)="onMouseEnter(i)" (click)="onOptionClick(i)"
+            (transitionend)="onAnimationEnd(i)">
+
+            <!-- Video Background -->
+            <video #optionVideo class="option-bg-video position-absolute top-0 start-0 w-100 h-100"
+                [attr.src]="option.video" autoplay muted loop playsinline></video>
+
+            <!-- Default Option Header -->
+            <div class="option-header d-flex" [class.opacity-100]="hoverIndex === i">
+                <div appAnimateOnScroll animationClass="fade"
+                    class="col-4 option-info d-flex flex-column justify-content-between p-5 text-white">
+                    <div class="logo">
+                        <p>Pixel & Post</p>
+                        <h4>KNDL</h4>
+                    </div>
+                    <div>
+                        <h1 class="option-title">{{ option.title }}</h1>
+                        <div>
+                            <p class="opacity-50">{{ option.sub }}</p>
+                            <button class="rounded">Learn More</button>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <p class="mb-0 text-tan pe-3">Package</p>
+                        <hr class=" m-auto w-100">
+                    </div>
+                </div>
+                <!-- Service body -->
+                <div appAnimateOnScroll animationClass="fade"
+                    class="col-8 option-description p-5 d-flex flex-column justify-content-end">
+                    <div class="option-desc rounded p-3">{{ option.description }}</div>
+                </div>
+            </div>
+
+            <!-- Vertical Label (only visible when not hovered) -->
+            <div class="vertical-label" *ngIf="hoverIndex !== i">
+                <span>{{ option.main }}</span>
+            </div>
+        </div>
+    </ng-container>
+</div>

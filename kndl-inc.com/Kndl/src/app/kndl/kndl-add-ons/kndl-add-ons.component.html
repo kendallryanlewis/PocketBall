@@ -1,0 +1,65 @@
+<section class="p-5 pt-0">
+    <div class="section-wrapper bg-white p-0 p-lg-5">
+        <div class="addons-header text-start">
+            <h1 class="">Subscription <span appAnimateOnScroll animationClass="fade" class="text-tan">Plans</span></h1>
+            <hr class="my-5 " style="width:200px;">
+            <p class="m-0" appAnimateOnScroll animationClass="fade-up">
+                For businesses looking for ongoing support and growth, our monthly plans offer a cost-effective way
+                to keep your brand fresh, your website updated, and your marketing efforts consistent. Choose the
+                plan that fits your needs, then add on extra services as you grow.
+            </p>
+        </div>
+        <div class="row row-cols-1 row-cols-md-3 my-4">
+            <ng-container *ngFor="let addon of recurringAddons | slice:0:popularAddonsCount">
+                <div class="p-3 pt-0">
+                    <div class="addon-card mb-4">
+                        <h3>{{addon.title}}</h3>
+                        <p>{{addon.desc}}</p>
+                        <p class="addon-price">{{addon.price}}</p>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</section>
+
+
+<section class="p-5 pt-0">
+    <div class="section-wrapper bg-white p-0 p-lg-5">
+        <div class="addons-section">
+            <div class="addons-header">
+                <h1 appAnimateOnScroll animationClass="fade">Enhance Your Plan with Add-Ons</h1>
+                <hr class="my-5 mx-auto" style="width:200px;">
+                <p appAnimateOnScroll animationClass="fade-up">Every business is unique, and sometimes you just need
+                    that extra boost. Our add-ons give you
+                    flexibility to
+                    expand your brand presence, amplify your reach, and manage growth without committing to a
+                    whole new
+                    package.
+                </p>
+            </div>
+            <div appAnimateOnScroll animationClass="fade-up" class="addons-grid">
+                <ng-container *ngFor="let addon of oneTimeAddons | slice:0:popularAddonsCount">
+                    <div class="addon-card">
+                        <h3>{{addon.title}}</h3>
+                        <p>{{addon.desc}}</p>
+                        <p class="addon-price">{{addon.price}}</p>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="showAllAddons">
+                    <ng-container *ngFor="let addon of oneTimeAddons | slice:popularAddonsCount">
+                        <div class="addon-card">
+                            <h3>{{addon.title}}</h3>
+                            <p>{{addon.desc}}</p>
+                            <p class="addon-price">{{addon.price}}</p>
+                        </div>
+                    </ng-container>
+                </ng-container>
+            </div>
+            <button *ngIf="oneTimeAddons.length > popularAddonsCount" class="show-more-btn mt-5"
+                (click)="showAllAddons = !showAllAddons">
+                {{ showAllAddons ? 'Show Less' : 'Show More Add-Ons' }}
+            </button>
+        </div>
+    </div>
+</section>

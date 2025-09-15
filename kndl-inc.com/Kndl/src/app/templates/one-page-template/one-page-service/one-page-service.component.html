@@ -1,0 +1,25 @@
+<div class="options pt-5">
+    <div class="option position-relative overflow-hidden fade-in-up" *ngFor="let option of optionList; let i = index"
+        [class.active]="activeIndex === i" (click)="selectOption(i)" [style.animation-delay]="(i * 0.18) + 's'">
+        <video class="option-bg-video position-absolute top-0 start-0 w-100 h-100" [attr.src]="option.video" autoplay
+            muted loop playsinline></video>
+        <div class="shadow position-absolute top-0 start-0 w-100 h-100"></div>
+        <div class="option-header position-absolute top-0 start-0 p-5 w-100 h-100 opacity-0"
+            style="z-index:3; pointer-events:none;" [class.opacity-100]="activeIndex === i">
+            <div class="option-title fw-bold text-white text-shadow mb-1">{{ option.title }}</div>
+            <div class="option-desc text-shadow">{{ option.description }}</div>
+        </div>
+        <div class="vertical-label" *ngIf="activeIndex !== i">
+            <span>{{ option.main }}</span>
+        </div>
+        <div class="label">
+            <div class="icon">
+                <i [class]="option.icon"></i>
+            </div>
+            <div class="info">
+                <div class="main">{{ option.main }}</div>
+                <div class="sub">{{ option.sub }}</div>
+            </div>
+        </div>
+    </div>
+</div>

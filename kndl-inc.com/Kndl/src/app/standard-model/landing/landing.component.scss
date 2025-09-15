@@ -1,0 +1,39 @@
+.landing-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; // Full viewport height
+}
+
+.consoltation-button {
+    background-color: #d8d7fb61; // Bootstrap primary color
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+
+    &:hover {
+        background-color: tan; // Darker shade on hover
+    }
+}
+
+ul li {
+    list-style: none;
+    margin: 0 2rem;
+}
+
+ul li a {
+    text-decoration: none;
+    color: white; // Ensure links are visible
+
+    &:hover {
+        color: tan; // Change color on hover
+    }
+}
+
+.title {
+    font-size: 6vw;
+}

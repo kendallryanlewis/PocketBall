@@ -1,0 +1,272 @@
+.onboarding-flow {
+    .progress-container {
+        .progress {
+            height: 8px;
+            background-color: rgba(172, 172, 172, 0.2);
+            border-radius: 4px;
+
+            .progress-bar {
+                transition: width 0.3s ease;
+                border-radius: 4px;
+            }
+        }
+
+        .progress-steps {
+            small {
+                font-weight: 500;
+                color: #6c757d;
+                transition: color 0.3s ease;
+
+                &.text-warning {
+                    color: #d2b48c !important;
+                }
+            }
+        }
+    }
+
+    .package-card,
+    .addon-card {
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &.selected,
+        &:hover {
+            border-color: #d2b48c;
+            background: #d2b48c99;
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+            transform: scaleY(1.02);
+
+            li i {
+                color: white
+            }
+
+            .card-header {
+                color: #000;
+                border-bottom-color: #d2b48c;
+            }
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+
+            .price {
+                margin-top: 10px;
+            }
+        }
+
+        .card-body {
+            padding: 1.5rem;
+
+            .list-unstyled li {
+                padding: 4px 0;
+
+                i.fa-check {
+                    width: 16px;
+                }
+            }
+        }
+    }
+
+    .addon-card {
+        height: 100%;
+
+        .form-check-input {
+            cursor: pointer;
+            transform: scale(1.2);
+
+            &:checked {
+                background-color: #d2b48c;
+                border-color: #d2b48c;
+            }
+        }
+
+        .price-tag {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+    }
+
+    .pricing-summary {
+        position: sticky;
+        top: 20px;
+        border: 2px solid #d2b48c;
+
+        .card-header {
+            background: tan;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .card-body {
+            background: rgba(255, 193, 7, 0.05);
+        }
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+
+        &.btn-warning {
+            background: linear-gradient(135deg, #d2b48c 0%, #ffb300 100%);
+            border: none;
+            color: #000;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            }
+
+            &:disabled {
+                opacity: 0.6;
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        &.btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            }
+        }
+
+        &.btn-outline-secondary {
+            border: 2px solid #6c757d;
+
+            &:hover {
+                background: #6c757d;
+                transform: translateY(-2px);
+            }
+        }
+    }
+
+    // Responsive design
+    @media (max-width: 768px) {
+
+        .package-card,
+        .addon-card {
+            margin-bottom: 1rem;
+        }
+
+        .pricing-summary {
+            position: static;
+            margin-top: 2rem;
+        }
+
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 1rem;
+
+            .btn {
+                width: 100%;
+            }
+        }
+    }
+
+    // Animation for step transitions
+    .card {
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .domain-card {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &:hover {
+            border-color: #d2b48c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        &.selected {
+            border-color: #d2b48c;
+            background-color: #faf9f7;
+            box-shadow: 0 4px 12px rgba(210, 180, 140, 0.2);
+
+            .card-body {
+                background-color: rgba(210, 180, 140, 0.1);
+            }
+        }
+
+        .fa-globe,
+        .fa-link,
+        .fa-cloud {
+            transition: transform 0.3s ease;
+        }
+
+        &:hover .fa-globe,
+        &:hover .fa-link,
+        &:hover .fa-cloud {
+            transform: scale(1.1);
+        }
+    }
+
+    .alert {
+        border-radius: 8px;
+        font-size: 0.875rem;
+
+        &.alert-success {
+            background-color: #d1f2eb;
+            border-color: #a3d5c4;
+            color: #0f5132;
+
+            .fa-check {
+                color: #198754;
+            }
+        }
+
+        &.alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+
+            .fa-times {
+                color: #dc3545;
+            }
+        }
+
+        &.alert-info {
+            background-color: #d1ecf1;
+            border-color: #b8daff;
+            color: #0c5460;
+            border-radius: 8px;
+            font-size: 0.875rem;
+
+            .fa-info-circle {
+                color: #17a2b8;
+            }
+
+            strong {
+                color: #0c5460;
+            }
+        }
+    }
+}
+
+.pricing-header {
+    color: #555;
+    max-width: 700px;
+    line-height: 35px;
+}

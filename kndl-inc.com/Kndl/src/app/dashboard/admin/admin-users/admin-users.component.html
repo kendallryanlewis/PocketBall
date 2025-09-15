@@ -1,0 +1,374 @@
+<section class="admin-users h-100">
+    <div class="position-relative">
+        <div id="current-users" class="position-absolute top-0 start-0"></div>
+        <div id="deleted-users" class="position-absolute top-0 start-50"></div>
+        <div id="invited-users" class="position-absolute top-0 start-100"></div>
+    </div>
+
+    <div class="row w-100 h-100">
+        <div class="admin-content h-100 p-0" [ngClass]="openDetails ? 'col-4' : 'col-12'">
+            <div class="users-container h-100 d-flex flex-column">
+                <!-- Modern Search Bar -->
+                <div class="">
+                    <div class="search-wrapper position-relativems-2">
+                        <i class="fa fa-search search-icon"></i>
+                        <input type="text" class="form-control rounded-0 ms-3 search-input"
+                            placeholder="Search users..." [(ngModel)]="searchQuery"
+                            (ngModelChange)="onSearchChange()" />
+                        <button *ngIf="searchQuery" class="clear-search btn-clear" (click)="clearSearch()">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content flex-grow-1 overflow-hidden">
+                    <!-- Current Users -->
+                    <div *ngIf="selectedTab === 'current-users'" class="h-100 d-flex flex-column">
+                        <div class="content-header p-4 pb-3" *ngIf="!openDetails">
+                            <h2 class="mb-2">Active Users</h2>
+                            <p class="text-muted mb-0">Manage currently active users in your organization.</p>
+                        </div>
+
+                        <!-- Full Table View (when details closed) -->
+                        <div class="table-container flex-grow-1 overflow-auto" *ngIf="!openDetails">
+                            <table class="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let user of filteredCurrentUsers" (click)="onUserClick(user)"
+                                        [class.selected]="selectedUser === user">
+                                        <td>{{ user.name }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td><span class="role-badge" [ngClass]="getRoleBadgeClass(user.role)">{{
+                                                user.role }}</span></td>
+                                        <td><span class="status-badge" [ngClass]="getStatusBadgeClass(user.status)">{{
+                                                user.status }}</span></td>
+                                        <td>{{ formatDate(user.lastLogin) }}</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-edit" (click)="editUser(user)" title="Edit User">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn-delete" (click)="deleteUser(user)" title="Delete User">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Modern Compact List View (when details open) -->
+                        <div class="users-list-container flex-grow-1 overflow-auto" *ngIf="openDetails">
+                            <div class="users-list p-3">
+                                <div class="list-header mb-3">
+                                    <h6 class="mb-1 fw-bold">Active Users</h6>
+                                    <small class="text-muted">{{ filteredCurrentUsers.length }} users</small>
+                                </div>
+
+                                <div class="user-card" *ngFor="let user of filteredCurrentUsers"
+                                    (click)="onUserClick(user)" [class.selected]="selectedUser === user">
+                                    <div class="user-avatar">
+                                        <div class="avatar-circle">
+                                            {{ getInitials(user.name) }}
+                                        </div>
+                                        <div class="status-dot" [class]="'status-' + user.status.toLowerCase()"></div>
+                                    </div>
+                                    <div class="user-info flex-grow-1">
+                                        <div class="user-name">{{ user.name }}</div>
+                                        <div class="user-email">{{ user.email }}</div>
+                                        <div class="user-meta">
+                                            <span class="role-chip" [class]="'role-' + user.role.toLowerCase()">
+                                                {{ user.role }}
+                                            </span>
+                                            <span class="last-login">
+                                                <i class="fa fa-clock me-1"></i>
+                                                {{ user.lastLogin ? getRelativeTime(user.lastLogin) : 'Never' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="user-actions">
+                                        <button class="action-btn" (click)="editUser(user); $event.stopPropagation()"
+                                            title="Edit">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="filteredCurrentUsers.length === 0">
+                                    <i class="fa fa-search fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted">No users found matching your search.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deleted Users -->
+                    <div *ngIf="selectedTab === 'deleted-users'" class="h-100 d-flex flex-column">
+                        <!-- Similar structure for deleted users -->
+                        <div class="users-list-container flex-grow-1 overflow-auto" *ngIf="openDetails">
+                            <div class="users-list p-3">
+                                <div class="list-header mb-3">
+                                    <h6 class="mb-1 fw-bold">Archived Users</h6>
+                                    <small class="text-muted">{{ filteredDeletedUsers.length }} users</small>
+                                </div>
+
+                                <div class="user-card" *ngFor="let user of filteredDeletedUsers"
+                                    (click)="onUserClick(user)" [class.selected]="selectedUser === user">
+                                    <div class="user-avatar">
+                                        <div class="avatar-circle archived">
+                                            {{ getInitials(user.name) }}
+                                        </div>
+                                        <div class="status-dot status-deleted"></div>
+                                    </div>
+                                    <div class="user-info flex-grow-1">
+                                        <div class="user-name">{{ user.name }}</div>
+                                        <div class="user-email">{{ user.email }}</div>
+                                        <div class="user-meta">
+                                            <span class="role-chip" [class]="'role-' + user.role.toLowerCase()">
+                                                {{ user.role }}
+                                            </span>
+                                            <span class="deleted-date">
+                                                <i class="fa fa-archive me-1"></i>
+                                                {{ formatDate(user.joinDate) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="user-actions">
+                                        <button class="action-btn restore"
+                                            (click)="restoreUser(user); $event.stopPropagation()" title="Restore">
+                                            <i class="fa fa-undo"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invited Users -->
+                    <div *ngIf="selectedTab === 'invited-users'" class="h-100 d-flex flex-column">
+                        <!-- Similar structure for invited users -->
+                        <div class="users-list-container flex-grow-1 overflow-auto" *ngIf="openDetails">
+                            <div class="users-list p-3">
+                                <div class="list-header mb-3">
+                                    <h6 class="mb-1 fw-bold">Pending Invitations</h6>
+                                    <small class="text-muted">{{ filteredInvitedUsers.length }} pending</small>
+                                </div>
+
+                                <div class="user-card" *ngFor="let user of filteredInvitedUsers"
+                                    (click)="onUserClick(user)" [class.selected]="selectedUser === user">
+                                    <div class="user-avatar">
+                                        <div class="avatar-circle pending">
+                                            {{ getInitials(user.name) }}
+                                        </div>
+                                        <div class="status-dot status-invited"></div>
+                                    </div>
+                                    <div class="user-info flex-grow-1">
+                                        <div class="user-name">{{ user.name }}</div>
+                                        <div class="user-email">{{ user.email }}</div>
+                                        <div class="user-meta">
+                                            <span class="role-chip" [class]="'role-' + user.role.toLowerCase()">
+                                                {{ user.role }}
+                                            </span>
+                                            <span class="invite-date">
+                                                <i class="fa fa-envelope me-1"></i>
+                                                {{ formatDate(user.joinDate) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="user-actions">
+                                        <button class="action-btn"
+                                            (click)="resendInvite(user); $event.stopPropagation()" title="Resend">
+                                            <i class="fa fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Details Sidebar -->
+        <div class="details-sidebar h-100 d-flex flex-column overflow-hidden p-5"
+            [ngClass]="openDetails ? 'col-8 pe-0' : 'd-none'">
+
+            <ng-container *ngIf="selectedUser">
+                <!-- Profile Card -->
+                <div class="profile-card rounded">
+                    <div class="bg-black">
+                        <div class="profile-header p-5">
+                            <div class="profile-avatar-large rounded">
+                                <img [src]="getUserAvatar(selectedUser)" [alt]="selectedUser.name"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                <div class="avatar-fallback">
+                                    {{ getInitials(selectedUser.name) }}
+                                </div>
+                            </div>
+                            <div class="profile-info">
+                                <h3 class="profile-name">{{ selectedUser.name }}</h3>
+                                <div class="profile-location">
+                                    <i class="fa fa-map-marker"></i>
+                                    {{ selectedUser.location || 'New York, USA' }}
+                                </div>
+                                <p class="profile-description">
+                                    {{ selectedUser.bio || 'I am a consultant for a small hotel business. I currently
+                                    working them through a rebrand, and they are in need of a new company logo.' }}
+                                    <a href="#" class="more-link">MORE</a>
+                                </p>
+                            </div>
+                            <div class="profile-actions">
+                                <button class="btn btn-primary" (click)="editUser(selectedUser)">
+                                    Edit Profile
+                                </button>
+                                <button class="btn btn-outline-secondary" (click)="viewPublicProfile(selectedUser)">
+                                    Public View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Stats -->
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fa fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ getYearsExperience(selectedUser) }}+ Years Job</div>
+                                <div class="stat-label">Experienced</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fa fa-certificate"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ selectedUser.certificates || 5 }} Certificates</div>
+                                <div class="stat-label">Achieved</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fa fa-graduation-cap"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ selectedUser.internships || 2 }} Internship</div>
+                                <div class="stat-label">Completed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="profile-nav">
+                    <nav class="nav nav-tabs">
+                        <button class="nav-link" [class.active]="profileTab === 'experience'"
+                            (click)="profileTab = 'experience'">
+                            Experience
+                        </button>
+                        <button class="nav-link" [class.active]="profileTab === 'biography'"
+                            (click)="profileTab = 'biography'">
+                            Biography
+                        </button>
+                        <button class="nav-link" [class.active]="profileTab === 'skills'"
+                            (click)="profileTab = 'skills'">
+                            Skills
+                        </button>
+                        <button class="nav-link" [class.active]="profileTab === 'portfolio'"
+                            (click)="profileTab = 'portfolio'">
+                            Portfolio
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content-area flex-grow-1 overflow-auto">
+                    <!-- Experience Tab -->
+                    <div *ngIf="profileTab === 'experience'" class="tab-pane">
+                        <div class="content-header">
+                            <h4>Job Experience</h4>
+                            <span class="job-count">{{ getUserExperience(selectedUser).length }} Job history</span>
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="fa fa-plus"></i> Add More
+                            </button>
+                        </div>
+
+                        <div class="experience-list">
+                            <div class="experience-item" *ngFor="let job of getUserExperience(selectedUser)">
+                                <div class="company-logo">
+                                    <div class="logo-circle" [style.background-color]="job.color">
+                                        {{ job.company[0] }}
+                                    </div>
+                                </div>
+                                <div class="job-details">
+                                    <h5 class="job-title">{{ job.title }}</h5>
+                                    <div class="company-name">{{ job.company }}</div>
+                                    <div class="job-period">
+                                        <i class="fa fa-calendar"></i>
+                                        {{ job.period }}
+                                    </div>
+                                    <div class="job-location">
+                                        <i class="fa fa-map-marker-alt"></i>
+                                        {{ job.location }}
+                                    </div>
+                                    <p class="job-description">{{ job.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biography Tab -->
+                    <div *ngIf="profileTab === 'biography'" class="tab-pane">
+                        <div class="content-header">
+                            <h4>Biography</h4>
+                        </div>
+                        <div class="biography-content">
+                            <p>{{ selectedUser.fullBio || 'Detailed biography information will be displayed here. This
+                                section can include educational background, career highlights, personal interests, and
+                                professional achievements.' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Skills Tab -->
+                    <div *ngIf="profileTab === 'skills'" class="tab-pane">
+                        <div class="content-header">
+                            <h4>Skills & Expertise</h4>
+                        </div>
+                        <div class="skills-content">
+                            <div class="skill-category" *ngFor="let category of getUserSkills(selectedUser)">
+                                <h6>{{ category.name }}</h6>
+                                <div class="skills-list">
+                                    <span class="skill-tag" *ngFor="let skill of category.skills">{{ skill }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Portfolio Tab -->
+                    <div *ngIf="profileTab === 'portfolio'" class="tab-pane">
+                        <div class="content-header">
+                            <h4>Portfolio</h4>
+                        </div>
+                        <div class="portfolio-content">
+                            <p class="text-muted">Portfolio items and work samples will be displayed here.</p>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+            <div *ngIf="!selectedUser" class="empty-selection text-center text-muted">
+                <i class="fa fa-user-circle fa-3x mb-3 opacity-50"></i>
+                <p>Select a user to view details</p>
+            </div>
+        </div>
+    </div>
+</section>

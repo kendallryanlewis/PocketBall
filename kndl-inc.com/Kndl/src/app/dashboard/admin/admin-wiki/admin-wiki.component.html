@@ -1,0 +1,851 @@
+<div class="container-fluid wiki-system py-4">
+
+    <!-- List View -->
+    <div *ngIf="currentView === 'list'">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1"><i class="fa fa-book me-2"></i>Knowledge Base Wiki</h2>
+                        <p class="text-muted mb-0">Create, edit, and manage documentation pages</p>
+                    </div>
+                    <button class="btn btn-primary" (click)="currentView = 'create'">
+                        <i class="fa fa-plus me-2"></i>New Page
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search pages..." [(ngModel)]="searchTerm"
+                        name="search">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select class="form-select" [(ngModel)]="selectedCategory" name="category">
+                    <option *ngFor="let cat of categoryNames" [value]="cat">{{ cat }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Categories Overview -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-3" *ngFor="let category of categories">
+                <div class="card category-card h-100" (click)="selectedCategory = category.name">
+                    <div class="card-body text-center">
+                        <i class="fa {{category.icon}} fa-2x mb-2" [style.color]="category.color"></i>
+                        <h6 class="card-title">{{category.name}}</h6>
+                        <span class="badge bg-secondary">{{category.count}} pages</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pages List -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-list me-2"></i>Pages
+                            <span class="badge bg-primary ms-2">{{ filteredPages.length }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Views</th>
+                                        <th>Last Modified</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let page of filteredPages" class="page-row">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fa {{getCategoryIcon(page.category)}} me-2"
+                                                    [style.color]="getCategoryColor(page.category)"></i>
+                                                <div>
+                                                    <h6 class="mb-0">{{page.title}}</h6>
+                                                    <small class="text-muted">by {{page.author}}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge"
+                                                [style.background-color]="getCategoryColor(page.category)"
+                                                style="color: white;">
+                                                {{page.category}}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <i class="fa fa-eye me-1"></i>{{page.views}}
+                                        </td>
+                                        <td>{{page.lastModified}}</td>
+                                        <td>
+                                            <span class="badge"
+                                                [class]="page.isPublished ? 'bg-success' : 'bg-warning'">
+                                                {{page.isPublished ? 'Published' : 'Draft'}}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary me-1"
+                                                (click)="viewPage(page)">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary me-1"
+                                                (click)="editPage(page)">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                (click)="openDeleteModal(page)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page View -->
+    <div *ngIf="currentView === 'page' && selectedPage">
+        <div class="row">
+            <div class="col-12">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <button class="btn btn-outline-secondary" (click)="backToList()">
+                        <i class="fa fa-arrow-left me-2"></i>Back to Pages
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" (click)="editPage(selectedPage)">
+                            <i class="fa fa-edit me-2"></i>Edit Page
+                        </button>
+                        <button class="btn btn-outline-danger" (click)="openDeleteModal(selectedPage)">
+                            <i class="fa fa-trash me-2"></i>Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Page Content -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="mb-1">{{selectedPage.title}}</h3>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge"
+                                        [style.background-color]="getCategoryColor(selectedPage.category)"
+                                        style="color: white;">
+                                        <i class="fa {{getCategoryIcon(selectedPage.category)}} me-1"></i>
+                                        {{selectedPage.category}}
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fa fa-eye me-1"></i>{{selectedPage.views}} views
+                                    </span>
+                                    <span class="badge"
+                                        [class]="selectedPage.isPublished ? 'bg-success' : 'bg-warning'">
+                                        {{selectedPage.isPublished ? 'Published' : 'Draft'}}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <small class="text-muted">
+                                    By {{selectedPage.author}}<br>
+                                    Updated: {{selectedPage.lastModified}}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tags -->
+                        <div class="mb-4" *ngIf="selectedPage.tags.length > 0">
+                            <h6>Tags:</h6>
+                            <span *ngFor="let tag of selectedPage.tags" class="badge bg-light text-dark me-1">
+                                {{tag}}
+                            </span>
+                        </div>
+
+                        <!-- Rendered Content -->
+                        <div class="wiki-content" [innerHTML]="parseMarkdown(selectedPage.content)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Page -->
+    <div *ngIf="currentView === 'create' || currentView === 'edit'">
+        <div class="row">
+            <div class="col-12">
+                <!-- Editor Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="mb-1">
+                            <i class="fa fa-edit me-2"></i>
+                            {{currentView === 'create' ? 'Create New Page' : 'Edit Page'}}
+                        </h3>
+                        <p class="text-muted mb-0">Use Markdown syntax for formatting</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-secondary" (click)="backToList()">
+                            <i class="fa fa-times me-2"></i>Cancel
+                        </button>
+                        <button class="btn btn-primary"
+                            (click)="currentView === 'create' ? createPage() : updatePage()">
+                            <i class="fa fa-save me-2"></i>
+                            {{currentView === 'create' ? 'Create Page' : 'Save Changes'}}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Editor Interface -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row g-3">
+                            <!-- Basic Info -->
+                            <div class="col-md-6">
+                                <label class="form-label">Page Title *</label>
+                                <input type="text" class="form-control" [(ngModel)]="newPage.title" name="title"
+                                    placeholder="Enter page title" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Category *</label>
+                                <select class="form-select" [(ngModel)]="newPage.category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option *ngFor="let cat of categories" [value]="cat.name">{{cat.name}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" [(ngModel)]="newPage.isPublished" name="status">
+                                    <option [value]="true">Published</option>
+                                    <option [value]="false">Draft</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Tags (comma separated)</label>
+                                <input type="text" class="form-control" [value]="newPage.tags?.join(', ')"
+                                    (input)="updateTags($event)" name="tags" placeholder="tag1, tag2, tag3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <!-- Toolbar -->
+                        <div class="editor-toolbar p-3 border-bottom">
+                            <div class="btn-toolbar" role="toolbar">
+                                <div class="btn-group me-2" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('bold')" title="Bold">
+                                        <i class="fa fa-bold"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('italic')" title="Italic">
+                                        <i class="fa fa-italic"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('code')" title="Inline Code">
+                                        <i class="fa fa-code"></i>
+                                    </button>
+                                </div>
+
+                                <div class="btn-group me-2" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('heading1')" title="Heading 1">
+                                        H1
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('heading2')" title="Heading 2">
+                                        H2
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('heading3')" title="Heading 3">
+                                        H3
+                                    </button>
+                                </div>
+
+                                <div class="btn-group me-2" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('list')" title="Bullet List">
+                                        <i class="fa fa-list-ul"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('numberlist')" title="Numbered List">
+                                        <i class="fa fa-list-ol"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('quote')" title="Quote">
+                                        <i class="fa fa-quote-left"></i>
+                                    </button>
+                                </div>
+
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('link')" title="Link">
+                                        <i class="fa fa-link"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        (click)="insertMarkdown('codeblock')" title="Code Block">
+                                        <i class="fa fa-file-code-o"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Markdown Syntax Help -->
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Markdown Quick Reference:</strong>
+                                    **bold** | *italic* | `code` | # Heading | - List | [link](url) | > Quote
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Split View: Editor and Preview -->
+                        <div class="row g-0">
+                            <!-- Editor -->
+                            <div class="col-md-6">
+                                <div class="editor-pane">
+                                    <div class="editor-header bg-light px-3 py-2 border-end">
+                                        <small class="text-muted"><i class="fa fa-edit me-1"></i>Editor</small>
+                                    </div>
+                                    <textarea class="form-control content-editor border-0 rounded-0"
+                                        [(ngModel)]="newPage.content" name="content" rows="25" placeholder="Write your content here using Markdown syntax...
+
+# Example Heading
+
+This is a paragraph with **bold text** and *italic text*.
+
+## Subheading
+
+- Bullet point 1
+- Bullet point 2
+
+### Code Example
+
+```bash
+npm install package-name
+```
+
+> This is a quote or important note.
+
+[Link text](https://example.com)"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="col-md-6">
+                                <div class="preview-pane">
+                                    <div class="preview-header bg-light px-3 py-2">
+                                        <small class="text-muted"><i class="fa fa-eye me-1"></i>Preview</small>
+                                    </div>
+                                    <div class="preview-content p-3" style="min-height: 600px;">
+                                        <div class="wiki-content" [innerHTML]="parseMarkdown(newPage.content || '')">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'"
+        *ngIf="showDeleteModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="fa fa-exclamation-triangle me-2"></i>Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the page "<strong>{{selectedPage?.title}}</strong>"?</p>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" (click)="deletePage()">Delete Page</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop fade show" *ngIf="showDeleteModal"></div>
+
+</div>
+
+
+<!-- Pixel & Post — Business Plan v2 (Working Draft) -->
+<section class="business-plan container my-5">
+    <header class="mb-5">
+        <h1 class="fw-bold mb-2">Pixel & Post — Business Plan v2 <small class="text-muted fs-5">(Working Draft)</small>
+        </h1>
+        <div class="text-muted mb-3">Last updated: September 10, 2025</div>
+    </header>
+
+    <nav class="mb-5">
+        <h5 class="fw-semibold">Table of Contents</h5>
+        <ol class="ps-3">
+            <li>Executive Summary</li>
+            <li>Company Overview</li>
+            <li>Market & Customer Segments</li>
+            <li>Value Proposition</li>
+            <li>Service Catalogue & Tiers</li>
+            <li>Add‑Ons & Upsells</li>
+            <li>Pricing Strategy (One‑time + Recurring)</li>
+            <li>Delivery & Operations</li>
+            <li>Sales & Marketing Plan</li>
+            <li>Financial Model (Assumptions & Projections)</li>
+            <li>Implementation Roadmap (90 Days)</li>
+            <li>KPIs & Reporting</li>
+            <li>Risks & Mitigations</li>
+            <li>Legal, Tax & Admin</li>
+            <li>Client‑Facing One‑Pager (Shareable)</li>
+            <li>Change Log</li>
+        </ol>
+    </nav>
+
+    <!-- 1. Executive Summary -->
+    <section class="mb-5">
+        <h2 class="fw-bold">1. Executive Summary</h2>
+        <p>
+            <strong>Pixel & Post</strong> is a brand + web studio helping local businesses launch or level‑up their
+            online presence with clean design, fast builds, and measurable growth. We sell <strong>one‑time build
+                packages</strong> plus <strong>monthly management</strong> to drive recurring revenue. Our
+            differentiator: enterprise‑grade engineering polish (Angular/.NET expertise) with small‑studio speed and
+            service.
+        </p>
+        <h6 class="fw-semibold mt-4">2025 Objectives</h6>
+        <ul>
+            <li>Close 6–10 new build projects across Starter/Growth/Pro tiers.</li>
+            <li>Grow to 12+ monthly retainers at $400–$2,500+/mo.</li>
+            <li>Ship reusable templates/components to reduce build hours by 25–40%.</li>
+            <li>Showcase 3 flagship case studies (before/after SEO, lead gen, revenue lift).</li>
+        </ul>
+    </section>
+
+    <!-- 2. Company Overview -->
+    <section class="mb-5">
+        <h2 class="fw-bold">2. Company Overview</h2>
+        <ul>
+            <li><strong>Name:</strong> Pixel & Post (KNDL Inc.)</li>
+            <li><strong>What we do:</strong> Brand identity, websites (WordPress/Wix/Angular), on‑page SEO, content &
+                social setup, print collateral, analytics, and paid acquisition frameworks.</li>
+            <li><strong>Edge:</strong> Proven enterprise delivery (Orica, AA Union platform) translated into
+                SMB‑friendly packages; full‑stack capability when custom development is needed.</li>
+            <li><strong>Positioning:</strong> <em>Total brand presence, measurable results.</em></li>
+        </ul>
+    </section>
+
+    <!-- 3. Market & Customer Segments -->
+    <section class="mb-5">
+        <h2 class="fw-bold">3. Market & Customer Segments</h2>
+        <p>
+            <strong>Primary:</strong> Local SMBs (home services, clinics, gyms, eateries, professional services), solo
+            founders, and community orgs that need credibility + leads fast.
+            <br>
+            <strong>Secondary:</strong> Mid‑size firms needing custom apps/portals (Angular + .NET) and ongoing support.
+        </p>
+        <p>
+            <strong>Buyer pains:</strong> Outdated sites, weak branding, low search visibility, no content strategy, no
+            time to manage marketing.
+        </p>
+        <h6 class="fw-semibold">Personas:</h6>
+        <ul>
+            <li><strong>The Owner‑Operator:</strong> Wants calls booked; hates tech. Values simplicity, clear ROI.</li>
+            <li><strong>The Office Manager:</strong> Needs repeatable workflows (updates, posts, reviews) and reporting.
+            </li>
+            <li><strong>The Growing Team:</strong> Needs scalable site, SEO content plan, and lightweight
+                CRM/automation.</li>
+        </ul>
+    </section>
+
+    <!-- 4. Value Proposition -->
+    <section class="mb-5">
+        <h2 class="fw-bold">4. Value Proposition</h2>
+        <ul>
+            <li><strong>Launch fast:</strong> Clean, SEO‑friendly builds with clear CTAs and simple editing.</li>
+            <li><strong>Look credible:</strong> Cohesive brand kit + on‑brand collateral (web + print).</li>
+            <li><strong>Be found:</strong> On‑page SEO + Google Business Profile setup; starter content plan.</li>
+            <li><strong>Grow smart:</strong> Optional monthly management, analytics, and ad frameworks.</li>
+            <li><strong>Flex up:</strong> When needed, we deliver custom Angular/.NET apps with databases and
+                integrations.</li>
+        </ul>
+    </section>
+
+    <!-- 5. Service Catalogue & Tiers -->
+    <section class="mb-5">
+        <h2 class="fw-bold">5. Service Catalogue & Tiers</h2>
+        <div class="mb-4">
+            <h4 class="fw-semibold text-tan">Starter — “Brand Essentials” ($325–$780)</h4>
+            <p>For businesses just getting started with a brand presence.</p>
+            <strong>Includes</strong>
+            <ul>
+                <li>Logo refresh</li>
+                <li>1–2 social profiles</li>
+                <li>One‑page SEO‑friendly website</li>
+                <li>Business card + brief brand guide</li>
+                <li>Google Business optimization</li>
+                <li>SEO homepage copy</li>
+                <li>1 month starter social posts</li>
+            </ul>
+            <strong>Optional Monthly Management</strong> ($195–$390/mo)
+            <ul>
+                <li>Google Business updates (posts, reviews)</li>
+                <li>4–6 social posts/month</li>
+                <li>Basic analytics report</li>
+            </ul>
+            <div class="fst-italic small">Build target: 5–10 hours. Price aligns to $50–$60/hr equivalent.</div>
+        </div>
+        <div class="mb-4">
+            <h4 class="fw-semibold text-tan">Growth — “Digital + Print” ($1,040–$1,950)</h4>
+            <p>For small businesses ready to market online and offline.</p>
+            <strong>Includes</strong>
+            <ul>
+                <li>Full brand kit (logos, colors, fonts)</li>
+                <li>3–4 social profiles with banners & highlights</li>
+                <li>Multi‑page website</li>
+                <li>Print materials (cards, flyers, postcards)</li>
+                <li>1 month of content templates</li>
+                <li>On‑page SEO optimization</li>
+                <li>1 blog or 1 video</li>
+            </ul>
+            <strong>Optional Monthly Management</strong> ($520–$910/mo)
+            <ul>
+                <li>8–12 social posts/month</li>
+                <li>Monthly blog/article or video for SEO</li>
+                <li>2 ad campaigns (Google/Meta)</li>
+                <li>Email list setup + campaign</li>
+                <li>Growth + analytics report</li>
+            </ul>
+            <div class="fst-italic small">Build target: 16–30 hours. Price aligns to $50–$60/hr equivalent.</div>
+        </div>
+        <div class="mb-4">
+            <h4 class="fw-semibold text-tan">Pro — “Total Brand Presence” ($2,600–$4,550+)</h4>
+            <p>For teams needing a custom site and a cohesive brand push.</p>
+            <strong>Includes</strong>
+            <ul>
+                <li>Custom website (WordPress/Wix/Angular)</li>
+                <li>Full brand kit + collateral</li>
+                <li>3 months social content (setup & templates)</li>
+                <li>Advanced print (banners, signage, promo items)</li>
+                <li>Advanced SEO strategy & ranking setup</li>
+                <li>Email + SMS automation setup</li>
+                <li>Paid ad campaign framework</li>
+            </ul>
+            <strong>Optional Monthly Management</strong> ($1,300–$3,250+/mo)
+            <ul>
+                <li>Full social media management (posting + engagement)</li>
+                <li>Weekly blog <b>or</b> video content</li>
+                <li>Paid ad campaigns (Google, Meta, retargeting)</li>
+                <li>Email + SMS campaigns</li>
+                <li>Influencer/partnership outreach</li>
+                <li>Advanced SEO + ranking reports</li>
+                <li>ROI dashboard + monthly strategy call</li>
+            </ul>
+            <div class="fst-italic small">Build target: 40–70+ hours depending on custom dev; price scales with scope.
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Add‑Ons & Upsells -->
+    <section class="mb-5">
+        <h2 class="fw-bold">6. Add‑Ons & Upsells (Any Tier)</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="fw-semibold">Digital Growth</h6>
+                <ul>
+                    <li>Reputation management (reviews): $100–$300/mo</li>
+                    <li>Local SEO domination: $500–$1,200 setup + $300–$600/mo</li>
+                    <li>Marketing automation (CRM, email/SMS workflows): $500+ setup</li>
+                    <li>Retargeting ads (Google + Meta pixels): $200–$500/mo mgmt</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-semibold">Creative & Brand</h6>
+                <ul>
+                    <li>Photography packages: $400+/session</li>
+                    <li>Video ads/reels: $250–$800 each</li>
+                    <li>Branded merch (shirts, mugs, pens, stickers): cost + markup</li>
+                    <li>Landing pages & funnels: $250–$600/page</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-semibold">Strategy & Consulting</h6>
+                <ul>
+                    <li>Analytics dashboards (Looker Studio): $200–$500 setup + $100–$300/mo</li>
+                    <li>Influencer/partnership outreach: $300–$700/mo</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Pricing Strategy -->
+    <section class="mb-5">
+        <h2 class="fw-bold">7. Pricing Strategy (One‑time + Recurring)</h2>
+        <ul>
+            <li><strong>Anchor:</strong> Internal rate of <b>$50–$60/hr</b>. Package price ranges reflect estimated
+                hours + margin for management, QA, and revisions.</li>
+            <li><strong>One‑time builds:</strong> Collect 50% deposit; 40% at design approval; 10% at launch.</li>
+            <li><strong>Recurring:</strong> Month‑to‑month (cancel anytime) or 6‑month commitment (‑10% price).</li>
+            <li><strong>Scope guardrails:</strong> One round of revisions included per milestone; change requests billed
+                hourly or via mini‑add‑ons.</li>
+            <li><strong>Maintenance:</strong> Offer WordPress care plans (backups, updates, security) at $75–$200/mo
+                depending on site size and plugins.</li>
+        </ul>
+        <h6 class="fw-semibold mt-4">Non‑Development Service Rates (hourly)</h6>
+        <ul>
+            <li><strong>Strategy & consulting:</strong> $75–$100/hr</li>
+            <li><strong>Design/UI & prototyping:</strong> $55–$70/hr</li>
+            <li><strong>Content/copywriting/editing:</strong> $45–$65/hr</li>
+            <li><strong>SEO & analytics/reporting:</strong> $55–$85/hr</li>
+            <li><strong>Project management & meetings:</strong> $35–$50/hr</li>
+            <li><strong>QA/testing & cross‑browser checks:</strong> $45–$60/hr</li>
+            <li><strong>Admin/data entry/asset sourcing:</strong> $25–$35/hr</li>
+            <li><strong>Rush/emergency (nights/weekends):</strong> 1.5×–2× applicable hourly rate</li>
+        </ul>
+        <div class="mt-3">
+            <strong>Approx. Hour → Price Mapping</strong> (internal)
+            <ul>
+                <li>6 hrs → ~$360</li>
+                <li>12 hrs → ~$720</li>
+                <li>24 hrs → ~$1,440</li>
+                <li>48 hrs → ~$2,880</li>
+                <li>60 hrs → ~$3,600</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 8. Delivery & Operations -->
+    <section class="mb-5">
+        <h2 class="fw-bold">8. Delivery & Operations</h2>
+        <h6 class="fw-semibold">Tech Stack</h6>
+        <ul>
+            <li><strong>Web:</strong> WordPress/Wix; Angular + .NET for custom builds; Azure App Service + SQL; CI/CD
+                via Azure DevOps.</li>
+            <li><strong>Design:</strong> Figma; Adobe CC; shadcn/ui + Tailwind for React/Next prototypes when needed.
+            </li>
+            <li><strong>SEO/Content:</strong> Google Search Console, Analytics 4, Looker Studio dashboards.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Standard Workflow</h6>
+        <ol>
+            <li><strong>Discover (1–2 hrs):</strong> Goals, audience, refs, sitemap, KPIs.</li>
+            <li><strong>Brand (4–12 hrs):</strong> Logo/refresh, palette, type, patterns, brand guide.</li>
+            <li><strong>Site (6–40+ hrs):</strong> Wireframes → design → build → QA → launch.</li>
+            <li><strong>SEO & Content (2–10 hrs):</strong> On‑page, metadata, schema, 1–2 pieces of content.</li>
+            <li><strong>Launch & Care Plan enrollment.</strong></li>
+        </ol>
+        <h6 class="fw-semibold mt-3">SLA</h6>
+        <ul>
+            <li>Support response within 1 business day. Critical issues: same day.</li>
+            <li>Turnaround: Starter (≤1 week), Growth (1–3 weeks), Pro (3–6 weeks+ custom dev).</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Templates/Reuse</h6>
+        <ul>
+            <li>Reusable WordPress starter theme, Elementor/Block templates, and content packs.</li>
+            <li>Angular component library for common marketing sections; deploy via private npm.</li>
+        </ul>
+    </section>
+
+    <!-- 9. Sales & Marketing Plan -->
+    <section class="mb-5">
+        <h2 class="fw-bold">9. Sales & Marketing Plan</h2>
+        <h6 class="fw-semibold">Acquisition Channels</h6>
+        <ul>
+            <li>Google Business Profile + local SEO; citations.</li>
+            <li>Portfolio site with case studies and lead magnets (checklists, pricing guide PDF).</li>
+            <li>Social proof: before/after visuals, client testimonials, GMB reviews.</li>
+            <li>Partnerships with print shops, photographers, and co‑working hubs.</li>
+            <li>Outreach: local chambers, Facebook groups, LinkedIn, and cold/warm email.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Funnel</h6>
+        <ul>
+            <li><strong>Top:</strong> Free “Local Visibility Audit” (automated report) → email capture.</li>
+            <li><strong>Middle:</strong> 15‑min discovery call → proposal within 48 hours.</li>
+            <li><strong>Bottom:</strong> Deposit to reserve start date → onboarding form + asset upload.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Collateral</h6>
+        <ul>
+            <li>One‑page “Client Version” of tiers (see Section 15).</li>
+            <li>Slide deck with 3 case studies and ROI snapshots.</li>
+        </ul>
+    </section>
+
+    <!-- 10. Financial Model -->
+    <section class="mb-5">
+        <h2 class="fw-bold">10. Financial Model (Assumptions & Projections)</h2>
+        <h6 class="fw-semibold">Assumptions</h6>
+        <ul>
+            <li>Effective rate: <b>$55/hr</b> mid‑range.</li>
+            <li>Capacity: ~60 production hours/month solo (alongside other commitments).</li>
+            <li>Close rate: 25–35% on qualified leads.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Targets</h6>
+        <ul>
+            <li><strong>Builds/month:</strong> 1 Starter + 1 Growth (+ Pro every 1–2 months).</li>
+            <li><strong>MRR goal:</strong> $4k–$8k from 10–15 retainers.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Example Month (@55/hr)</h6>
+        <ul>
+            <li>1 Starter (8 hrs → $440) + 1 Growth (24 hrs → $1,320) + 0.5 Pro (30 hrs → $1,650)</li>
+            <li><strong>One‑time revenue:</strong> ~$3,410</li>
+            <li><strong>Recurring (10 retainers avg $600):</strong> $6,000</li>
+            <li><strong>Total monthly:</strong> <b>~$9,410</b> (before costs)</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Costs (ballpark)</h6>
+        <ul>
+            <li>Hosting/SaaS/plugins: $150–$300/mo</li>
+            <li>Subcontractors (as needed): $50–$70/hr pass‑through + margin</li>
+            <li>Ads/marketing: $100–$300/mo</li>
+        </ul>
+    </section>
+
+    <!-- 11. Implementation Roadmap -->
+    <section class="mb-5">
+        <h2 class="fw-bold">11. Implementation Roadmap (Next 90 Days)</h2>
+        <h6 class="fw-semibold">Weeks 1–2</h6>
+        <ul>
+            <li>Finalize website + portfolio; publish 2 case studies (Orica/AA Union adapted for SMB).</li>
+            <li>Create tier one‑pagers, proposal template, and onboarding checklist.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Weeks 3–6</h6>
+        <ul>
+            <li>Launch lead magnet + email nurture (3‑email sequence).</li>
+            <li>Outreach to 30 local businesses; book 6 discovery calls.</li>
+            <li>Build WordPress starter theme + page templates.</li>
+        </ul>
+        <h6 class="fw-semibold mt-3">Weeks 7–12</h6>
+        <ul>
+            <li>Close 3–4 build projects; enroll at least 6 retainers.</li>
+            <li>Ship 1 Looker Studio KPI dashboard template.</li>
+            <li>Gather testimonials and publish before/after metrics.</li>
+        </ul>
+    </section>
+
+    <!-- 12. KPIs & Reporting -->
+    <section class="mb-5">
+        <h2 class="fw-bold">12. KPIs & Reporting</h2>
+        <ul>
+            <li><strong>Acquisition:</strong> Discovery calls booked, proposals sent, close rate.</li>
+            <li><strong>Delivery:</strong> Cycle time per tier, revision count, on‑time launches.</li>
+            <li><strong>SEO:</strong> Impressions, CTR, top‑10 keywords, local pack visibility.</li>
+            <li><strong>Content:</strong> Posts/month, blog/video output, engagement rate.</li>
+            <li><strong>Revenue:</strong> One‑time vs MRR mix, ARPU, churn, gross margin.</li>
+        </ul>
+    </section>
+
+    <!-- 13. Risks & Mitigations -->
+    <section class="mb-5">
+        <h2 class="fw-bold">13. Risks & Mitigations</h2>
+        <ul>
+            <li><strong>Scope creep:</strong> Strict revision limits; change orders.</li>
+            <li><strong>Capacity crunch:</strong> Reusable templates; vetted subcontractors on call.</li>
+            <li><strong>Plugin/security issues:</strong> Care plans; staging + backups; update windows.</li>
+            <li><strong>Lead drought:</strong> Maintain weekly outreach cadence; partner referrals.</li>
+        </ul>
+    </section>
+
+    <!-- 14. Legal, Tax & Admin -->
+    <section class="mb-5">
+        <h2 class="fw-bold">14. Legal, Tax & Admin</h2>
+        <ul>
+            <li><strong>Entity & taxes:</strong> LLC (KNDL Inc.), EIN, business bank, bookkeeping.</li>
+            <li><strong>Contracts:</strong> MSA + SOW per tier; IP ownership on full payment; portfolio rights.</li>
+            <li><strong>Payments:</strong> Invoices with staged milestones; retainer autopay.</li>
+        </ul>
+    </section>
+
+    <!-- 15. Client‑Facing One‑Pager (Shareable) -->
+    <section class="mb-5">
+        <h2 class="fw-bold">15. Client‑Facing One‑Pager (Shareable)</h2>
+        <p><strong>Pixel & Post</strong> — <em>Branding + Websites. Real results.</em></p>
+        <div class="mb-3">
+            <strong>Starter — “Brand Essentials” ($325–$780)</strong>
+            <ul>
+                <li>Logo refresh, 1–2 social profiles, one‑page SEO website, business card + mini brand guide, Google
+                    Business optimization, SEO homepage copy, 1 month starter social posts.</li>
+                <li><strong>Optional monthly:</strong> $195–$390 — GMB posts/reviews, 4–6 social posts, basic analytics.
+                </li>
+            </ul>
+        </div>
+        <div class="mb-3">
+            <strong>Growth — “Digital + Print” ($1,040–$1,950)</strong>
+            <ul>
+                <li>Full brand kit; 3–4 social profiles; multi‑page website; print materials; content templates; on‑page
+                    SEO; one blog or video.</li>
+                <li><strong>Optional monthly:</strong> $520–$910 — 8–12 social posts, monthly blog/video, 2 ad
+                    campaigns, email list + campaign, growth report.</li>
+            </ul>
+        </div>
+        <div class="mb-3">
+            <strong>Pro — “Total Brand Presence” ($2,600–$4,550+)</strong>
+            <ul>
+                <li>Custom site (WordPress/Wix/Angular); brand kit + collateral; 3 months social content; advanced
+                    print; advanced SEO; email + SMS automation; paid ads framework.</li>
+                <li><strong>Optional monthly:</strong> $1,300–$3,250+ — full social management, weekly blog/video, ads,
+                    email/SMS, influencer outreach, advanced SEO reports, ROI dashboard + strategy call.</li>
+            </ul>
+        </div>
+        <div class="mb-3">
+            <strong>Add‑Ons:</strong> Reviews mgmt, local SEO, CRM/email automation, retargeting ads, photography,
+            video, merch, landing pages, analytics dashboards, workshops.
+        </div>
+        <div class="mb-3">
+            <strong>Process:</strong> Discover → Brand → Build → SEO → Launch → Care plan.
+        </div>
+        <div class="mb-3">
+            <strong>Book a free visibility audit</strong> and get a tailored plan in 48 hours.
+        </div>
+    </section>
+
+    <!-- 16. Change Log -->
+    <section class="mb-5">
+        <h2 class="fw-bold">16. Change Log</h2>
+        <ul>
+            <li><strong>v2.5:</strong> Increased optional monthly management pricing by 30% across tiers (both main
+                section and client one‑pager).</li>
+            <li><strong>v2.4:</strong> Increased all tier base prices by 30% (Starter, Growth, Pro) in both main tier
+                section and client one-pager.</li>
+            <li><strong>v2.2:</strong> Removed all references to training/hand-off and workshops; updated workflow step
+                to "Launch & Care Plan enrollment"; removed related rate line.</li>
+            <li><strong>v2.1:</strong> Added non‑development hourly rate card (strategy, PM, content, SEO, QA, admin,
+                training, rush multipliers).</li>
+            <li><strong>v2 (this draft):</strong> Consolidated tiers; added rate‑based pricing logic; expanded ops &
+                KPIs; included client one‑pager; clarified deposits & scope guardrails.</li>
+            <li><strong>v1 (prior):</strong> Initial tiers, upsells, and monthly management options.</li>
+        </ul>
+    </section>
+</section>
+
+
+<!--
+
+Things to add:
+Section to find quick request links:
+If the customers need buiness card: have the link and the prices ready
+If the customer needs shirts: have the link and the prices ready
+if the customer needs a name plat..... etc
+
+
+-->

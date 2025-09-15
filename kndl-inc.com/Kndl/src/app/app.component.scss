@@ -1,0 +1,89 @@
+.main-switcher {
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.main-switcher.switcher-hide {
+    transform: translate(-50%, 120%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+// Main Switcher Nav Styles
+.main-switcher {
+    .view-switcher-nav {
+        background: #31313e;
+        border-radius: 16px;
+        border: 4px solid #40414b;
+        box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+        padding: 0.5rem 0.75rem;
+        gap: 0.25rem;
+    }
+
+    .switcher-logo {
+        background: #222;
+        color: #fff;
+        border-radius: 10px;
+        width: 68px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+
+    .switcher-btn {
+        background: transparent;
+        color: #e0e0e0;
+        border: 2px solid #555;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0.15rem;
+        transition: background 0.18s, color 0.18s, border 0.18s;
+        outline: none;
+        box-shadow: none;
+        cursor: pointer;
+    }
+
+    .switcher-btn.active,
+    .switcher-btn:focus {
+        background: #222;
+        color: #fff;
+        border-color: #222;
+    }
+
+    .switcher-btn.highlight {
+        background: #ededed;
+        color: #222;
+        border: 2px solid #ededed;
+        font-weight: 600;
+        margin-left: 0.5rem;
+        transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+
+    .switcher-btn.highlight.active,
+    .switcher-btn.highlight:focus {
+        background: #fff;
+        color: #222;
+        border-color: #fff;
+    }
+}
+
+.main-switcher {
+    width: 100vw;
+    height: 100px;
+    position: absolute;
+    bottom: 0;
+    bottom: 2.5rem;
+    z-index: 1050;
+}
+
+.view-switcher {
+    width: auto;
+    background-color: red;
+}
