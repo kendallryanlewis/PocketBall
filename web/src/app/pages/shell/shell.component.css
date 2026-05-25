@@ -119,3 +119,60 @@
     transform: scale(1.05);
     box-shadow: 0 6px 24px rgba(74, 122, 43, 0.55);
 }
+
+/* ── Landscape: side rail ─────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+    .shell {
+        flex-direction: row;
+    }
+
+    .content {
+        /* Nav is now a side rail — no bottom offset needed */
+        padding-bottom: var(--safe-bottom);
+        /* Right safe area (notch side in landscape) */
+        padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    .nav {
+        /* Vertical rail */
+        flex-direction: column;
+        flex-shrink: 0;
+        width: calc(56px + env(safe-area-inset-left, 0px));
+        height: 100dvh;
+        /* Reset portrait sizing */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+        /* Border on right instead of top */
+        border-top: none;
+        border-right: 1px solid var(--border);
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .nav-item {
+        /* Each item fills equal vertical space, capped so they stay compact */
+        flex: 1;
+        width: 100%;
+        max-height: 72px;
+        flex-direction: column;
+    }
+
+    /* Hide labels — icons only in the rail */
+    .nav-label {
+        display: none;
+    }
+
+    /* Shrink the Play FAB to fit the narrow rail */
+    .nav-play {
+        width: 40px;
+        height: 40px;
+        margin-top: 0;
+        box-shadow: 0 3px 12px rgba(74, 122, 43, 0.4);
+        border-width: 2px;
+    }
+
+    .nav-svg {
+        width: 20px;
+        height: 20px;
+    }
+}
