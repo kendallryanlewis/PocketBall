@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { StorageService } from './storage.service';
+import { AuthService } from './auth.service';
 import { Player, Trophy, newPlayer } from '../models/player.model';
 
 const PLAYERS_KEY = 'cg_players';
@@ -8,6 +9,7 @@ const TROPHIES_KEY = 'cg_trophies';
 @Injectable({ providedIn: 'root' })
 export class PlayersService {
     private storage = inject(StorageService);
+    private auth = inject(AuthService);
     private _players = signal<Player[]>(this.storage.get<Player[]>(PLAYERS_KEY, []));
     private _trophies = signal<Trophy[]>(this.storage.get<Trophy[]>(TROPHIES_KEY, []));
 
@@ -22,6 +24,19 @@ export class PlayersService {
             const me = newPlayer('Me', true);
             this.savePlayer(me);
         }
+
+        // Whenever the auth user is set (login / signup), sync their display name
+        // to the "Me" player if it still holds the placeholder value "Me".
+        effect(() => {
+            const authUser = this.auth.user();
+            const me = this.me();
+            if (!authUser || !me) return;
+            const authName = authUser.displayName?.trim();
+            if (authName && authName !== 'Golfer' && me.name === 'Me') {
+                const initials = authName.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+                this.savePlayer({ ...me, name: authName, initials });
+            }
+        });
     }
 
     getById(id: string): Player | undefined {
