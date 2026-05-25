@@ -1,0 +1,170 @@
+@if (round()) {
+<div class="page">
+
+    <!-- Header -->
+    <header class="round-header">
+        <button class="back-btn" (click)="router.navigate(['/app/home'])">‹</button>
+        <div class="round-header-info">
+            <p class="round-course-name">{{ round()?.courseName }}</p>
+            <p class="round-meta">{{ gameMeta()?.label }} · Hole {{ activeHoleIdx() + 1 }} of {{ round()?.holes }}</p>
+        </div>
+        <button class="icon-btn" (click)="showMenu.set(!showMenu())">⋯</button>
+    </header>
+
+    <!-- Menu dropdown -->
+    @if (showMenu()) {
+    <div class="menu-overlay animate-fade-in" (click)="showMenu.set(false)">
+        <div class="menu-sheet" (click)="$event.stopPropagation()">
+            <button class="menu-item" (click)="shareScorecard(); showMenu.set(false)">⬆ Share Scorecard</button>
+            <button class="menu-item" (click)="showRoundQr.set(true); showMenu.set(false)">🔗 Share Round QR</button>
+            @if (!round()?.completed) {
+            <button class="menu-item menu-danger" (click)="showComplete.set(true); showMenu.set(false)">🏁 Complete
+                Round</button>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- Hole Selector strip -->
+    <div class="hole-strip">
+        @for (idx of holeNumbers(); track idx) {
+        <button class="hole-btn" [class.active]="activeHoleIdx() === idx" (click)="scrollToHole(idx)">
+            {{ idx + 1 }}
+        </button>
+        }
+    </div>
+
+    <!-- Scorecard table -->
+    <div class="scorecard-wrap">
+        <div class="scorecard">
+            <!-- Column headers (holes) -->
+            <div class="sc-row sc-header">
+                <div class="sc-player-col sc-label">Player</div>
+                @for (idx of holeNumbers(); track idx) {
+                <div class="sc-hole-col" [class.sc-active-col]="activeHoleIdx() === idx">
+                    <span class="sc-hole-num">{{ idx + 1 }}</span>
+                    <span class="sc-par">P{{ holePar(idx) }}</span>
+                </div>
+                }
+                <div class="sc-total-col sc-label">TOT</div>
+                @if (round()?.holes === 18) {
+                <div class="sc-total-col sc-label">OUT</div>
+                <div class="sc-total-col sc-label">IN</div>
+                }
+            </div>
+
+            <!-- Player rows -->
+            @for (player of players(); track player.id) {
+            <div class="sc-row">
+                <div class="sc-player-col">
+                    <div class="avatar avatar-sm" [style.background]="player.color + '22'" [style.color]="player.color">
+                        {{ player.initials }}
+                    </div>
+                    <span class="sc-player-name">{{ player.name }}</span>
+                </div>
+
+                @for (idx of holeNumbers(); track idx) {
+                <div class="sc-hole-col" [class.sc-active-col]="activeHoleIdx() === idx"
+                    (click)="openInput(player.id, idx)">
+                    @if (getScore(player.id, idx); as s) {
+                    <span class="score-badge" [attr.data-badge]="scoreBadge(s, holePar(idx))">{{ s }}</span>
+                    } @else {
+                    <span class="score-empty">—</span>
+                    }
+                </div>
+                }
+
+                <div class="sc-total-col sc-bold">{{ scoreTotals()[player.id] || '—' }}</div>
+                @if (round()?.holes === 18) {
+                <div class="sc-total-col">{{ scoreFront()[player.id] || '—' }}</div>
+                <div class="sc-total-col">{{ scoreBack()[player.id] || '—' }}</div>
+                }
+            </div>
+            }
+
+            <!-- Par row -->
+            <div class="sc-row sc-par-row">
+                <div class="sc-player-col sc-label">Par</div>
+                @for (idx of holeNumbers(); track idx) {
+                <div class="sc-hole-col" [class.sc-active-col]="activeHoleIdx() === idx">
+                    <span>{{ holePar(idx) }}</span>
+                </div>
+                }
+                <div class="sc-total-col sc-label">{{ parTotal() }}</div>
+                @if (round()?.holes === 18) {
+                <div class="sc-total-col sc-label"></div>
+                <div class="sc-total-col sc-label"></div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete round CTA (if not done) -->
+    @if (!round()?.completed) {
+    <div class="complete-bar">
+        @if (allHolesScored()) {
+        <button class="btn btn-primary btn-full" (click)="showComplete.set(true)">🏁 Complete Round</button>
+        } @else {
+        <button class="btn btn-primary btn-full" (click)="nextHole()">Next Hole →</button>
+        }
+    </div>
+    } @else {
+    <div class="complete-bar">
+        <div class="winner-banner">
+            🏆 Round Complete · Winner: {{ playersService.getById(round()!.winner!)?.name ?? 'N/A' }}
+        </div>
+    </div>
+    }
+
+</div>
+}
+
+<!-- Score input sheet -->
+@if (inputPlayerId()) {
+<div class="sheet-overlay animate-fade-in" (click)="inputPlayerId.set(null)">
+    <div class="score-sheet" (click)="$event.stopPropagation()">
+        <p class="score-sheet-title">
+            Hole {{ activeHoleIdx() + 1 }} — Par {{ holePar(activeHoleIdx()) }}
+            <span class="score-sheet-player">
+                {{ players()[players().findIndex(p => p.id === inputPlayerId())]?.name }}
+            </span>
+        </p>
+
+        <!-- Quick score buttons -->
+        <div class="quick-scores">
+            @for (n of quickScores; track n) {
+            <button class="quick-btn" [attr.data-badge]="scoreBadge(n, holePar(activeHoleIdx()))"
+                (click)="quickScore(n)">{{ n }}</button>
+            }
+        </div>
+
+        <div class="score-input-row">
+            <input class="score-input" type="number" min="1" placeholder="Score" [value]="inputValue()"
+                (input)="inputValue.set($any($event.target).value)">
+            <button class="btn btn-green" (click)="confirmScore()">Done</button>
+            <button class="btn btn-ghost" (click)="clearScore()">Clear</button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Complete round sheet -->
+@if (showComplete()) {
+<div class="sheet-overlay animate-fade-in" (click)="showComplete.set(false)">
+    <div class="sheet" (click)="$event.stopPropagation()">
+        <p class="sheet-title">Complete Round?</p>
+        <p class="sheet-sub">This will finalize scores and award the win to the leading player.</p>
+        <button class="btn btn-full btn-green" style="margin-bottom:10px" (click)="completeRound()">🏁 Complete &
+            Save</button>
+        <button class="btn btn-ghost btn-full" (click)="showComplete.set(false)">Keep Playing</button>
+    </div>
+</div>
+}
+
+@if (showRoundQr() && roundQrValue()) {
+<app-qr-modal
+    [qrValue]="roundQrValue()"
+    title="Join this Round"
+    subtitle="Scan to join as a spectator or late entrant."
+    (closed)="showRoundQr.set(false)" />
+}

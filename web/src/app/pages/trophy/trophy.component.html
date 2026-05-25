@@ -1,0 +1,75 @@
+<div class="page">
+
+    <header class="page-header">
+        <h1 class="page-title">Trophy Room</h1>
+    </header>
+
+    <!-- Leaderboard -->
+    <section class="section">
+        <h2 class="section-title">Leaderboard</h2>
+        <div class="leaderboard">
+            @for (entry of stats(); track entry.player.id; let i = $index) {
+            <div class="lb-row" [class.lb-me]="entry.player.isMe">
+                <span class="lb-rank">{{ i + 1 }}</span>
+                <div class="avatar" [style.background]="entry.player.color + '22'" [style.color]="entry.player.color">
+                    {{ entry.player.initials }}
+                </div>
+                <div class="lb-info">
+                    <p class="lb-name">{{ entry.player.name }}{{ entry.player.isMe ? ' · Me' : '' }}</p>
+                    <p class="lb-sub">{{ entry.rounds }} rounds · Avg {{ entry.avg ?? '—' }}</p>
+                </div>
+                <div class="lb-stats">
+                    <div class="lb-stat">
+                        <span class="lb-val">{{ entry.wins }}</span>
+                        <span class="lb-label">Wins</span>
+                    </div>
+                    <div class="lb-stat">
+                        <span class="lb-val">{{ entry.best ?? '—' }}</span>
+                        <span class="lb-label">Best</span>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </section>
+
+    <!-- Player filter -->
+    @if (players().length > 1) {
+    <div class="player-filter">
+        <button [class.active]="selectedPlayerId() === null" (click)="selectedPlayerId.set(null)">All</button>
+        @for (p of players(); track p.id) {
+        <button [class.active]="selectedPlayerId() === p.id" (click)="selectedPlayerId.set(p.id)">
+            {{ p.name }}
+        </button>
+        }
+    </div>
+    }
+
+    <!-- Trophies -->
+    <section class="section">
+        <h2 class="section-title">Trophies</h2>
+        @if (filtered().length) {
+        <div class="trophy-grid animate-fade-up">
+            @for (t of filtered(); track t.id) {
+            <div class="trophy-card">
+                <div class="trophy-icon">{{ t.icon }}</div>
+                <p class="trophy-title">{{ t.title }}</p>
+                <p class="trophy-course">{{ t.courseName }}</p>
+                <p class="trophy-desc">{{ t.description }}</p>
+                <div class="trophy-footer">
+                    <span class="trophy-date">{{ t.date | date:'MMM d, y' }}</span>
+                    <button class="trophy-share" (click)="shareTrophy(t)">⬆</button>
+                </div>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="empty animate-fade-up">
+            <p class="empty-icon">🏆</p>
+            <p class="empty-title">No trophies yet</p>
+            <p class="empty-sub">Win a round to earn your first trophy.</p>
+        </div>
+        }
+    </section>
+
+</div>

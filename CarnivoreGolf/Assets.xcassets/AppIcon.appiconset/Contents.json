@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "CarnivoreGolf_Any_Appearance_1024pt.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -12,6 +13,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "CarnivoreGolf_Dark_1024pt.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -23,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "CarnivoreGolf_Tinted_1024pt.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

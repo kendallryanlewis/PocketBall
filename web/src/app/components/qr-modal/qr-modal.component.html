@@ -1,0 +1,29 @@
+<div class="qr-overlay" (click)="closed.emit()" role="dialog" aria-modal="true" [attr.aria-label]="title() || 'QR Code'">
+  <div class="qr-card" (click)="$event.stopPropagation()">
+
+    <div class="qr-header">
+      @if (title()) {
+        <h3 class="qr-title">{{ title() }}</h3>
+      }
+      <button class="qr-close" (click)="closed.emit()" aria-label="Close QR code">✕</button>
+    </div>
+
+    <div class="qr-image-wrap">
+      @if (qrDataUrl()) {
+        <img class="qr-image" [src]="qrDataUrl()!" alt="QR Code" />
+      } @else {
+        <div class="skeleton" style="width:240px;height:240px;border-radius:12px;flex-shrink:0"></div>
+      }
+    </div>
+
+    @if (subtitle()) {
+      <p class="qr-subtitle">{{ subtitle() }}</p>
+    }
+
+    <div class="qr-actions">
+      <button class="btn btn-outline btn-sm" (click)="copy()" type="button">Copy Link</button>
+      <button class="btn btn-green btn-sm" (click)="share()" type="button">⬆ Share</button>
+    </div>
+
+  </div>
+</div>

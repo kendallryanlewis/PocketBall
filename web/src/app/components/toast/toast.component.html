@@ -1,0 +1,16 @@
+@if (toasts().length > 0) {
+<div class="toast-stack" role="status" aria-live="polite" aria-atomic="false">
+    @for (t of toasts(); track t.id) {
+    <div class="toast" [class]="'toast-' + t.type" role="alert">
+        <span class="toast-msg">{{ t.message }}</span>
+        <div class="toast-actions">
+            @if (t.retry) {
+            <button class="toast-btn toast-btn-retry" (click)="retry(t.id, t.retry)" type="button">Retry</button>
+            }
+            <button class="toast-btn toast-btn-close" (click)="dismiss(t.id)" type="button"
+                aria-label="Dismiss notification">✕</button>
+        </div>
+    </div>
+    }
+</div>
+}

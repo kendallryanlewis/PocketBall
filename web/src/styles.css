@@ -1,0 +1,464 @@
+/* ── Design Tokens ─────────────────────────────────── */
+:root {
+    --bg: #EEF2EE;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --border: rgba(0, 0, 0, 0.07);
+    --border-strong: rgba(0, 0, 0, 0.15);
+
+    --text: #16160F;
+    --text-2: #6A6760;
+    --text-3: #A8A59E;
+
+    --green: #4A7A2B;
+    --green-2: #5C9436;
+    --green-bg: rgba(74, 122, 43, 0.10);
+    --gold: #C8912C;
+    --gold-bg: rgba(200, 145, 44, 0.10);
+    --red: #B83232;
+    --red-bg: rgba(184, 50, 50, 0.10);
+    --blue: #2A6DB5;
+    --blue-bg: rgba(42, 109, 181, 0.10);
+
+    --radius-sm: 8px;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-full: 999px;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-height: 64px;
+
+    --noise-opacity: 0.028;
+    --noise-blend: multiply;
+}
+
+[data-theme="dark"] {
+    --bg: #19191B;
+    --surface: #232326;
+    --surface-raised: #2D2D31;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.12);
+
+    --text: #EDEBE5;
+    --text-2: #88857F;
+    --text-3: #4C4A46;
+
+    --green: #5C9436;
+    --green-2: #6EAF46;
+    --green-bg: rgba(92, 148, 54, 0.15);
+    --gold: #D4A33A;
+    --gold-bg: rgba(212, 163, 58, 0.15);
+    --red: #D04444;
+    --red-bg: rgba(208, 68, 68, 0.15);
+    --blue: #4A8ED4;
+    --blue-bg: rgba(74, 142, 212, 0.15);
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.22);
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.52);
+
+    --noise-opacity: 0.016;
+    --noise-blend: screen;
+}
+
+/* ── Reset ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Eliminate the 300ms tap delay on all interactive elements in WKWebView.
+   touch-action: manipulation tells the browser not to wait for a double-tap. */
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role="button"],
+[tabindex] {
+    touch-action: manipulation;
+}
+
+/* iOS zooms in on inputs with font-size < 16px when they receive focus,
+   which causes a visible layout jump that feels like a delay. */
+input,
+select,
+textarea {
+    font-size: max(16px, 1em);
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overscroll-behavior: none;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text);
+    /* Transparent so SwiftUI's concrete background shows through in the iOS WebView.
+       Falls back to --bg for web/browser use. */
+    background-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: color 0.2s;
+}
+
+/* Concrete noise texture */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url('/noise.svg');
+    background-size: 256px 256px;
+    opacity: var(--noise-opacity);
+    mix-blend-mode: var(--noise-blend);
+}
+
+/* ── Typography ─────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+p {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 0;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+    outline: none;
+    /* 16px minimum prevents iOS from zooming in when a field is focused,
+       which causes expensive layout recalculations in WKWebView */
+    font-size: max(16px, 1em);
+}
+
+/* Prevent double-tap zoom on all interactive elements */
+a,
+button,
+[role="button"],
+input,
+select,
+textarea,
+label {
+    touch-action: manipulation;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: var(--radius-full);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: opacity 0.15s, transform 0.1s;
+    cursor: pointer;
+    border: none;
+}
+
+.btn:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+.btn-primary {
+    background: var(--text);
+    color: var(--bg);
+}
+
+.btn-green {
+    background: var(--green);
+    color: #fff;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1.5px solid var(--border-strong);
+}
+
+.btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.btn-sm {
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+.btn-lg {
+    padding: 17px 32px;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+
+.card-raised {
+    background: var(--surface-raised);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+/* ── Form Fields ─────────────────────────────────────── */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+}
+
+.field input,
+.field select,
+.field textarea {
+    background: var(--surface-raised);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    font-size: 16px;
+    color: var(--text);
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    border-color: var(--green);
+}
+
+.field input::placeholder {
+    color: var(--text-3);
+}
+
+/* ── Chip ────────────────────────────────────────────── */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.chip-green {
+    background: var(--green-bg);
+    color: var(--green);
+}
+
+.chip-gold {
+    background: var(--gold-bg);
+    color: var(--gold);
+}
+
+.chip-red {
+    background: var(--red-bg);
+    color: var(--red);
+}
+
+.chip-blue {
+    background: var(--blue-bg);
+    color: var(--blue);
+}
+
+/* ── Avatar ──────────────────────────────────────────── */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+}
+
+/* ── Divider ─────────────────────────────────────────── */
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+}
+
+/* ── Scroll ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+    display: none;
+}
+
+* {
+    scrollbar-width: none;
+}
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-fade-up {
+    animation: fadeUp 0.4s ease both;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease both;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Sticky back-button headers ─────────────────────────────────────────────
+   Applied globally so every page gets sticky headers without per-component
+   edits. Component-level backgrounds (e.g. --surface on .round-header) win
+   via Angular's scoped attribute selectors (higher specificity).            */
+.page-header,
+.round-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.page-header.scrolled,
+.round-header.scrolled {
+    border-bottom-color: var(--border);
+}
+
+/* ── Skeleton shimmer ────────────────────────────────── */
+@keyframes shimmer {
+    from {
+        background-position: -200% 0;
+    }
+
+    to {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--surface) 25%,
+            var(--surface-raised) 50%,
+            var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--radius);
+    pointer-events: none;
+    user-select: none;
+    color: transparent !important;
+}
+
+.skeleton-text {
+    height: 1em;
+    border-radius: var(--radius-full);
+}
+
+.skeleton-circle {
+    border-radius: var(--radius-full);
+}

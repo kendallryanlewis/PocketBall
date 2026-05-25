@@ -1,0 +1,255 @@
+:host {
+    display: block;
+}
+
+.page {
+    padding: calc(var(--safe-top) + 16px) 20px calc(var(--safe-bottom) + 80px);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    font-size: 28px;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    margin-bottom: 8px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Profile */
+.profile-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+}
+
+.avatar-lg {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.profile-sub {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 2px 0 0;
+}
+
+.edit-btn {
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+.edit-btn-save {
+    background: var(--green);
+    color: #fff;
+    border-color: transparent;
+}
+
+.name-input {
+    font-size: 17px;
+    font-weight: 700;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--green);
+    width: 100%;
+    outline: none;
+    color: var(--text);
+    padding: 2px 0;
+}
+
+.code-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+}
+
+.code-label {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 600;
+}
+
+.code-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Theme */
+.theme-row {
+    display: flex;
+    padding: 10px;
+    gap: 6px;
+}
+
+.theme-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    background: transparent;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    transition: all 0.15s;
+}
+
+.theme-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: transparent;
+}
+
+/* List rows */
+.list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.row-icon {
+    font-size: 20px;
+}
+
+.row-label {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.row-chevron {
+    font-size: 18px;
+    color: var(--text-3);
+}
+
+.danger-row .row-label {
+    color: var(--red);
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+}
+.card-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 16px;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 200;
+}
+
+.sheet {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(var(--safe-bottom) + 16px);
+    background: var(--surface-raised);
+    border-radius: var(--radius-xl);
+    padding: 24px 20px 20px;
+    z-index: 201;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sheet-icon-danger { font-size: 40px; text-align: center; }
+
+.sheet-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+    color: var(--red);
+}
+
+.sheet-body {
+    font-size: 14px;
+    color: var(--text-2);
+    text-align: center;
+    line-height: 1.55;
+}
+
+.sheet-actions { display: flex; gap: 10px; margin-top: 4px; }
+.sheet-actions .btn { flex: 1; }
+
+.btn-danger {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+}

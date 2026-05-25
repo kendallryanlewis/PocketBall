@@ -1,0 +1,360 @@
+:host {
+    display: block;
+}
+
+.holes-osm-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.holes-osm-ok {
+    color: var(--green);
+    background: var(--green-bg);
+    border-color: var(--green);
+}
+
+.page {
+    padding: calc(var(--safe-top) + 16px) 20px 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    font-size: 28px;
+    color: var(--text);
+    width: 40px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+/* Scanner */
+.scan-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.scan-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.scan-sub {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 2px;
+}
+
+.scan-label {
+    cursor: pointer;
+}
+
+.scan-label.scanning {
+    opacity: 0.6;
+    pointer-events: none;
+    animation: pulse 1.4s infinite;
+}
+
+.scan-error {
+    font-size: 12px;
+    color: var(--red);
+    padding: 0 4px;
+    margin-bottom: 12px;
+}
+
+/* Sections */
+.section {
+    margin-bottom: 28px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Toggle group */
+.toggle-group {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 3px;
+    gap: 2px;
+}
+
+.toggle-group button {
+    padding: 5px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    transition: all 0.15s;
+}
+
+.toggle-group button.active {
+    background: var(--text);
+    color: var(--bg);
+}
+
+/* Hole table */
+.hole-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.hole-header,
+.hole-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr;
+    gap: 0;
+}
+
+.hole-header {
+    padding: 10px 12px;
+    background: var(--surface-raised);
+    border-bottom: 1px solid var(--border);
+}
+
+.hole-header span {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+    text-align: center;
+}
+
+.hole-header span:first-child {
+    text-align: left;
+}
+
+.hole-row {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+}
+
+.hole-row:last-child {
+    border-bottom: none;
+}
+
+.hole-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-2);
+}
+
+.hole-row input {
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+.hole-row input:focus {
+    background: var(--green-bg);
+}
+
+.section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.section-title-row .section-title {
+    margin-bottom: 0;
+}
+
+.nearby-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-nearby {
+    padding: 7px 12px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.btn-nearby:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.nearby-denied {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    flex-shrink: 0;
+}
+
+.nearby-panel {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.nearby-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 10px 10px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 6px;
+}
+
+.nearby-search {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-size: 14px;
+    color: var(--text);
+    min-width: 0;
+}
+
+.nearby-search:focus {
+    outline: none;
+    border-color: var(--green);
+}
+
+.nearby-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.nearby-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--text-2);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.nearby-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    gap: 8px;
+}
+
+.nearby-row-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+}
+
+.nearby-addr {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.nearby-row:last-child {
+    border-bottom: none;
+}
+
+.nearby-row:active {
+    background: var(--surface);
+}
+
+.nearby-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    text-align: left;
+}
+
+.nearby-dist {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.nearby-error,
+.nearby-loading {
+    font-size: 13px;
+    color: var(--text-2);
+    padding: 12px 14px;
+    text-align: center;
+}

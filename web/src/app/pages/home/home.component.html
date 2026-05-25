@@ -1,0 +1,225 @@
+<div class="page">
+
+    <!-- Header -->
+    <header class="header">
+        <div>
+            <p class="greeting">Welcome back</p>
+            <h1 class="name">{{ me()?.name ?? 'Golfer' }}</h1>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" (click)="toggle()" aria-label="Toggle theme">
+                @if (isDark() === 'dark') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    width="20" height="20">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    width="20" height="20">
+                    <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+                </svg>
+                }
+            </button>
+            <a routerLink="/app/settings" class="icon-btn" aria-label="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    width="20" height="20">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero: Active round OR welcome card -->
+    @if (activeRound(); as round) {
+    <a [routerLink]="['/app/rounds', round.id]" class="hero-card hero-active animate-fade-up">
+        <div class="hero-content">
+            <span class="hero-chip">In Progress</span>
+            <p class="hero-course">{{ round.courseName }}</p>
+            <p class="hero-sub">Hole {{ round.currentHole }} of {{ round.holes }}</p>
+        </div>
+        <div class="hero-cta">
+            Continue
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                width="16" height="16">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+            </svg>
+        </div>
+    </a>
+    } @else {
+    <div class="hero-card hero-active animate-fade-up">
+        <div class="hero-flag">
+            <svg viewBox="0 0 32 32" fill="none" width="48" height="48">
+                <line x1="10" y1="4" x2="10" y2="28" stroke="rgba(255,255,255,0.7)" stroke-width="2"
+                    stroke-linecap="round" />
+                <path d="M10 6 L24 11 L10 16" fill="rgba(255,255,255,0.9)" stroke="rgba(255,255,255,0.9)"
+                    stroke-width="1" stroke-linejoin="round" />
+                <ellipse cx="16" cy="28" rx="8" ry="2" fill="rgba(0,0,0,0.15)" />
+            </svg>
+        </div>
+        <div class="hero-content">
+            <p class="hero-label">Ready to play?</p>
+            <p class="hero-headline">Start a new round</p>
+        </div>
+        <a routerLink="/app/rounds/new" class="hero-btn">Tee Off →</a>
+    </div>
+    }
+
+    <!-- Stats row -->
+    @if (stats(); as s) {
+    <div class="stats-row animate-fade-up" style="animation-delay:.05s">
+        <div class="stat-pill">
+            <span class="stat-val">{{ s.rounds }}</span>
+            <span class="stat-label">Rounds</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+            <span class="stat-val">{{ s.wins }}</span>
+            <span class="stat-label">Wins</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+            <span class="stat-val">{{ s.best ?? '—' }}</span>
+            <span class="stat-label">Best</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+            <span class="stat-val">{{ s.avg ?? '—' }}</span>
+            <span class="stat-label">Avg</span>
+        </div>
+    </div>
+    }
+
+    <!-- Quick action tiles -->
+    <section class="section animate-fade-up" style="animation-delay:.1s">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="tile-grid">
+
+            <a routerLink="/app/rounds/new" class="tile tile-accent">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <line x1="8" y1="5" x2="8" y2="19" />
+                        <path d="M8 6 L18 11.5 L8 17" />
+                    </svg>
+                </span>
+                <span class="tile-label">New Round</span>
+            </a>
+
+            <a routerLink="/app/courses" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <circle cx="12" cy="9" r="3" />
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                    </svg>
+                </span>
+                <span class="tile-label">Courses</span>
+            </a>
+
+            <a routerLink="/app/history" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <rect x="5" y="3" width="14" height="18" rx="2" />
+                        <line x1="9" y1="8" x2="15" y2="8" />
+                        <line x1="9" y1="12" x2="15" y2="12" />
+                        <line x1="9" y1="16" x2="12" y2="16" />
+                    </svg>
+                </span>
+                <span class="tile-label">History</span>
+            </a>
+
+            <a routerLink="/app/trophy" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <path d="M7 3h10v7a5 5 0 01-10 0V3z" />
+                        <path d="M7 7H4a2 2 0 000 4 3 3 0 003 3" />
+                        <path d="M17 7h3a2 2 0 010 4 3 3 0 01-3 3" />
+                        <line x1="12" y1="15" x2="12" y2="19" />
+                        <line x1="9" y1="19" x2="15" y2="19" />
+                    </svg>
+                </span>
+                <span class="tile-label">Trophy Room</span>
+            </a>
+
+            <a routerLink="/app/friends" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                        <path d="M17 11a3 3 0 100-6" />
+                        <path d="M23 21v-2a3 3 0 00-3-3" />
+                    </svg>
+                </span>
+                <span class="tile-label">Friends</span>
+            </a>
+
+            <a routerLink="/app/courses/new" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <circle cx="12" cy="12" r="9" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                </span>
+                <span class="tile-label">Add Course</span>
+            </a>
+
+            <a routerLink="/app/scan-scorecard" class="tile">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" width="28" height="28">
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                    </svg>
+                </span>
+                <span class="tile-label">Scan Scorecard</span>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- Recent rounds -->
+    @if (recentRounds().length) {
+    <section class="section animate-fade-up" style="animation-delay:.16s">
+        <div class="section-header">
+            <h2 class="section-title">Recent Rounds</h2>
+            <a routerLink="/app/history" class="see-all">See all</a>
+        </div>
+        @for (round of recentRounds(); track round.id) {
+        <a [routerLink]="['/app/rounds', round.id]" class="round-row">
+            <div class="round-row-left">
+                <span class="round-dot"></span>
+                <div>
+                    <p class="round-course">{{ round.courseName }}</p>
+                    <p class="round-meta">{{ round.gameType | replace:'_':' ' | titlecase }} · {{ round.date | date:'MMM
+                        d' }}</p>
+                </div>
+            </div>
+            <div class="round-row-right">
+                @if (round.winner) { <span class="chip chip-gold">W</span> }
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    width="16" height="16">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </div>
+        </a>
+        }
+    </section>
+    }
+
+</div>

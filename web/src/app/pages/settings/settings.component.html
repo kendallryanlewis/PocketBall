@@ -1,0 +1,127 @@
+<div class="page">
+
+    <header class="page-header">
+        <a routerLink="/app/home" class="back-btn">‹</a>
+        <h1 class="page-title">Settings</h1>
+    </header>
+
+    <!-- Profile -->
+    <section class="section">
+        <h2 class="section-label">Profile</h2>
+        <div class="card">
+
+            <div class="profile-row">
+                <div class="avatar avatar-lg" [style.background]="(me()?.color ?? '#888') + '22'"
+                    [style.color]="me()?.color ?? '#888'">
+                    {{ me()?.initials }}
+                </div>
+                <div class="profile-info">
+                    @if (!editingName()) {
+                    <p class="profile-name">{{ me()?.name }}</p>
+                    <p class="profile-sub">{{ authUser()?.email ?? 'Signed in with Apple' }}</p>
+                    } @else {
+                    <input class="name-input" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)"
+                        (keydown.enter)="saveName()" autocomplete="off">
+                    }
+                </div>
+                @if (!editingName()) {
+                <button class="edit-btn" (click)="editingName.set(true)">Edit</button>
+                } @else {
+                <button class="edit-btn edit-btn-save" (click)="saveName()">Save</button>
+                }
+            </div>
+
+            @if (authUser()?.friendCode) {
+            <div class="divider"></div>
+            <div class="code-row">
+                <span class="code-label">Friend Code</span>
+                <span class="code-value">{{ authUser()?.friendCode }}</span>
+            </div>
+            }
+
+        </div>
+    </section>
+
+    <!-- Appearance -->
+    <section class="section">
+        <h2 class="section-label">Appearance</h2>
+        <div class="card">
+            <div class="theme-row">
+                @for (opt of [['system','Auto'],['light','Light'],['dark','Dark']]; track opt[0]) {
+                <button class="theme-btn" [class.active]="preference() === opt[0]" (click)="setTheme(opt[0])">
+                    {{ opt[1] }}
+                </button>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Friends -->
+    <section class="section">
+        <h2 class="section-label">Social</h2>
+        <div class="card">
+            <a routerLink="/app/friends" class="list-row">
+                <span class="row-icon">🤝</span>
+                <span class="row-label">Friends &amp; Players</span>
+                <span class="row-chevron">›</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Game -->
+    <section class="section">
+        <h2 class="section-label">Game</h2>
+        <div class="card">
+            <a routerLink="/app/clubs" class="list-row">
+                <span class="row-icon">🏌️</span>
+                <span class="row-label">Club Yardages</span>
+                <span class="row-chevron">›</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Share App -->
+    <section class="section">
+        <h2 class="section-label">Share</h2>
+        <div class="card">
+            <button class="list-row" (click)="shareApp()">
+                <span class="row-icon">⬆</span>
+                <span class="row-label">Invite Friends to Carnivore Golf</span>
+                <span class="row-chevron">›</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Account -->
+    <section class="section">
+        <h2 class="section-label">Account</h2>
+        <div class="card">
+            <button class="list-row" (click)="signOut()">
+                <span class="row-icon">🚪</span>
+                <span class="row-label">Sign Out</span>
+                <span class="row-chevron">›</span>
+            </button>
+            <div class="card-divider"></div>
+            <button class="list-row danger-row" (click)="confirmDelete()">
+                <span class="row-icon">🗑</span>
+                <span class="row-label">Delete Account &amp; All Data</span>
+            </button>
+        </div>
+    </section>
+
+</div>
+
+<!-- Delete Confirm Sheet -->
+@if (showDeleteConfirm()) {
+<div class="overlay" (click)="cancelDelete()"></div>
+<div class="sheet animate-fade-up">
+    <div class="sheet-icon-danger">🗑</div>
+    <h3 class="sheet-title">Delete Account?</h3>
+    <p class="sheet-body">This will permanently delete your account, all rounds, courses, and friends. <strong>This
+            cannot be undone.</strong></p>
+    <div class="sheet-actions">
+        <button class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteAccount()">Delete Everything</button>
+    </div>
+</div>
+}

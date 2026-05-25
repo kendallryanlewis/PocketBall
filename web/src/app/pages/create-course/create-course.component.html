@@ -1,0 +1,134 @@
+<div class="page">
+
+    <header class="page-header">
+        <button class="back-btn" (click)="cancel()">‹</button>
+        <h1 class="page-title">{{ isEditMode() ? 'Edit Course' : 'New Course' }}</h1>
+        <button class="btn btn-green btn-sm" (click)="save()" [disabled]="!canSave() || saving()">
+            {{ saving() ? '...' : (isEditMode() ? 'Update' : 'Save') }}
+        </button>
+    </header>
+
+    <!-- Scanner -->
+    <div class="scan-banner animate-fade-up">
+        <div class="scan-info">
+            <p class="scan-title">📋 Scan Scorecard</p>
+            <p class="scan-sub">Auto-fill holes from a photo</p>
+        </div>
+        <label class="btn btn-outline btn-sm scan-label" [class.scanning]="scanning()">
+            @if (scanning()) { Scanning… } @else { Open Camera }
+            <input type="file" accept="image/*" capture="environment" (change)="onScanImage($event)"
+                style="display:none" [disabled]="scanning()">
+        </label>
+    </div>
+    @if (scanError()) {
+    <p class="scan-error">{{ scanError() }}</p>
+    }
+
+    <!-- Course Info -->
+    <section class="section animate-fade-up">
+        <div class="section-title-row">
+            <h2 class="section-title">Course Info</h2>
+            <div class="nearby-actions">
+                <button class="btn-nearby" (click)="showNearby.set(true)" title="Search by name">🔍 Search</button>
+            </div>
+        </div>
+
+        @if (showNearby()) {
+        <div class="nearby-panel">
+            <div class="nearby-header">
+                <input #searchInput class="nearby-search" type="search" placeholder="Search course name…"
+                    [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+                    (keydown.enter)="searchCourses()">
+                <button class="btn-nearby" (click)="searchCourses()" [disabled]="searching()">
+                    {{ searching() ? '⏳' : '🔍' }}
+                </button>
+                <button class="nearby-close" (click)="dismissNearby()">✕</button>
+            </div>
+            @if (nearbyError()) {
+            <p class="nearby-error">{{ nearbyError() }}</p>
+            }
+            @if (searching()) {
+            <p class="nearby-loading">Searching…</p>
+            }
+            @for (c of nearbyCourses(); track c.id) {
+            <button class="nearby-row" (click)="selectNearbyCourse(c)">
+                <div class="nearby-row-info">
+                    <span class="nearby-name">{{ c.name }}</span>
+                    @if (c.address) { <span class="nearby-addr">{{ c.address }}</span> }
+                </div>
+                @if (c.distanceKm > 0) {
+                <span class="nearby-dist">{{ c.distanceKm.toFixed(1) }} km</span>
+                }
+            </button>
+            }
+        </div>
+        }
+
+        <div class="fields">
+            <div class="field">
+                <label>Course Name *</label>
+                <input type="text" placeholder="e.g. Pebble Beach" [value]="course().name"
+                    (change)="updateName($any($event.target).value)">
+            </div>
+            <div class="field">
+                <label>Location</label>
+                <input type="text" placeholder="City, State" [value]="course().location"
+                    (change)="updateLocation($any($event.target).value)">
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>Course Rating</label>
+                    <input type="number" step="0.1" placeholder="72.0" [value]="course().rating || ''"
+                        (change)="updateRating($any($event.target).value)">
+                </div>
+                <div class="field">
+                    <label>Slope</label>
+                    <input type="number" placeholder="113" [value]="course().slope || ''"
+                        (change)="updateSlope($any($event.target).value)">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hole count toggle -->
+    <section class="section animate-fade-up">
+        <div class="section-header">
+            <h2 class="section-title">Holes</h2>
+            <div class="toggle-group">
+                <button [class.active]="holeCount() === 9" (click)="setHoleCount(9)">9</button>
+                <button [class.active]="holeCount() === 18" (click)="setHoleCount(18)">18</button>
+            </div>
+        </div>
+
+        <!-- OSM hole data status -->
+        @if (loadingHoles()) {
+        <p class="holes-osm-status">⏳ Looking up hole data from OpenStreetMap…</p>
+        } @else if (holesFromOsm().length > 0) {
+        <p class="holes-osm-status holes-osm-ok">✓ {{ holesFromOsm().length }} holes auto-filled from OpenStreetMap</p>
+        }
+
+        <!-- Hole table -->
+        <div class="hole-table">
+            <div class="hole-header">
+                <span>Hole</span>
+                <span>Par</span>
+                <span>Hdcp</span>
+                <span>Yards</span>
+            </div>
+            @for (hole of course().holes; track hole.number; let i = $index) {
+            <div class="hole-row">
+                <span class="hole-num">{{ hole.number }}</span>
+                <input type="number" min="3" max="5" [ngModel]="hole.par" [ngModelOptions]="{updateOn: 'change'}"
+                    (ngModelChange)="updateHole(i, 'par', $event)">
+                <input type="number" min="1" max="18" [ngModel]="hole.handicap" [ngModelOptions]="{updateOn: 'change'}"
+                    (ngModelChange)="updateHole(i, 'handicap', $event)">
+                <input type="number" min="0" [ngModel]="hole.tees[0]?.yards ?? null"
+                    [ngModelOptions]="{updateOn: 'change'}" (ngModelChange)="updateYardage(i, $event)">
+            </div>
+            }
+        </div>
+    </section>
+
+    <div style="height: 32px;"></div>
+
+</div>

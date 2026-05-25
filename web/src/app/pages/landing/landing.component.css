@@ -1,0 +1,124 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.landing {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: calc(var(--safe-top) + 24px) 32px calc(var(--safe-bottom) + 48px);
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle concrete grid lines */
+.landing::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.theme-btn {
+    position: absolute;
+    top: calc(var(--safe-top) + 20px);
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.hero {
+    padding-top: 60px;
+    position: relative;
+    z-index: 1;
+}
+
+.eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: clamp(52px, 16vw, 88px);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+
+.tagline {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-2);
+    line-height: 1.4;
+}
+
+.cta {
+    position: relative;
+    z-index: 1;
+}
+
+.enter-btn {
+    border-radius: var(--radius-lg) !important;
+    font-size: 18px !important;
+    padding: 20px 32px !important;
+    letter-spacing: -0.02em !important;
+}
+
+.hint {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+}
+
+.features {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.feat {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+
+.feat span:first-child {
+    font-size: 22px;
+}

@@ -1,0 +1,116 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+/* ── Offline banner ───────────────────────────── */
+.offline-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(234, 179, 8, 0.15);
+    border-bottom: 1px solid rgba(234, 179, 8, 0.35);
+    color: #fde68a;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.shell {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    background: transparent;
+    /* SwiftUI owns the root bg color */
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    /* clip instead of hidden: prevents horizontal scroll without creating a
+       fixed-position containing block, so position:fixed sheets in child
+       components correctly cover the full viewport including the nav bar. */
+    overflow-x: clip;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+    /* Ensure the last item in every page can scroll above the nav */
+    padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
+}
+
+/* ── Bottom Navigation ────────────────────────── */
+.nav {
+    /* Static flex item — no position:fixed so it never overlaps content */
+    flex-shrink: 0;
+    height: calc(var(--nav-height) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    z-index: 100;
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-3);
+    transition: color 0.15s;
+    text-decoration: none;
+    position: relative;
+}
+
+.nav-item.active {
+    color: var(--green);
+}
+
+.nav-svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.15s;
+}
+
+.nav-item.active .nav-svg {
+    transform: scale(1.08);
+}
+
+.nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Primary "Play" floating button */
+.nav-primary {
+    color: var(--text-3);
+}
+
+.nav-primary.active {
+    color: var(--green);
+}
+
+.nav-play {
+    width: 52px;
+    height: 52px;
+    background: var(--green);
+    color: #fff;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(74, 122, 43, 0.45);
+    margin-top: -14px;
+    border: 3px solid var(--bg);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.nav-primary.active .nav-play {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(74, 122, 43, 0.55);
+}

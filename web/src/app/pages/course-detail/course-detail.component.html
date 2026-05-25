@@ -1,0 +1,112 @@
+@if (course(); as c) {
+<div class="page">
+
+    <header class="page-header">
+        <a routerLink="/app/courses" class="back-btn">‹</a>
+        <h1 class="page-title">{{ c.name }}</h1>
+        <div class="header-actions">
+            <button class="btn btn-outline btn-sm" (click)="editCourse()">✏️ Edit</button>
+            <a [routerLink]="['/app/rounds/new']" [queryParams]="{courseId: c.id}" class="btn btn-green btn-sm">▶
+                Play</a>
+        </div>
+    </header>
+
+    @if (c.location) {
+    <p class="location">📍 {{ c.location }}</p>
+    }
+
+    <div class="info-chips">
+        <span class="chip chip-green">{{ c.holes.length }} Holes</span>
+        <span class="chip chip-blue">Par {{ par(c) }}</span>
+        @if (c.rating) {
+        <span class="chip">Rating {{ c.rating }}</span>
+        <span class="chip">Slope {{ c.slope }}</span>
+        }
+    </div>
+
+    <!-- Map + Weather row -->
+    @if (coords()) {
+    <div class="map-weather-row">
+        <div class="map-wrap">
+            <iframe [src]="safeMapUrl()" class="course-map" scrolling="no" frameborder="0"
+                title="Course location map"></iframe>
+        </div>
+        <div class="weather-card">
+            @if (weatherLoading()) {
+            <p class="weather-line">⏳ Loading…</p>
+            } @else if (weather(); as w) {
+            <div class="weather-icon-row">
+                <img [src]="'https://openweathermap.org/img/wn/' + w.icon + '@2x.png'" [alt]="w.description"
+                    class="weather-icon">
+                <span class="weather-temp">{{ w.temp }}°F</span>
+            </div>
+            <p class="weather-desc">{{ w.description }}</p>
+            <div class="weather-meta">
+                <span>💨 {{ w.wind }} mph {{ w.windDir }}</span>
+                <span>💧 {{ w.humidity }}%</span>
+                <span>Feels {{ w.feelsLike }}°</span>
+            </div>
+            } @else if (weatherError()) {
+            <p class="weather-line weather-err">{{ weatherError() }}</p>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- Vertical scorecard -->
+    <section class="section">
+        <h2 class="section-title">Scorecard</h2>
+        <div class="sc-wrap">
+            <table class="sc-table">
+                <thead>
+                    <tr>
+                        <th>Hole</th>
+                        <th>Par</th>
+                        <th>Hdcp</th>
+                        <th>Yards</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (h of c.holes.slice(0, 9); track h.number) {
+                    <tr class="hole-row">
+                        <td class="hole-num-cell">{{ h.number }}</td>
+                        <td class="par-cell">{{ h.par }}</td>
+                        <td class="hdcp-cell">{{ h.handicap }}</td>
+                        <td class="yards-cell">{{ h.tees[0]?.yards || '—' }}</td>
+                    </tr>
+                    }
+                    <tr class="total-row">
+                        <td>OUT</td>
+                        <td>{{ front9Par(c) }}</td>
+                        <td>—</td>
+                        <td>{{ c.holes.slice(0, 9).reduce(yardSum, 0) }}</td>
+                    </tr>
+                    @if (c.holes.length === 18) {
+                    @for (h of c.holes.slice(9); track h.number) {
+                    <tr class="hole-row">
+                        <td class="hole-num-cell">{{ h.number }}</td>
+                        <td class="par-cell">{{ h.par }}</td>
+                        <td class="hdcp-cell">{{ h.handicap }}</td>
+                        <td class="yards-cell">{{ h.tees[0]?.yards || '—' }}</td>
+                    </tr>
+                    }
+                    <tr class="total-row">
+                        <td>IN</td>
+                        <td>{{ back9Par(c) }}</td>
+                        <td>—</td>
+                        <td>{{ c.holes.slice(9).reduce(yardSum, 0) }}</td>
+                    </tr>
+                    <tr class="total-row grand-total">
+                        <td>TOT</td>
+                        <td>{{ par(c) }}</td>
+                        <td>—</td>
+                        <td>{{ c.holes.reduce(yardSum, 0) }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+}

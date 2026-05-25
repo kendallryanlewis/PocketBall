@@ -1,0 +1,56 @@
+<div class="page">
+
+    <header class="page-header">
+        <a routerLink="/app/settings" class="back-btn">‹</a>
+        <h1 class="page-title">Club Yardages</h1>
+        <span class="header-count">{{ filledCount() }}/{{ clubs().length }}</span>
+    </header>
+
+    <p class="page-sub">Set your typical carry distance for each club. Tap a club to add notes.</p>
+
+    <div class="clubs-list">
+        @for (club of clubs(); track club.id) {
+        <div class="club-card" [class.has-yards]="club.yards !== null" [class.expanded]="expanded() === club.id">
+
+            <div class="club-row" (click)="toggleExpand(club.id)">
+                <div class="club-icon" [class.club-icon-filled]="club.yards !== null">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="2" x2="12" y2="22" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+
+                <span class="club-name">{{ club.name }}</span>
+
+                @if (club.notes && expanded() !== club.id) {
+                <span class="club-note-badge">note</span>
+                }
+
+                <div class="yards-input-wrap" (click)="$event.stopPropagation()">
+                    <input class="yards-input" type="number" inputmode="numeric" placeholder="—"
+                        [value]="club.yards ?? ''" (change)="updateYards(club, $any($event.target).value)"
+                        (blur)="updateYards(club, $any($event.target).value)">
+                    <span class="yards-unit">yds</span>
+                </div>
+
+                <span class="expand-chevron" [class.open]="expanded() === club.id">›</span>
+            </div>
+
+            @if (expanded() === club.id) {
+            <div class="club-notes-panel" (click)="$event.stopPropagation()">
+                <label class="notes-label">Notes (optional)</label>
+                <textarea class="notes-input" rows="2" placeholder="e.g. Full swing, slight fade, cold weather..."
+                    [value]="club.notes" (input)="updateNotes(club, $any($event.target).value)">
+                </textarea>
+                @if (club.yards !== null) {
+                <button class="clear-btn" (click)="clearClub(club)">Clear</button>
+                }
+            </div>
+            }
+
+        </div>
+        }
+    </div>
+
+</div>

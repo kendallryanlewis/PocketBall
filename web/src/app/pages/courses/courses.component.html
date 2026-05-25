@@ -1,0 +1,60 @@
+<div class="page">
+
+    <header class="page-header">
+        <h1 class="page-title">Courses</h1>
+        <a routerLink="/app/courses/new" class="btn btn-green btn-sm">＋ Add</a>
+    </header>
+
+    @if (courses().length) {
+    <div class="course-list animate-fade-up">
+        @for (course of courses(); track course.id) {
+        <div class="course-card">
+            <a [routerLink]="['/app/courses', course.id]" class="course-main">
+                <div class="course-info">
+                    <p class="course-name">{{ course.name }}</p>
+                    @if (course.location) {
+                    <p class="course-location">📍 {{ course.location }}</p>
+                    }
+                    <div class="course-chips">
+                        <span class="chip chip-green">{{ course.holes.length }} Holes</span>
+                        <span class="chip chip-blue">Par {{ par(course) }}</span>
+                        @if (course.rating) {
+                        <span class="chip">{{ course.rating }} / {{ course.slope }}</span>
+                        }
+                    </div>
+                </div>
+                <span class="chevron">›</span>
+            </a>
+            <div class="course-actions">
+                <a [routerLink]="['/app/rounds/new']" [queryParams]="{ courseId: course.id }" class="act-btn">
+                    ▶ Play
+                </a>
+                <button class="act-btn" (click)="share(course.name, course.location)">⬆ Share</button>
+                <button class="act-btn act-danger" (click)="confirmDelete(course.id)">✕ Delete</button>
+            </div>
+        </div>
+        }
+    </div>
+    } @else {
+    <div class="empty animate-fade-up">
+        <p class="empty-icon">⛳</p>
+        <p class="empty-title">No courses yet</p>
+        <p class="empty-sub">Add a course manually or scan a scorecard.</p>
+        <a routerLink="/app/courses/new" class="btn btn-green" style="margin-top:16px">Add First Course</a>
+    </div>
+    }
+
+</div>
+
+<!-- Delete confirmation sheet -->
+@if (deleting()) {
+<div class="sheet-overlay animate-fade-in" (click)="deleting.set(null)">
+    <div class="sheet" (click)="$event.stopPropagation()">
+        <p class="sheet-title">Delete Course?</p>
+        <p class="sheet-sub">This cannot be undone.</p>
+        <button class="btn btn-full" style="background:var(--red);color:#fff;margin-bottom:10px"
+            (click)="doDelete()">Delete</button>
+        <button class="btn btn-ghost btn-full" (click)="deleting.set(null)">Cancel</button>
+    </div>
+</div>
+}

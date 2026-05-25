@@ -1,0 +1,133 @@
+<div class="page">
+
+    <header class="page-header">
+        <a routerLink="/app/home" class="back-btn">‹</a>
+        <h1 class="page-title">Friends</h1>
+        <button class="btn-icon" (click)="addMode.set(true)" aria-label="Add friend">＋</button>
+    </header>
+
+    <!-- My code card -->
+    <div class="my-code-card">
+        <div class="my-code-info">
+            <p class="my-code-label">Your Friend Code</p>
+            <p class="my-code-value">{{ myCode }}</p>
+            <p class="my-code-hint">Share this so friends can add you to rounds.</p>
+        </div>
+        <div class="my-code-actions">
+            <button class="share-btn" (click)="showMyQr.set(true)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3"/></svg>
+                My QR
+            </button>
+            <button class="share-btn" (click)="shareMyCode()">⬆ Share Code</button>
+            <button class="invite-btn" (click)="inviteToDownload()">📲 Invite</button>
+        </div>
+    </div>
+
+    <!-- Friends list -->
+    <section class="section">
+        <h2 class="section-title">Friends ({{ friends().length }})</h2>
+
+        @if (friends().length) {
+        <div class="friend-list animate-fade-up">
+            @for (f of friends(); track f.id) {
+            <div class="friend-row">
+                <div class="avatar" [style.background]="f.color + '22'" [style.color]="f.color">
+                    {{ f.initials }}
+                </div>
+                <div class="friend-info">
+                    <p class="friend-name">{{ f.name }}</p>
+                    @if (f.username) {
+                    <p class="friend-username">@{{ f.username }}</p>
+                    } @else if (f.friendCode) {
+                    <p class="friend-code">{{ f.friendCode }}</p>
+                    }
+                </div>
+                <div class="friend-meta">
+                    <span class="meta-val">{{ f.roundsPlayed }}</span>
+                    <span class="meta-lbl">rounds</span>
+                </div>
+                <button class="remove-btn" (click)="confirmDelete(f.id)" aria-label="Remove {{ f.name }}">✕</button>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="empty animate-fade-up">
+            <p class="empty-icon">🤝</p>
+            <p class="empty-title">No friends yet</p>
+            <p class="empty-sub">Tap ＋ to add a playing partner.</p>
+        </div>
+        }
+    </section>
+
+</div>
+
+<!-- My QR Modal -->
+@if (showMyQr()) {
+<app-qr-modal
+    [qrValue]="myQrValue()"
+    title="My Friend QR"
+    subtitle="Have a friend scan this to add you instantly."
+    (closed)="showMyQr.set(false)" />
+}
+
+<!-- Add Friend Sheet -->
+@if (addMode()) {
+<div class="overlay" (click)="addMode.set(false)"></div>
+<div class="sheet animate-fade-up" role="dialog" aria-modal="true" aria-label="Add Friend">
+    <h3 class="sheet-title">Add Friend</h3>
+
+    <!-- Scan QR button -->
+    <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
+        @if (scanning()) {
+          <span class="scan-spinner"></span> Scanning…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3"/></svg>
+          Scan Their QR Code
+        }
+    </button>
+
+    @if (showPasteField()) {
+    <div class="field" style="margin-top:0">
+        <label>Paste QR link</label>
+        <input type="text" [ngModel]="pasteValue()" (ngModelChange)="pasteValue.set($event)"
+            placeholder="cgolf://add-friend?…" autocomplete="off" (keyup.enter)="applyPaste()">
+        <button class="btn btn-green btn-sm" style="margin-top:8px" (click)="applyPaste()">Apply</button>
+    </div>
+    }
+
+    <div class="sheet-divider"><span>or add manually</span></div>
+
+    <div class="field">
+        <label>Name</label>
+        <input type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Buddy's name"
+            autocomplete="off">
+    </div>
+    <div class="field">
+        <label>Friend Code <span class="optional">(optional)</span></label>
+        <input type="text" [ngModel]="newCode()" (ngModelChange)="newCode.set($event)" placeholder="ACE-1234"
+            autocomplete="off" style="text-transform:uppercase">
+    </div>
+
+    @if (addError() || scanError()) {
+    <p class="form-error">{{ addError() || scanError() }}</p>
+    }
+
+    <div class="sheet-actions">
+        <button class="btn btn-ghost" (click)="addMode.set(false)">Cancel</button>
+        <button class="btn btn-green" (click)="addFriend()">Add Friend</button>
+    </div>
+</div>
+}
+
+<!-- Delete Confirm Sheet -->
+@if (deleteTarget()) {
+<div class="overlay" (click)="cancelDelete()"></div>
+<div class="sheet animate-fade-up" role="dialog" aria-modal="true">
+    <h3 class="sheet-title">Remove Friend?</h3>
+    <p class="sheet-body">They'll no longer appear in new round player lists.</p>
+    <div class="sheet-actions">
+        <button class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-red" (click)="doDelete()">Remove</button>
+    </div>
+</div>
+}

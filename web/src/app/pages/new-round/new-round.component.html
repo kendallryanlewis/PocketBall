@@ -1,0 +1,156 @@
+<div class="page">
+
+    <header class="page-header">
+        <button class="back-btn" (click)="back()">‹</button>
+        <h1 class="page-title">{{ step() === 'resume' ? 'Resume?' : 'New Round' }}</h1>
+        <div style="width:40px"></div>
+    </header>
+
+    <!-- ── Resume prompt ── -->
+    @if (step() === 'resume' && activeRound(); as round) {
+    <div class="animate-fade-up resume-panel">
+        <div class="resume-card">
+            <div class="resume-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                    stroke-linejoin="round" width="28" height="28">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="10 8 16 12 10 16" />
+                </svg>
+            </div>
+            <div class="resume-info">
+                <p class="resume-course">{{ round.courseName }}</p>
+                <p class="resume-sub">Hole {{ round.currentHole }} of {{ round.holes }} · In Progress</p>
+            </div>
+        </div>
+        <p class="resume-hint">You have an unfinished round. Would you like to continue it?</p>
+        <button class="btn btn-green btn-full" (click)="resumeRound()">Resume Round</button>
+        <button class="btn btn-outline btn-full" (click)="discardAndNew()">Discard & Start New</button>
+    </div>
+    }
+
+    <!-- Step indicators (hidden on resume step) -->
+    @if (step() !== 'resume') {
+    <div class="steps">
+        <div class="step" [class.active]="step() === 'course'" [class.done]="step() === 'players' || step() === 'game'">
+            <span class="step-dot">{{ (step() === 'players' || step() === 'game') ? '✓' : '1' }}</span>
+            <span>Course</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="step() === 'players'" [class.done]="step() === 'game'">
+            <span class="step-dot">{{ step() === 'game' ? '✓' : '2' }}</span>
+            <span>Players</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="step() === 'game'">
+            <span class="step-dot">3</span>
+            <span>Game</span>
+        </div>
+    </div>
+    }
+
+    <!-- ── STEP 1: Course ── -->
+    @if (step() === 'course') {
+    <div class="animate-fade-up">
+        @if (courses().length) {
+        <div class="list">
+            @for (course of courses(); track course.id) {
+            <button class="list-item" [class.selected]="selectedCourseId() === course.id"
+                (click)="selectedCourseId.set(course.id)">
+                <div class="list-item-info">
+                    <p class="list-item-title">{{ course.name }}</p>
+                    @if (course.location) { <p class="list-item-sub">{{ course.location }}</p> }
+                </div>
+                <span class="list-item-check">{{ selectedCourseId() === course.id ? '●' : '○' }}</span>
+            </button>
+            }
+        </div>
+        <a routerLink="/app/courses/new" class="btn btn-outline btn-full" style="margin-top:12px">＋ Add New Course</a>
+        } @else {
+        <div class="empty">
+            <p class="empty-icon">⛳</p>
+            <p class="empty-title">No courses saved</p>
+            <a routerLink="/app/courses/new" class="btn btn-green" style="margin-top:12px">Add a Course First</a>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- ── STEP 2: Players ── -->
+    @if (step() === 'players') {
+    <div class="animate-fade-up">
+        <div class="list">
+            @for (player of allPlayers(); track player.id) {
+            <button class="list-item" [class.selected]="selectedPlayerIds().includes(player.id)"
+                (click)="togglePlayer(player.id)">
+                <div class="avatar" [style.background]="player.color + '22'" [style.color]="player.color">
+                    {{ player.initials }}
+                </div>
+                <div class="list-item-info">
+                    <p class="list-item-title">{{ player.name }}{{ player.isMe ? ' (Me)' : '' }}</p>
+                    <p class="list-item-sub">Hdcp {{ player.handicap }}</p>
+                </div>
+                <span class="list-item-check">{{ selectedPlayerIds().includes(player.id) ? '●' : '○' }}</span>
+            </button>
+            }
+        </div>
+
+        @if (addingFriend()) {
+        <div class="add-friend-row">
+            <input class="friend-input" type="text" placeholder="Friend's name" [value]="newFriendName()"
+                (input)="newFriendName.set($any($event.target).value)" (keyup.enter)="addFriend()">
+            <button class="btn btn-green btn-sm" (click)="addFriend()">Add</button>
+            <button class="btn btn-ghost btn-sm" (click)="addingFriend.set(false)">✕</button>
+        </div>
+        } @else {
+        <button class="btn btn-outline btn-full" style="margin-top:12px" (click)="addingFriend.set(true)">
+            ＋ Add Friend
+        </button>
+        }
+
+        <p class="player-count">{{ selectedPlayerIds().length }} player{{ selectedPlayerIds().length !== 1 ? 's' : '' }}
+            selected</p>
+    </div>
+    }
+
+    <!-- ── STEP 3: Game Type ── -->
+    @if (step() === 'game') {
+    <div class="animate-fade-up">
+        <div class="category-tabs">
+            @for (cat of ['all','individual','team','group']; track cat) {
+            <button [class.active]="categoryFilter() === cat" (click)="categoryFilter.set($any(cat))">
+                {{ cat | titlecase }}
+            </button>
+            }
+        </div>
+
+        <div class="list">
+            @for (gt of filteredGameTypes(); track gt.id) {
+            <button class="list-item game-item" [class.selected]="selectedGameType() === gt.id"
+                (click)="selectedGameType.set(gt.id)">
+                <span class="game-icon">{{ gt.icon }}</span>
+                <div class="list-item-info">
+                    <p class="list-item-title">{{ gt.label }}</p>
+                    <p class="list-item-sub">{{ gt.description }}</p>
+                </div>
+                <span class="list-item-check">{{ selectedGameType() === gt.id ? '●' : '○' }}</span>
+            </button>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- Footer CTA -->
+    <div class="footer">
+        @if (step() !== 'game') {
+        <button class="btn btn-primary btn-full btn-lg" (click)="next()"
+            [disabled]="step() === 'course' && !selectedCourseId()">
+            Continue →
+        </button>
+        } @else {
+        <button class="btn btn-green btn-full btn-lg" (click)="start()" [disabled]="!canStartRound()">
+            ▶ Start Round
+        </button>
+        }
+    </div>
+
+</div>

@@ -1,0 +1,26 @@
+<div class="landing">
+
+    <button class="theme-btn" (click)="toggleTheme()" aria-label="Toggle theme">
+        @if (isDark() === 'dark') { ☀️ } @else { 🌙 }
+    </button>
+
+    <div class="hero animate-fade-up">
+        <div class="eyebrow">EST. 2025</div>
+        <h1 class="title">CARNIVORE<br>GOLF</h1>
+        <p class="tagline">Track. Compete.<br>Dominate.</p>
+    </div>
+
+    <div class="cta animate-fade-up" style="animation-delay:.18s">
+        <button class="btn btn-primary btn-lg btn-full enter-btn" (click)="enter()">
+            Enter the Round
+        </button>
+        <p class="hint">Score · Courses · Games · Trophies</p>
+    </div>
+
+    <div class="features animate-fade-up" style="animation-delay:.32s">
+        <div class="feat"><span>⛳</span><span>18 game types</span></div>
+        <div class="feat"><span>📋</span><span>Scorecard scanner</span></div>
+        <div class="feat"><span>🏆</span><span>Trophy room</span></div>
+    </div>
+
+</div>

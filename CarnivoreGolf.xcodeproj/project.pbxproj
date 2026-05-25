@@ -99,9 +99,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5CFEE2392E6BD98C006C7968 /* Build configuration list for PBXNativeTarget "CarnivoreGolf" */;
 			buildPhases = (
+				AA0000010000000000000001 /* [Angular] Build web app */,
 				5CFEE2142E6BD98A006C7968 /* Sources */,
 				5CFEE2152E6BD98A006C7968 /* Frameworks */,
 				5CFEE2162E6BD98A006C7968 /* Resources */,
+				AA0000010000000000000002 /* [Angular] Copy dist into app bundle */,
 			);
 			buildRules = (
 			);
@@ -230,6 +232,47 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AA0000010000000000000001 /* [Angular] Build web app */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Angular] Build web app";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\ncd \"${SRCROOT}/web\"\n\n# Compute a hash of all source files to skip rebuilds when nothing changed.\nHASH_FILE=\"${SRCROOT}/web/.build-hash\"\nCURRENT=$(find src public angular.json tsconfig*.json -type f | sort | xargs md5 2>/dev/null | md5)\nif [ -f \"${HASH_FILE}\" ] && [ \"$(cat ${HASH_FILE})\" = \"${CURRENT}\" ]; then\n  echo \"[Angular] No source changes detected — skipping build.\"\n  exit 0\nfi\n\nnpm run build\necho \"${CURRENT}\" > \"${HASH_FILE}\"\n";
+		};
+		AA0000010000000000000002 /* [Angular] Copy dist into app bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Angular] Copy dist into app bundle";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "DIST=\"${SRCROOT}/web/dist/carnivoregolf/browser\"\nif [ ! -d \"${DIST}\" ]; then\n  echo \"warning: Angular dist not found at ${DIST} — run npm run build inside web/ first\"\n  exit 0\nfi\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/www\"\nmkdir -p \"${DEST}\"\nrsync -a --delete \"${DIST}/\" \"${DEST}/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5CFEE2142E6BD98A006C7968 /* Sources */ = {
@@ -395,17 +438,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CarnivoreGolf/CarnivoreGolf.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PPLU8J5RDW;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to scan golf scorecards so you can auto-fill scores.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Carnivore Golf uses your location to find nearby golf courses.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -424,17 +471,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CarnivoreGolf/CarnivoreGolf.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PPLU8J5RDW;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to scan golf scorecards and automatically detect hole information, making it easier to track your golf scores.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to scan golf scorecards so you can auto-fill scores.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Carnivore Golf uses your location to find nearby golf courses.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

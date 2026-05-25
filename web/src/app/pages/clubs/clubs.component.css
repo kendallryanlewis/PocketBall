@@ -1,0 +1,213 @@
+:host {
+    display: block;
+}
+
+.page {
+    padding: 16px 16px calc(var(--safe-bottom) + 16px);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.back-btn {
+    font-size: 28px;
+    color: var(--text-2);
+    text-decoration: none;
+    line-height: 1;
+    padding: 4px 2px;
+    flex-shrink: 0;
+}
+
+.page-title {
+    flex: 1;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+}
+
+.header-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-2);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 3px 10px;
+}
+
+.page-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    margin: 0 0 20px;
+}
+
+.clubs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.club-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+
+.club-card.has-yards {
+    border-color: var(--green);
+}
+
+.club-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.club-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.club-icon-filled {
+    background: color-mix(in srgb, var(--green) 12%, transparent);
+    border-color: color-mix(in srgb, var(--green) 30%, transparent);
+    color: var(--green);
+}
+
+.club-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.club-note-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 12%, transparent);
+    border-radius: var(--radius-full);
+    padding: 2px 7px;
+}
+
+.yards-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.yards-input {
+    width: 64px;
+    text-align: right;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.yards-input:focus {
+    outline: none;
+    border-color: var(--green);
+}
+
+.yards-input::placeholder {
+    color: var(--text-3);
+    font-weight: 400;
+}
+
+.yards-unit {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+.expand-chevron {
+    font-size: 18px;
+    color: var(--text-3);
+    transition: transform 0.2s;
+    line-height: 1;
+    margin-left: 2px;
+}
+
+.expand-chevron.open {
+    transform: rotate(90deg);
+}
+
+/* Notes panel */
+.club-notes-panel {
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+}
+
+.notes-input {
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    resize: none;
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.5;
+    font-family: inherit;
+    -webkit-appearance: none;
+}
+
+.notes-input:focus {
+    outline: none;
+    border-color: var(--green);
+}
+
+.clear-btn {
+    align-self: flex-start;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+    border-radius: var(--radius-full);
+    padding: 5px 12px;
+    cursor: pointer;
+}

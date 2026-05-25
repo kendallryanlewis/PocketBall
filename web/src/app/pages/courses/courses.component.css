@@ -1,0 +1,154 @@
+:host {
+    display: block;
+}
+
+.page {
+    padding: calc(var(--safe-top) + 24px) 20px 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.course-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.course-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.course-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 18px 14px;
+    text-decoration: none;
+}
+
+.course-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+.course-location {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+}
+
+.course-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.chevron {
+    font-size: 22px;
+    color: var(--text-3);
+}
+
+.course-actions {
+    display: flex;
+    border-top: 1px solid var(--border);
+}
+
+.act-btn {
+    flex: 1;
+    padding: 11px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-align: center;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: background 0.12s, color 0.12s;
+}
+
+.act-btn:last-child {
+    border-right: none;
+}
+
+.act-btn:active {
+    background: var(--border);
+}
+
+.act-danger {
+    color: var(--red);
+}
+
+/* Empty */
+.empty {
+    text-align: center;
+    padding: 64px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.empty-icon {
+    font-size: 44px;
+}
+
+.empty-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.empty-sub {
+    font-size: 14px;
+    color: var(--text-2);
+}
+
+/* Sheet */
+.sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+}
+
+.sheet {
+    background: var(--surface-raised);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 28px 24px calc(var(--safe-bottom) + 24px);
+    width: 100%;
+}
+
+.sheet-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.sheet-sub {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 24px;
+}

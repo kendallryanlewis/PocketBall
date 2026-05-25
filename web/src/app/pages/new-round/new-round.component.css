@@ -1,0 +1,287 @@
+:host {
+    display: block;
+}
+
+.page {
+    padding: calc(var(--safe-top) + 16px) 20px calc(var(--safe-bottom) + 100px);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ── Resume panel ── */
+.resume-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.resume-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--green-bg);
+    border: 1.5px solid var(--green);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+}
+
+.resume-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius);
+    background: var(--green);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.resume-course {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.resume-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 2px;
+}
+
+.resume-hint {
+    font-size: 14px;
+    color: var(--text-2);
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    font-size: 28px;
+    color: var(--text);
+    width: 40px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+/* Steps */
+.steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 28px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: var(--border);
+    color: var(--text-3);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.step.active .step-dot {
+    background: var(--text);
+    color: var(--bg);
+}
+
+.step.done .step-dot {
+    background: var(--green);
+    color: #fff;
+}
+
+.step span:last-child {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-2);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.step-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 40px;
+    margin: 0 4px;
+    margin-bottom: 14px;
+}
+
+/* List */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item:active {
+    background: var(--border);
+}
+
+.list-item.selected {
+    background: var(--green-bg);
+}
+
+.list-item-info {
+    flex: 1;
+}
+
+.list-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.list-item-sub {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 2px;
+}
+
+.list-item-check {
+    font-size: 18px;
+    color: var(--text-3);
+    flex-shrink: 0;
+}
+
+.list-item.selected .list-item-check {
+    color: var(--green);
+}
+
+/* Game */
+.game-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+/* Category tabs */
+.category-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.category-tabs button {
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.category-tabs button.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: transparent;
+}
+
+/* Add friend */
+.add-friend-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.friend-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.friend-input:focus {
+    border-color: var(--green);
+}
+
+.player-count {
+    font-size: 12px;
+    color: var(--text-3);
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Empty */
+.empty {
+    text-align: center;
+    padding: 48px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.empty-icon {
+    font-size: 40px;
+}
+
+.empty-title {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+/* Footer — floats above the bottom nav */
+.footer {
+    position: fixed;
+    bottom: calc(var(--nav-height) + var(--safe-bottom));
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    z-index: 10;
+}
