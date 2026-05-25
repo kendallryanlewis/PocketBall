@@ -148,11 +148,14 @@
 }
 
 <!-- ── Full-featured Score Entry ── -->
+@defer (when !!scoreEntryCtx()) {
 @if (scoreEntryCtx()) {
 <app-score-entry [ctx]="scoreEntryCtx()!" (saved)="onScoreSaved($event)" (cancelled)="scoreEntryCtx.set(null)" />
 }
+}
 
 <!-- Complete round sheet -->
+@defer (when showComplete()) {
 @if (showComplete()) {
 <div class="sheet-overlay animate-fade-in" (click)="showComplete.set(false)">
     <div class="sheet" (click)="$event.stopPropagation()">
@@ -164,8 +167,11 @@
     </div>
 </div>
 }
+}
 
+@defer (when showRoundQr() && !!roundQrValue()) {
 @if (showRoundQr() && roundQrValue()) {
 <app-qr-modal [qrValue]="roundQrValue()" title="Join this Round" subtitle="Scan to join as a spectator or late entrant."
     (closed)="showRoundQr.set(false)" />
+}
 }

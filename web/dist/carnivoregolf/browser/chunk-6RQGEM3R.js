@@ -1,0 +1,1 @@
+import{Ua as i}from"./chunk-PINEOWIQ.js";var n=class e{transform(t,r,s){return t?.split(r).join(s)??t}static \u0275fac=function(r){return new(r||e)};static \u0275pipe=i({name:"replace",type:e,pure:!0})};export{n as a};

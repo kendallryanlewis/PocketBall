@@ -68,6 +68,9 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    /* skip rendering off-screen cards — saves layout/paint work while scrolling */
+    content-visibility: auto;
+    contain-intrinsic-size: 0 120px;
 }
 
 .round-main {

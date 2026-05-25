@@ -1,4 +1,4 @@
-import { Component, inject, input, output, effect, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, effect, signal } from '@angular/core';
 import { QrService } from '../../services/qr.service';
 import { BridgeService } from '../../services/bridge.service';
 
@@ -6,6 +6,7 @@ import { BridgeService } from '../../services/bridge.service';
     selector: 'app-qr-modal',
     templateUrl: './qr-modal.component.html',
     styleUrl: './qr-modal.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QrModalComponent {
     private qrSvc = inject(QrService);
