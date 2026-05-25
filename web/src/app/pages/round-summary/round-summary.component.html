@@ -1,0 +1,195 @@
+@if (round()) {
+<div class="page">
+
+    <!-- Header -->
+    <header class="sum-header">
+        <button class="back-btn" (click)="router.navigate(['/app/history'])">‹</button>
+        <div class="sum-header-info">
+            <p class="sum-course">{{ round()!.courseName }}</p>
+            <p class="sum-date">{{ round()!.date | date:'MMMM d, yyyy' }}</p>
+        </div>
+    </header>
+
+    <!-- Hero chips -->
+    <div class="hero-chips">
+        <span class="chip chip-green">{{ gameMeta()?.icon }} {{ gameMeta()?.label }}</span>
+        <span class="chip chip-surface">⛳ {{ round()!.holes }} holes</span>
+        <span class="chip chip-surface">🏌️ {{ round()!.tee }} tees</span>
+        @if (round()!.completed) {
+        <span class="chip chip-surface">✅ Complete</span>
+        }
+    </div>
+
+    <!-- Winner banner -->
+    @if (winner()) {
+    <div class="winner-banner animate-fade-up">
+        <div class="winner-avatar" [style.background]="winner()!.color + '22'" [style.color]="winner()!.color">
+            {{ winner()!.initials }}
+        </div>
+        <div class="winner-text">
+            <p class="winner-label">Winner</p>
+            <p class="winner-name">{{ winner()!.name }}</p>
+        </div>
+        <span class="trophy-icon">🏆</span>
+    </div>
+    }
+
+    <!-- ── Leaderboard ──────────────────────────────────────────── -->
+    <section class="section">
+        <h2 class="section-title">Leaderboard</h2>
+        <div class="leaderboard">
+            @for (stat of leaderboard(); track stat.player.id; let i = $index) {
+            <div class="lb-row" [class.lb-winner]="round()!.winner === stat.player.id">
+                <span class="lb-pos">{{ positionLabel(i) }}</span>
+                <div class="avatar avatar-sm" [style.background]="stat.player.color + '22'"
+                    [style.color]="stat.player.color">{{ stat.player.initials }}</div>
+                <span class="lb-name">{{ stat.player.name }}</span>
+                <span class="lb-score">{{ stat.total || '—' }}</span>
+                <span class="lb-topar" [attr.data-sign]="stat.toPar > 0 ? 'over' : stat.toPar < 0 ? 'under' : 'even'">
+                    {{ toPar(stat.toPar) }}
+                </span>
+            </div>
+            }
+        </div>
+    </section>
+
+    <!-- ── Scorecard ────────────────────────────────────────────── -->
+    <section class="section">
+        <h2 class="section-title">Scorecard</h2>
+        <div class="sc-wrap">
+            <div class="sc-table">
+                <!-- Header row -->
+                <div class="sc-row sc-header-row">
+                    <div class="sc-player-col sc-label">Player</div>
+                    @for (idx of holeNumbers(); track idx) {
+                    <div class="sc-hole-col sc-label">{{ idx + 1 }}</div>
+                    }
+                    <div class="sc-total-col sc-label">Tot</div>
+                    @if (round()!.holes === 18) {
+                    <div class="sc-total-col sc-label">Out</div>
+                    <div class="sc-total-col sc-label">In</div>
+                    }
+                </div>
+
+                <!-- Player rows -->
+                @for (stat of leaderboard(); track stat.player.id) {
+                <div class="sc-row">
+                    <div class="sc-player-col">
+                        <div class="avatar avatar-xs" [style.background]="stat.player.color + '22'"
+                            [style.color]="stat.player.color">{{ stat.player.initials }}</div>
+                        <span class="sc-name">{{ stat.player.name }}</span>
+                    </div>
+                    @for (idx of holeNumbers(); track idx) {
+                    <div class="sc-hole-col">
+                        @if (getScore(stat.player.id, idx); as s) {
+                        <span class="score-badge" [attr.data-badge]="scoreBadge(s, holePars()[idx])">{{ s }}</span>
+                        } @else {
+                        <span class="score-empty">—</span>
+                        }
+                    </div>
+                    }
+                    <div class="sc-total-col sc-bold">{{ stat.total || '—' }}</div>
+                    @if (round()!.holes === 18) {
+                    <div class="sc-total-col">{{ scoreFront(stat.player.id) || '—' }}</div>
+                    <div class="sc-total-col">{{ scoreBack(stat.player.id) || '—' }}</div>
+                    }
+                </div>
+                }
+
+                <!-- Par row -->
+                <div class="sc-row sc-par-row">
+                    <div class="sc-player-col sc-label">Par</div>
+                    @for (par of holePars(); track $index) {
+                    <div class="sc-hole-col sc-label">{{ par }}</div>
+                    }
+                    <div class="sc-total-col sc-label">{{ parTotal() }}</div>
+                    @if (round()!.holes === 18) {
+                    <div class="sc-total-col sc-label"></div>
+                    <div class="sc-total-col sc-label"></div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Player Stats ─────────────────────────────────────────── -->
+    <section class="section">
+        <h2 class="section-title">Player Stats</h2>
+        <div class="stats-grid">
+            @for (stat of leaderboard(); track stat.player.id) {
+            <div class="stat-card">
+                <!-- Card header -->
+                <div class="stat-card-header">
+                    <div class="avatar avatar-sm" [style.background]="stat.player.color + '22'"
+                        [style.color]="stat.player.color">{{ stat.player.initials }}</div>
+                    <div>
+                        <p class="stat-player-name">{{ stat.player.name }}</p>
+                        <p class="stat-player-score">{{ stat.total || '—' }}
+                            <span class="stat-topar"
+                                [attr.data-sign]="stat.toPar > 0 ? 'over' : stat.toPar < 0 ? 'under' : 'even'">
+                                {{ toPar(stat.toPar) }}
+                            </span>
+                        </p>
+                    </div>
+                    @if (round()!.winner === stat.player.id) {
+                    <span class="stat-trophy">🏆</span>
+                    }
+                </div>
+
+                <!-- Key metrics row -->
+                <div class="stat-metrics">
+                    <div class="stat-metric">
+                        <span class="sm-value">{{ stat.gir }}%</span>
+                        <span class="sm-label">GIR</span>
+                    </div>
+                    <div class="stat-metric">
+                        <span class="sm-value">{{ stat.fairways }}%</span>
+                        <span class="sm-label">Fairways</span>
+                    </div>
+                    <div class="stat-metric">
+                        <span class="sm-value">{{ stat.avgPutts > 0 ? stat.avgPutts : '—' }}</span>
+                        <span class="sm-label">Putts/Hole</span>
+                    </div>
+                    @if (stat.penalties > 0) {
+                    <div class="stat-metric stat-metric--warn">
+                        <span class="sm-value">{{ stat.penalties }}</span>
+                        <span class="sm-label">Penalties</span>
+                    </div>
+                    }
+                </div>
+
+                <!-- Score breakdown -->
+                @if (breakdownEntries(stat.breakdown).length) {
+                <div class="breakdown-row">
+                    @for (entry of breakdownEntries(stat.breakdown); track entry.label) {
+                    <div class="bd-chip" [attr.data-badge]="entry.cls">
+                        <span class="bd-count">{{ entry.count }}</span>
+                        <span class="bd-label">{{ entry.label }}</span>
+                    </div>
+                    }
+                </div>
+                }
+
+                <!-- Best hole callout -->
+                @if (stat.bestHole) {
+                <div class="best-hole">
+                    <span class="bh-label">Best hole</span>
+                    <span class="bh-hole">Hole {{ stat.bestHole.idx + 1 }}</span>
+                    <span class="bh-score score-badge"
+                        [attr.data-badge]="scoreBadge(getScore(stat.player.id, stat.bestHole.idx), holePars()[stat.bestHole.idx])">
+                        {{ getScore(stat.player.id, stat.bestHole.idx) }}
+                    </span>
+                </div>
+                }
+            </div>
+            }
+        </div>
+    </section>
+
+    <!-- Footer actions -->
+    <div class="footer-actions">
+        <a routerLink="/app/history" class="btn btn-ghost btn-full">← Back to History</a>
+    </div>
+
+</div>
+}

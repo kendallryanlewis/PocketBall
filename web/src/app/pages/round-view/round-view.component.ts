@@ -265,7 +265,7 @@ export class RoundViewComponent implements OnInit, OnDestroy {
         // Remove live round from Firestore
         if (r.liveSync) this.syncSvc.unpublish(r.id);
         this.showComplete.set(false);
-        this.router.navigate(['/app/history']);
+        this.router.navigate(['/app/rounds', r.id, 'summary']);
     }
 
     private determineWinner(): string | null {

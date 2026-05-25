@@ -19,7 +19,7 @@
     <div class="round-list animate-fade-up">
         @for (round of filtered(); track round.id) {
         <div class="round-card">
-            <a [routerLink]="['/app/rounds', round.id]" class="round-main">
+            <a [routerLink]="['/app/rounds', round.id, 'summary']" class="round-main">
                 <div class="round-header-row">
                     <p class="round-course">{{ round.courseName }}</p>
                     @if (round.winner) {

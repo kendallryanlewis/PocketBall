@@ -49,6 +49,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/round-view/round-view.component').then(m => m.RoundViewComponent),
             },
             {
+                path: 'rounds/:id/summary',
+                loadComponent: () => import('./pages/round-summary/round-summary.component').then(m => m.RoundSummaryComponent),
+            },
+            {
                 path: 'history',
                 loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent),
             },
