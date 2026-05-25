@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { RoundsService } from '../../services/rounds.service';
@@ -13,6 +13,7 @@ import { QrService } from '../../services/qr.service';
 import { QrModalComponent } from '../../components/qr-modal/qr-modal.component';
 import { ScoreEntryComponent, ScoreEntryContext } from '../../components/score-entry/score-entry.component';
 import { RoundSyncService } from '../../services/round-sync.service';
+import { NavService } from '../../services/nav.service';
 import { ReplacePipe } from '../../pipes/pipes';
 
 @Component({
@@ -32,6 +33,7 @@ export class RoundViewComponent implements OnInit, OnDestroy {
     private analytics = inject(AnalyticsService);
     private qrSvc = inject(QrService);
     private syncSvc = inject(RoundSyncService);
+    private navSvc = inject(NavService);
 
     round = signal<Round | null>(null);
     course = signal<Course | null>(null);
@@ -50,6 +52,14 @@ export class RoundViewComponent implements OnInit, OnDestroy {
     private isLiveHost = false;
     /** Timestamp of the last remote update we applied (to debounce self-updates) */
     private lastPublishTime = 0;
+
+    constructor() {
+        // Hide the bottom nav whenever any full-screen overlay is open
+        effect(() => {
+            const anyOpen = !!this.scoreEntryCtx() || this.showComplete() || this.showRoundQr();
+            anyOpen ? this.navSvc.hide() : this.navSvc.show();
+        });
+    }
 
     showRoundQr = signal(false);
     roundQrValue = computed(() => {
@@ -114,6 +124,7 @@ export class RoundViewComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         const r = this.round();
         if (r) this.syncSvc.unsubscribe(r.id);
+        this.navSvc.show();
     }
 
     getScore(playerId: string, holeIdx: number): number | null {

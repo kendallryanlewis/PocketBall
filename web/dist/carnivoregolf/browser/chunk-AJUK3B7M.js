@@ -1,0 +1,1 @@
+import{K as t,fa as i}from"./chunk-IO27U452.js";var o=class e{hidden=i(!1);hide(){this.hidden.set(!0)}show(){this.hidden.set(!1)}static \u0275fac=function(d){return new(d||e)};static \u0275prov=t({token:e,factory:e.\u0275fac,providedIn:"root"})};export{o as a};

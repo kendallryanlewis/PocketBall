@@ -16,7 +16,7 @@
         <router-outlet />
     </main>
 
-    <nav class="nav" aria-label="Tab bar">
+    <nav class="nav" [class.nav--hidden]="navSvc.hidden()" aria-label="Tab bar">
         <a routerLink="/app/home" routerLinkActive="active" #rlaHome="routerLinkActive"
             [routerLinkActiveOptions]="{ exact: true }" class="nav-item"
             [attr.aria-current]="rlaHome.isActive ? 'page' : null" aria-label="Home">

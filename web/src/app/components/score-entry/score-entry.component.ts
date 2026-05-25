@@ -1,11 +1,12 @@
 import {
-    Component, inject, input, output, signal, computed, effect, OnInit,
+    Component, inject, input, output, signal, computed, effect, OnInit, OnDestroy,
     ChangeDetectionStrategy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HoleScore, StrokeDetail } from '../../models/round.model';
 import { GOLF_CLUBS } from '../../services/club-randomizer.service';
 import { Player } from '../../models/player.model';
+import { NavService } from '../../services/nav.service';
 
 export interface ScoreEntryContext {
     player: Player;
@@ -27,10 +28,12 @@ export interface ScoreEntryContext {
         '(document:keydown.escape)': 'cancel()',
     },
 })
-export class ScoreEntryComponent implements OnInit {
+export class ScoreEntryComponent implements OnInit, OnDestroy {
     ctx = input.required<ScoreEntryContext>();
     saved = output<HoleScore>();
     cancelled = output<void>();
+
+    private navSvc = inject(NavService);
 
     // ── Core ──────────────────────────────────────────────────────────────
     strokes = signal(0);
@@ -85,6 +88,7 @@ export class ScoreEntryComponent implements OnInit {
     });
 
     ngOnInit(): void {
+        this.navSvc.hide();
         const c = this.ctx();
         const e = c.existing;
 
@@ -106,7 +110,9 @@ export class ScoreEntryComponent implements OnInit {
         this.strokeDetails.set(details);
         this.syncDetailLength(e?.strokes ?? 0, details);
     }
-
+    ngOnDestroy(): void {
+        this.navSvc.show();
+    }
     // ── Stroke stepper ────────────────────────────────────────────────────
     addStroke(): void {
         const n = this.strokes() + 1;

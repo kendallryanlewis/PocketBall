@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal, OnInit, DestroyRef 
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
 import { RoundsService } from '../../services/rounds.service';
+import { NavService } from '../../services/nav.service';
 
 @Component({
     selector: 'app-shell',
@@ -13,6 +14,7 @@ import { RoundsService } from '../../services/rounds.service';
 export class ShellComponent implements OnInit {
     theme = inject(ThemeService);
     rounds = inject(RoundsService);
+    navSvc = inject(NavService);
     private destroyRef = inject(DestroyRef);
 
     isDark = this.theme.resolved;
