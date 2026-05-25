@@ -70,6 +70,12 @@ struct WebView: UIViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.bounces = false
         webView.scrollView.decelerationRate = .normal
+        // Prevent the scroll view from trying (and failing) to auto-scroll to
+        // bring a focused text field into view when scrolling is disabled —
+        // that timeout is a major source of keyboard-focus delay.
+        if #available(iOS 16.4, *) {
+            webView.scrollView.keyboardDismissMode = .none
+        }
 
         // Deliver touches to web content immediately, eliminating touch latency.
         webView.scrollView.delaysContentTouches = false
