@@ -302,7 +302,9 @@
 }
 
 @keyframes spin {
-    to { rotate: 360deg; }
+    to {
+        rotate: 360deg;
+    }
 }
 
 .sheet-divider {

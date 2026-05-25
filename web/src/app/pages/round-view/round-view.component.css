@@ -54,8 +54,15 @@
 }
 
 @keyframes live-pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.55; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
 }
 
 .round-header-info {
@@ -109,6 +116,58 @@
 .hole-btn.active {
     background: var(--text);
     color: var(--bg);
+}
+
+/* ── Live game banner ─────────────────────────── */
+.game-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: color-mix(in srgb, var(--green) 10%, var(--surface));
+    border-bottom: 1px solid color-mix(in srgb, var(--green) 25%, var(--border));
+    flex-shrink: 0;
+}
+
+.game-banner-icon {
+    font-size: 20px;
+    line-height: 1;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.game-banner-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+
+.game-banner-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.game-banner-label {
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.game-banner-label::after {
+    content: ':';
+}
+
+.game-banner-value {
+    color: var(--text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Scorecard */

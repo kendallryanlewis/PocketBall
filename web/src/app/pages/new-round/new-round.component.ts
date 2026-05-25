@@ -68,6 +68,27 @@ export class NewRoundComponent {
         return !!this.selectedCourseId() && !!gt && players >= gt.minPlayers && players <= gt.maxPlayers;
     });
 
+    /** Human-readable explanation for why Start Round is disabled. */
+    startBlockReason = computed((): string | null => {
+        if (!this.selectedCourseId()) return null; // handled by step flow
+        const gt = GAME_TYPES.find(g => g.id === this.selectedGameType());
+        if (!gt) return null;
+        const players = this.selectedPlayerIds().length;
+        if (players < gt.minPlayers)
+            return `${gt.label} needs at least ${gt.minPlayers} player${gt.minPlayers > 1 ? 's' : ''} — add ${gt.minPlayers - players} more`;
+        if (players > gt.maxPlayers)
+            return `${gt.label} supports max ${gt.maxPlayers} players — remove ${players - gt.maxPlayers}`;
+        return null;
+    });
+
+    /** Warning text shown on a game card given the current player count. */
+    gameCardWarning(gt: (typeof GAME_TYPES)[number]): string | null {
+        const n = this.selectedPlayerIds().length;
+        if (n < gt.minPlayers) return `${gt.minPlayers}+ players required`;
+        if (n > gt.maxPlayers) return `Max ${gt.maxPlayers} players`;
+        return null;
+    }
+
     needsClubDraw = computed(() => this.clubRandomizer.requiresClubDraw(this.selectedGameType() as any));
 
     /** Names for each player in club draw view. */

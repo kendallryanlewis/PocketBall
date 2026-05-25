@@ -74,6 +74,190 @@ export class RoundViewComponent implements OnInit, OnDestroy {
         return r ? GAME_TYPES.find(g => g.id === r.gameType) : null;
     });
 
+    /** Live game-specific info for the active hole. Drives the banner below the hole strip. */
+    gameBanner = computed((): { lines: { label: string; value: string }[]; icon: string } | null => {
+        const r = this.round();
+        const ps = this.players();
+        const holeIdx = this.activeHoleIdx();
+        if (!r || !ps.length) return null;
+
+        switch (r.gameType) {
+
+            case 'wolf': {
+                const wolfIdx = holeIdx % ps.length;
+                const wolf = ps[wolfIdx];
+                const nextWolf = ps[(holeIdx + 1) % ps.length];
+                return {
+                    icon: '🐺',
+                    lines: [
+                        { label: 'Wolf this hole', value: wolf?.name ?? '—' },
+                        { label: 'Next wolf', value: nextWolf?.name ?? '—' },
+                        { label: 'Rule', value: 'Wolf picks partner after each tee shot, or goes Lone Wolf for 2×' },
+                    ],
+                };
+            }
+
+            case 'club_of_the_hole': {
+                const club = r.clubDraw?.perHole?.[holeIdx];
+                if (!club) return null;
+                return {
+                    icon: '🃏',
+                    lines: [
+                        { label: 'Club this hole', value: club },
+                        { label: 'Note', value: 'Putter allowed on the green' },
+                    ],
+                };
+            }
+
+            case 'one_club':
+            case 'three_club_challenge':
+            case 'random_bag': {
+                const perPlayer = r.clubDraw?.perPlayer;
+                if (!perPlayer) return null;
+                return {
+                    icon: '🎲',
+                    lines: ps.map(p => ({
+                        label: p.name,
+                        value: (perPlayer[p.id] ?? []).join(' · ') || '—',
+                    })),
+                };
+            }
+
+            case 'skins': {
+                // Count consecutive tied holes (carried skins)
+                let carried = 0;
+                for (let i = holeIdx - 1; i >= 0; i--) {
+                    const scores = ps.map(p => r.playerRounds.find(pr => pr.playerId === p.id)?.scores[i]?.strokes ?? null);
+                    const valid = scores.filter(s => s !== null) as number[];
+                    if (valid.length < 2) break;
+                    const min = Math.min(...valid);
+                    if (valid.filter(s => s === min).length > 1) { carried++; } else { break; }
+                }
+                const pot = carried + 1;
+                return {
+                    icon: '💰',
+                    lines: [
+                        { label: 'Skin value', value: `${pot} skin${pot > 1 ? 's' : ''} (${carried} carried)` },
+                        { label: 'Rule', value: 'Lowest unique score wins; ties carry to next hole' },
+                    ],
+                };
+            }
+
+            case 'nassau': {
+                const front = ps.map(p => ({
+                    name: p.name,
+                    score: r.playerRounds.find(pr => pr.playerId === p.id)?.scores.slice(0, 9).reduce((s, h) => s + (h.strokes ?? 0), 0) ?? 0,
+                })).sort((a, b) => a.score - b.score);
+                const back = ps.map(p => ({
+                    name: p.name,
+                    score: r.playerRounds.find(pr => pr.playerId === p.id)?.scores.slice(9, 18).reduce((s, h) => s + (h.strokes ?? 0), 0) ?? 0,
+                })).sort((a, b) => a.score - b.score);
+                return {
+                    icon: '🏦',
+                    lines: [
+                        { label: 'Front 9 leader', value: front[0]?.score ? front[0].name : 'Tied' },
+                        { label: 'Back 9 leader', value: back[0]?.score ? back[0].name : 'Tied' },
+                        { label: 'Rule', value: '3 bets: front 9, back 9, overall' },
+                    ],
+                };
+            }
+
+            case 'snake': {
+                // Snake holder = last player to 3-putt
+                let holder: string | null = null;
+                for (let i = holeIdx - 1; i >= 0; i--) {
+                    for (const p of ps) {
+                        const h = r.playerRounds.find(pr => pr.playerId === p.id)?.scores[i];
+                        if (h && (h.putts ?? 0) >= 3) { holder = p.name; break; }
+                    }
+                    if (holder) break;
+                }
+                return {
+                    icon: '🐍',
+                    lines: [
+                        { label: 'Snake holder', value: holder ?? 'No one yet' },
+                        { label: 'Rule', value: '3-putt = you hold the snake. Carry it to the end and you pay' },
+                    ],
+                };
+            }
+
+            case 'bingo_bango_bongo':
+                return {
+                    icon: '🎰',
+                    lines: [
+                        { label: 'Bingo', value: 'First ball on the green' },
+                        { label: 'Bango', value: 'Closest to pin when all on green' },
+                        { label: 'Bongo', value: 'First ball in the hole' },
+                    ],
+                };
+
+            case 'nines':
+                return {
+                    icon: '9️⃣',
+                    lines: [
+                        { label: 'Points this hole', value: '9 total (5-3-1 or 4-3-2)' },
+                        { label: 'Rule', value: 'Best score gets 5, second gets 3, third gets 1' },
+                    ],
+                };
+
+            case 'match_play': {
+                if (ps.length < 2) return null;
+                const p1 = ps[0]; const p2 = ps[1];
+                const p1Holes = r.playerRounds.find(pr => pr.playerId === p1.id)?.scores ?? [];
+                const p2Holes = r.playerRounds.find(pr => pr.playerId === p2.id)?.scores ?? [];
+                let status = 0; // positive = p1 up
+                for (let i = 0; i < holeIdx; i++) {
+                    const s1 = p1Holes[i]?.strokes ?? null;
+                    const s2 = p2Holes[i]?.strokes ?? null;
+                    if (s1 !== null && s2 !== null) {
+                        if (s1 < s2) status++;
+                        else if (s2 < s1) status--;
+                    }
+                }
+                const label = status === 0 ? 'All Square'
+                    : status > 0 ? `${p1.name} ${status} UP` : `${p2.name} ${Math.abs(status)} UP`;
+                return {
+                    icon: '⚔️',
+                    lines: [{ label: 'Match status', value: label }],
+                };
+            }
+
+            case 'stableford': {
+                const pts = ps.map(p => {
+                    const pr = r.playerRounds.find(x => x.playerId === p.id);
+                    const points = (pr?.scores ?? []).slice(0, holeIdx).reduce((sum, h, i) => {
+                        if (h.strokes === null) return sum;
+                        const par = 4; // approximation without course data
+                        const diff = h.strokes - par;
+                        if (diff <= -2) return sum + 4;
+                        if (diff === -1) return sum + 3;
+                        if (diff === 0) return sum + 2;
+                        if (diff === 1) return sum + 1;
+                        return sum;
+                    }, 0);
+                    return { name: p.name, points };
+                }).sort((a, b) => b.points - a.points);
+                return {
+                    icon: '🎯',
+                    lines: pts.map(p => ({ label: p.name, value: `${p.points} pts` })),
+                };
+            }
+
+            case 'chairman': {
+                return {
+                    icon: '👑',
+                    lines: [
+                        { label: 'Rule', value: 'Lose a hole = eliminated. Last player standing wins' },
+                        { label: 'Active', value: ps.map(p => p.name).join(', ') },
+                    ],
+                };
+            }
+
+            default:
+                return null;
+        }
+    });
+
     scoreTotals = computed(() => {
         const r = this.round();
         if (!r) return {};

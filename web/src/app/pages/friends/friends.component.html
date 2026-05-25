@@ -15,7 +15,13 @@
         </div>
         <div class="my-code-actions">
             <button class="share-btn" (click)="showMyQr.set(true)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" style="width:14px;height:14px" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <path d="M14 14h3v3M17 14v3h3" />
+                </svg>
                 My QR
             </button>
             <button class="share-btn" (click)="shareMyCode()">⬆ Share Code</button>
@@ -63,10 +69,7 @@
 
 <!-- My QR Modal -->
 @if (showMyQr()) {
-<app-qr-modal
-    [qrValue]="myQrValue()"
-    title="My Friend QR"
-    subtitle="Have a friend scan this to add you instantly."
+<app-qr-modal [qrValue]="myQrValue()" title="My Friend QR" subtitle="Have a friend scan this to add you instantly."
     (closed)="showMyQr.set(false)" />
 }
 
@@ -79,10 +82,16 @@
     <!-- Scan QR button -->
     <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
         @if (scanning()) {
-          <span class="scan-spinner"></span> Scanning…
+        <span class="scan-spinner"></span> Scanning…
         } @else {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3"/></svg>
-          Scan Their QR Code
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" style="width:18px;height:18px" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <path d="M14 14h3v3M17 14v3h3" />
+        </svg>
+        Scan Their QR Code
         }
     </button>
 

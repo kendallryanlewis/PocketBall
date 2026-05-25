@@ -1,4 +1,6 @@
-:host { display: block; }
+:host {
+    display: block;
+}
 
 .page {
     padding: calc(var(--safe-top) + 16px) 0 calc(var(--safe-bottom) + 32px);
@@ -62,14 +64,31 @@
     font-size: 16px;
     font-weight: 700;
     flex-shrink: 0;
-    background: rgba(0,0,0,0.15) !important;
+    background: rgba(0, 0, 0, 0.15) !important;
     color: #000 !important;
 }
 
-.winner-text { flex: 1; }
-.winner-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(0,0,0,0.6); }
-.winner-name  { font-size: 18px; font-weight: 800; color: #000; }
-.trophy-icon  { font-size: 28px; }
+.winner-text {
+    flex: 1;
+}
+
+.winner-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.winner-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #000;
+}
+
+.trophy-icon {
+    font-size: 28px;
+}
 
 /* ── Sections ────────────────────────────────────────────────────── */
 .section {
@@ -134,9 +153,17 @@
     text-align: right;
 }
 
-.lb-topar[data-sign="over"]  { color: #e54434; }
-.lb-topar[data-sign="under"] { color: var(--green); }
-.lb-topar[data-sign="even"]  { color: var(--text-muted); }
+.lb-topar[data-sign="over"] {
+    color: #e54434;
+}
+
+.lb-topar[data-sign="under"] {
+    color: var(--green);
+}
+
+.lb-topar[data-sign="even"] {
+    color: var(--text-muted);
+}
 
 /* ── Scorecard ───────────────────────────────────────────────────── */
 .sc-wrap {
@@ -157,10 +184,17 @@
     border-bottom: 1px solid var(--border);
 }
 
-.sc-row:last-child { border-bottom: none; }
+.sc-row:last-child {
+    border-bottom: none;
+}
 
-.sc-header-row { background: var(--surface-raised); }
-.sc-par-row    { background: var(--surface); }
+.sc-header-row {
+    background: var(--surface-raised);
+}
+
+.sc-par-row {
+    background: var(--surface);
+}
 
 .sc-player-col {
     display: flex;
@@ -198,8 +232,14 @@
     border-left: 1px solid var(--border);
 }
 
-.sc-label  { color: var(--text-muted); font-size: 11px; }
-.sc-bold   { font-weight: 800; }
+.sc-label {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.sc-bold {
+    font-weight: 800;
+}
 
 /* Score badges — keep in sync with round-view */
 .score-badge {
@@ -214,15 +254,49 @@
     line-height: 1;
 }
 
-.score-badge[data-badge="ace"]    { background: #7c3aed; color: #fff; box-shadow: 0 0 0 2px #7c3aed40; }
-.score-badge[data-badge="eagle"]  { background: #f5c518; color: #000; }
-.score-badge[data-badge="birdie"] { background: var(--green); color: #fff; border-radius: var(--radius-full); }
-.score-badge[data-badge="par"]    { color: var(--text); }
-.score-badge[data-badge="bogey"]  { background: #e5443420; color: #e54434; border-radius: 3px; }
-.score-badge[data-badge="double"] { background: #e54434; color: #fff; border-radius: 3px; }
-.score-badge[data-badge="triple"] { background: #9b1c1c; color: #fff; border-radius: 3px; }
+.score-badge[data-badge="ace"] {
+    background: #7c3aed;
+    color: #fff;
+    box-shadow: 0 0 0 2px #7c3aed40;
+}
 
-.score-empty { color: var(--text-muted); font-size: 11px; }
+.score-badge[data-badge="eagle"] {
+    background: #f5c518;
+    color: #000;
+}
+
+.score-badge[data-badge="birdie"] {
+    background: var(--green);
+    color: #fff;
+    border-radius: var(--radius-full);
+}
+
+.score-badge[data-badge="par"] {
+    color: var(--text);
+}
+
+.score-badge[data-badge="bogey"] {
+    background: #e5443420;
+    color: #e54434;
+    border-radius: 3px;
+}
+
+.score-badge[data-badge="double"] {
+    background: #e54434;
+    color: #fff;
+    border-radius: 3px;
+}
+
+.score-badge[data-badge="triple"] {
+    background: #9b1c1c;
+    color: #fff;
+    border-radius: 3px;
+}
+
+.score-empty {
+    color: var(--text-muted);
+    font-size: 11px;
+}
 
 /* ── Player Stats ────────────────────────────────────────────────── */
 .stats-grid {
@@ -264,11 +338,22 @@
     font-weight: 700;
 }
 
-.stat-topar[data-sign="over"]  { color: #e54434; }
-.stat-topar[data-sign="under"] { color: var(--green); }
-.stat-topar[data-sign="even"]  { color: var(--text-muted); }
+.stat-topar[data-sign="over"] {
+    color: #e54434;
+}
 
-.stat-trophy { margin-left: auto; font-size: 22px; }
+.stat-topar[data-sign="under"] {
+    color: var(--green);
+}
+
+.stat-topar[data-sign="even"] {
+    color: var(--text-muted);
+}
+
+.stat-trophy {
+    margin-left: auto;
+    font-size: 22px;
+}
 
 /* Key metrics */
 .stat-metrics {
@@ -291,7 +376,10 @@
     gap: 2px;
 }
 
-.stat-metric--warn { border-color: #e5443440; background: #e5443408; }
+.stat-metric--warn {
+    border-color: #e5443440;
+    background: #e5443408;
+}
 
 .sm-value {
     font-size: 18px;
@@ -327,16 +415,54 @@
     border: 1px solid var(--border);
 }
 
-.bd-chip[data-badge="ace"]    { background: #7c3aed20; border-color: #7c3aed40; color: #7c3aed; }
-.bd-chip[data-badge="eagle"]  { background: #f5c51820; border-color: #f5c51840; color: #9a7900; }
-.bd-chip[data-badge="birdie"] { background: #16a34a20; border-color: #16a34a40; color: var(--green); }
-.bd-chip[data-badge="par"]    { color: var(--text); }
-.bd-chip[data-badge="bogey"]  { background: #e5443412; border-color: #e5443430; color: #e54434; }
-.bd-chip[data-badge="double"] { background: #e5443428; border-color: #e5443450; color: #e54434; }
-.bd-chip[data-badge="triple"] { background: #9b1c1c28; border-color: #9b1c1c50; color: #9b1c1c; }
+.bd-chip[data-badge="ace"] {
+    background: #7c3aed20;
+    border-color: #7c3aed40;
+    color: #7c3aed;
+}
 
-.bd-count { font-size: 15px; }
-.bd-label { font-size: 11px; font-weight: 600; }
+.bd-chip[data-badge="eagle"] {
+    background: #f5c51820;
+    border-color: #f5c51840;
+    color: #9a7900;
+}
+
+.bd-chip[data-badge="birdie"] {
+    background: #16a34a20;
+    border-color: #16a34a40;
+    color: var(--green);
+}
+
+.bd-chip[data-badge="par"] {
+    color: var(--text);
+}
+
+.bd-chip[data-badge="bogey"] {
+    background: #e5443412;
+    border-color: #e5443430;
+    color: #e54434;
+}
+
+.bd-chip[data-badge="double"] {
+    background: #e5443428;
+    border-color: #e5443450;
+    color: #e54434;
+}
+
+.bd-chip[data-badge="triple"] {
+    background: #9b1c1c28;
+    border-color: #9b1c1c50;
+    color: #9b1c1c;
+}
+
+.bd-count {
+    font-size: 15px;
+}
+
+.bd-label {
+    font-size: 11px;
+    font-weight: 600;
+}
 
 /* Best hole */
 .best-hole {
@@ -350,8 +476,18 @@
     font-size: 13px;
 }
 
-.bh-label { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.bh-hole  { flex: 1; font-weight: 700; }
+.bh-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.bh-hole {
+    flex: 1;
+    font-weight: 700;
+}
 
 /* Footer */
 .footer-actions {

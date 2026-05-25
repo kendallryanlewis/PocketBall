@@ -44,6 +44,21 @@
         }
     </div>
 
+    <!-- Live game banner (Wolf, Skins, Club of the Hole, etc.) -->
+    @if (gameBanner(); as banner) {
+    <div class="game-banner">
+        <span class="game-banner-icon">{{ banner.icon }}</span>
+        <div class="game-banner-rows">
+            @for (line of banner.lines; track line.label) {
+            <div class="game-banner-row">
+                <span class="game-banner-label">{{ line.label }}</span>
+                <span class="game-banner-value">{{ line.value }}</span>
+            </div>
+            }
+        </div>
+    </div>
+    }
+
     <!-- Scorecard table -->
     <div class="scorecard-wrap">
         <div class="scorecard">
@@ -134,10 +149,7 @@
 
 <!-- ── Full-featured Score Entry ── -->
 @if (scoreEntryCtx()) {
-<app-score-entry
-    [ctx]="scoreEntryCtx()!"
-    (saved)="onScoreSaved($event)"
-    (cancelled)="scoreEntryCtx.set(null)" />
+<app-score-entry [ctx]="scoreEntryCtx()!" (saved)="onScoreSaved($event)" (cancelled)="scoreEntryCtx.set(null)" />
 }
 
 <!-- Complete round sheet -->
@@ -154,9 +166,6 @@
 }
 
 @if (showRoundQr() && roundQrValue()) {
-<app-qr-modal
-    [qrValue]="roundQrValue()"
-    title="Join this Round"
-    subtitle="Scan to join as a spectator or late entrant."
+<app-qr-modal [qrValue]="roundQrValue()" title="Join this Round" subtitle="Scan to join as a spectator or late entrant."
     (closed)="showRoundQr.set(false)" />
 }

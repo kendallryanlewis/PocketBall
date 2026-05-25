@@ -161,8 +161,13 @@
     -webkit-user-select: none;
 }
 
-.se-step-btn:active { transform: scale(0.92); }
-.se-step-btn:disabled { opacity: 0.3; }
+.se-step-btn:active {
+    transform: scale(0.92);
+}
+
+.se-step-btn:disabled {
+    opacity: 0.3;
+}
 
 .se-minus {
     background: var(--surface-raised);
@@ -206,13 +211,33 @@
 }
 
 /* Score colour coding */
-.se-score-display[data-class="ace"] .se-score-num    { color: #9b59b6; }
-.se-score-display[data-class="eagle"] .se-score-num  { color: #f39c12; }
-.se-score-display[data-class="birdie"] .se-score-num { color: var(--green); }
-.se-score-display[data-class="par"] .se-score-num    { color: var(--text); }
-.se-score-display[data-class="bogey"] .se-score-num  { color: var(--red); }
-.se-score-display[data-class="double"] .se-score-num { color: #e74c3c; }
-.se-score-display[data-class="triple"] .se-score-num { color: #c0392b; }
+.se-score-display[data-class="ace"] .se-score-num {
+    color: #9b59b6;
+}
+
+.se-score-display[data-class="eagle"] .se-score-num {
+    color: #f39c12;
+}
+
+.se-score-display[data-class="birdie"] .se-score-num {
+    color: var(--green);
+}
+
+.se-score-display[data-class="par"] .se-score-num {
+    color: var(--text);
+}
+
+.se-score-display[data-class="bogey"] .se-score-num {
+    color: var(--red);
+}
+
+.se-score-display[data-class="double"] .se-score-num {
+    color: #e74c3c;
+}
+
+.se-score-display[data-class="triple"] .se-score-num {
+    color: #c0392b;
+}
 
 /* ── Quick score row ───────────────────────────────────────────────────── */
 .se-quick-row {
@@ -255,7 +280,9 @@
     color: var(--text);
 }
 
-.se-count-red { color: var(--red); }
+.se-count-red {
+    color: var(--red);
+}
 
 /* ── Toggle groups ─────────────────────────────────────────────────────── */
 .se-toggle-group {
@@ -462,11 +489,21 @@
 
 /* ── Animations ────────────────────────────────────────────────────────── */
 @keyframes se-fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes se-slide-up {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }

@@ -9,6 +9,6 @@ import { Injectable, signal } from '@angular/core';
 export class NavService {
     readonly hidden = signal(false);
 
-    hide(): void  { this.hidden.set(true); }
-    show(): void  { this.hidden.set(false); }
+    hide(): void { this.hidden.set(true); }
+    show(): void { this.hidden.set(false); }
 }

@@ -40,7 +40,8 @@
     margin: 0;
     flex: 1;
     text-align: center;
-    padding-left: 32px; /* balance the close button */
+    padding-left: 32px;
+    /* balance the close button */
 }
 
 .qr-close {

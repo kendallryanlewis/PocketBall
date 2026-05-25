@@ -2,7 +2,8 @@
 
     <header class="page-header">
         <button class="back-btn" (click)="back()">‹</button>
-        <h1 class="page-title">{{ step() === 'resume' ? 'Resume?' : step() === 'clubs' ? 'Club Draw' : 'New Round' }}</h1>
+        <h1 class="page-title">{{ step() === 'resume' ? 'Resume?' : step() === 'clubs' ? 'Club Draw' : 'New Round' }}
+        </h1>
         <div style="width:40px"></div>
     </header>
 
@@ -126,11 +127,14 @@
         <div class="list">
             @for (gt of filteredGameTypes(); track gt.id) {
             <button class="list-item game-item" [class.selected]="selectedGameType() === gt.id"
-                (click)="selectedGameType.set(gt.id)">
+                [class.game-item--restricted]="!!gameCardWarning(gt)" (click)="selectedGameType.set(gt.id)">
                 <span class="game-icon">{{ gt.icon }}</span>
                 <div class="list-item-info">
                     <p class="list-item-title">{{ gt.label }}</p>
                     <p class="list-item-sub">{{ gt.description }}</p>
+                    @if (gameCardWarning(gt); as warn) {
+                    <p class="game-warn">⚠ {{ warn }}</p>
+                    }
                 </div>
                 <span class="list-item-check">{{ selectedGameType() === gt.id ? '●' : '○' }}</span>
             </button>
@@ -179,6 +183,9 @@
     <!-- Footer CTA -->
     <div class="footer">
         @if (step() === 'game') {
+        @if (startBlockReason()) {
+        <p class="start-block-hint">⚠ {{ startBlockReason() }}</p>
+        }
         <button class="btn btn-green btn-full btn-lg" (click)="next()" [disabled]="!canStartRound()">
             {{ needsClubDraw() ? 'Draw Clubs →' : '▶ Start Round' }}
         </button>

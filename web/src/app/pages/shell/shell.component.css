@@ -43,8 +43,10 @@
 /* ── Bottom Navigation ────────────────────────── */
 .nav {
     /* Static flex item — no position:fixed so it never overlaps content */
-    position: relative; /* required for z-index to take effect */
-    z-index: 200;       /* paints above scrolling content; fixed overlays use 500+ */
+    position: relative;
+    /* required for z-index to take effect */
+    z-index: 200;
+    /* paints above scrolling content; fixed overlays use 500+ */
     flex-shrink: 0;
     height: calc(var(--nav-height) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
@@ -56,8 +58,8 @@
        is never clipped by the container during normal display */
     overflow: visible;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                height   0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity  0.2s ease;
+        height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s ease;
 }
 
 /* Slide the nav off the bottom, collapse its layout height, and fade
