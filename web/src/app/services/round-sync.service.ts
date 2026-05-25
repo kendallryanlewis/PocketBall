@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
     getFirestore,
     doc,
@@ -11,19 +10,7 @@ import {
     Unsubscribe,
 } from 'firebase/firestore';
 import { Round } from '../models/round.model';
-
-/**
- * Firebase project: flake-577c8
- * To get your web appId: Firebase Console → Project Settings → Your apps → Add app (Web)
- * https://console.firebase.google.com/project/flake-577c8/settings/general
- */
-const FIREBASE_CONFIG = {
-    apiKey: 'AIzaSyBN8l-dQmj3X7nNP1gle7VnBWgq4M2SRig',
-    authDomain: 'flake-577c8.firebaseapp.com',
-    projectId: 'flake-577c8',
-    storageBucket: 'flake-577c8.firebasestorage.app',
-    messagingSenderId: '621814131112',
-};
+import { getFirebaseApp } from '../firebase.config';
 
 /** Firestore collection that holds in-progress live rounds */
 const COLLECTION = 'liveRounds';
@@ -35,9 +22,7 @@ export class RoundSyncService {
 
     constructor() {
         try {
-            const app: FirebaseApp = getApps().length
-                ? getApps()[0]
-                : initializeApp(FIREBASE_CONFIG);
+            const app = getFirebaseApp();
             this.db = getFirestore(app);
         } catch (e) {
             console.warn('[RoundSync] Firebase init failed — live sync disabled:', e);

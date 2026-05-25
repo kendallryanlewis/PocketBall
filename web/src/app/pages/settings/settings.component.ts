@@ -62,8 +62,8 @@ export class SettingsComponent {
     confirmDelete(): void { this.showDeleteConfirm.set(true); }
     cancelDelete(): void { this.showDeleteConfirm.set(false); }
 
-    deleteAccount(): void {
-        this.auth.deleteAccount();
+    async deleteAccount(): Promise<void> {
+        await this.auth.deleteAccount();
         this.router.navigate(['/'], { replaceUrl: true });
     }
 

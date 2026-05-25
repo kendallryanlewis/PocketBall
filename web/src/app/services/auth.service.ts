@@ -1,9 +1,21 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+    updateProfile,
+    signOut as firebaseSignOut,
+    deleteUser,
+    onAuthStateChanged,
+    Auth,
+} from 'firebase/auth';
 import { StorageService } from './storage.service';
 import { BridgeService } from './bridge.service';
+import { getFirebaseApp } from '../firebase.config';
 
 export interface AuthUser {
-    /** Stable user identifier — Apple sub or generated local ID */
+    /** Stable user identifier — Firebase UID or Apple sub */
     userId: string;
     displayName: string;
     email?: string;
@@ -16,12 +28,6 @@ export interface AuthUser {
 }
 
 const AUTH_KEY = 'cg_auth_user';
-const LOCAL_CREDS_KEY = 'cg_local_creds';
-
-interface LocalCreds {
-    email: string;
-    passwordHash: string;
-}
 
 function generateFriendCode(): string {
     const adj = ['ACE', 'PAR', 'BRD', 'EGL', 'HOL', 'TIG', 'ALB', 'CHI'];
@@ -29,25 +35,51 @@ function generateFriendCode(): string {
     return adj[Math.floor(Math.random() * adj.length)] + '-' + nums;
 }
 
-function generateLocalId(): string {
-    return 'local_' + Math.random().toString(36).slice(2, 11);
-}
-
-async function sha256(text: string): Promise<string> {
-    const buf = new TextEncoder().encode(text);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private storage = inject(StorageService);
     private bridge = inject(BridgeService);
 
+    private auth: Auth;
+
     private _user = signal<AuthUser | null>(this.storage.get<AuthUser | null>(AUTH_KEY, null));
 
     readonly user = this._user.asReadonly();
     readonly isLoggedIn = computed(() => this._user() !== null);
+
+    constructor() {
+        try {
+            const app = getFirebaseApp();
+            this.auth = getAuth(app);
+
+            // Keep local signal in sync with Firebase Auth state
+            onAuthStateChanged(this.auth, (firebaseUser) => {
+                if (firebaseUser) {
+                    const existing = this._user();
+                    const authUser: AuthUser = {
+                        userId: firebaseUser.uid,
+                        displayName: firebaseUser.displayName ?? existing?.displayName ?? 'Golfer',
+                        email: firebaseUser.email ?? undefined,
+                        username: existing?.username,
+                        friendCode: existing?.friendCode ?? generateFriendCode(),
+                        provider: existing?.provider ?? 'local',
+                    };
+                    this.storage.set(AUTH_KEY, authUser);
+                    this._user.set(authUser);
+                } else {
+                    // Only clear if we don't have an Apple user (Apple auth is bridge-only)
+                    const current = this._user();
+                    if (!current || current.provider !== 'apple') {
+                        this.storage.remove(AUTH_KEY);
+                        this._user.set(null);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[Auth] Firebase init failed — running offline:', e);
+            this.auth = null as unknown as Auth;
+        }
+    }
 
     /** Sign in with Apple via the native bridge. Resolves when done. */
     async signInWithApple(): Promise<void> {
@@ -70,18 +102,15 @@ export class AuthService {
         this._user.set(authUser);
     }
 
-    /** Create a new local account with email + password. */
+    /** Create a new account with email + password via Firebase Auth. */
     async signUpLocal(displayName: string, email: string, password: string): Promise<void> {
-        const existing = this.storage.get<LocalCreds | null>(LOCAL_CREDS_KEY, null);
-        if (existing && existing.email.toLowerCase() === email.toLowerCase()) {
-            throw new Error('An account with this email already exists.');
-        }
-        const passwordHash = await sha256(password);
-        const creds: LocalCreds = { email: email.toLowerCase(), passwordHash };
-        this.storage.set(LOCAL_CREDS_KEY, creds);
+        if (!this.auth) throw new Error('Authentication service unavailable.');
+
+        const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+        await updateProfile(credential.user, { displayName });
 
         const authUser: AuthUser = {
-            userId: generateLocalId(),
+            userId: credential.user.uid,
             displayName,
             email,
             friendCode: generateFriendCode(),
@@ -91,29 +120,32 @@ export class AuthService {
         this._user.set(authUser);
     }
 
-    /** Sign in with a previously created local account. */
+    /** Sign in with email + password via Firebase Auth. */
     async signInLocal(email: string, password: string): Promise<void> {
-        const creds = this.storage.get<LocalCreds | null>(LOCAL_CREDS_KEY, null);
-        if (!creds || creds.email !== email.toLowerCase()) {
-            throw new Error('No account found for this email.');
-        }
-        const passwordHash = await sha256(password);
-        if (creds.passwordHash !== passwordHash) {
-            throw new Error('Incorrect password.');
-        }
+        if (!this.auth) throw new Error('Authentication service unavailable.');
+
+        const credential = await signInWithEmailAndPassword(this.auth, email, password);
+
         const existing = this._user();
-        if (existing?.provider === 'local') {
-            // Already have the profile — just re-authenticate
-            return;
-        }
-        // Shouldn't happen, but restore profile from stored user
-        const stored = this.storage.get<AuthUser | null>(AUTH_KEY, null);
-        if (stored) {
-            this._user.set(stored);
-        }
+        const authUser: AuthUser = {
+            userId: credential.user.uid,
+            displayName: credential.user.displayName ?? existing?.displayName ?? 'Golfer',
+            email: credential.user.email ?? undefined,
+            username: existing?.username,
+            friendCode: existing?.friendCode ?? generateFriendCode(),
+            provider: 'local',
+        };
+        this.storage.set(AUTH_KEY, authUser);
+        this._user.set(authUser);
     }
 
-    /** Verify the stored credential is still valid against Apple's servers. */
+    /** Send a Firebase password reset email. */
+    async sendPasswordReset(email: string): Promise<void> {
+        if (!this.auth) throw new Error('Authentication service unavailable.');
+        await sendPasswordResetEmail(this.auth, email);
+    }
+
+    /** Verify the stored Apple credential is still valid. */
     async checkCredential(): Promise<void> {
         const u = this._user();
         if (!u || u.provider !== 'apple' || !this.bridge.available) return;
@@ -133,26 +165,37 @@ export class AuthService {
         const updated = { ...u, displayName: name };
         this.storage.set(AUTH_KEY, updated);
         this._user.set(updated);
+
+        // Also update Firebase Auth profile if available
+        if (this.auth?.currentUser) {
+            updateProfile(this.auth.currentUser, { displayName: name }).catch(() => {});
+        }
     }
 
     signOut(): void {
         this.storage.remove(AUTH_KEY);
         this._user.set(null);
+        if (this.auth) {
+            firebaseSignOut(this.auth).catch(() => {});
+        }
     }
 
     /**
      * Permanently delete this account and wipe ALL app data from localStorage.
      * After calling this, redirect the user to the login screen.
      */
-    deleteAccount(): void {
-        const ALL_KEYS = [
-            AUTH_KEY,
-            LOCAL_CREDS_KEY,
-            'cg_rounds',
-            'cg_courses',
-            'cg_players',
-            'cg_trophies',
-        ];
+    async deleteAccount(): Promise<void> {
+        const ALL_KEYS = [AUTH_KEY, 'cg_rounds', 'cg_courses', 'cg_players', 'cg_trophies'];
+
+        // Delete Firebase Auth account if possible
+        if (this.auth?.currentUser) {
+            try {
+                await deleteUser(this.auth.currentUser);
+            } catch {
+                // If re-auth is needed the user will be signed out anyway
+            }
+        }
+
         ALL_KEYS.forEach(k => this.storage.remove(k));
         this._user.set(null);
     }

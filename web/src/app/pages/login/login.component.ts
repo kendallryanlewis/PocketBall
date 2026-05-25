@@ -65,10 +65,18 @@ export class LoginComponent implements OnInit {
         }
     }
 
-    sendForgot(): void {
+    async sendForgot(): Promise<void> {
         if (!this.email.trim()) { this.error.set('Enter your email address above.'); return; }
-        // Local-only app — no email server. Show info message.
-        this.forgotSent.set(true);
+        this.loading.set(true);
+        this.error.set('');
+        try {
+            await this.auth.sendPasswordReset(this.email.trim());
+            this.forgotSent.set(true);
+        } catch (e: unknown) {
+            this.error.set(e instanceof Error ? e.message : 'Could not send reset email.');
+        } finally {
+            this.loading.set(false);
+        }
     }
 
     async signInApple(): Promise<void> {
