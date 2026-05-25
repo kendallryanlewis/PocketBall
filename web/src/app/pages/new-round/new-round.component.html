@@ -2,7 +2,7 @@
 
     <header class="page-header">
         <button class="back-btn" (click)="back()">‹</button>
-        <h1 class="page-title">{{ step() === 'resume' ? 'Resume?' : 'New Round' }}</h1>
+        <h1 class="page-title">{{ step() === 'resume' ? 'Resume?' : step() === 'clubs' ? 'Club Draw' : 'New Round' }}</h1>
         <div style="width:40px"></div>
     </header>
 
@@ -116,9 +116,9 @@
     @if (step() === 'game') {
     <div class="animate-fade-up">
         <div class="category-tabs">
-            @for (cat of ['all','individual','team','group']; track cat) {
+            @for (cat of ['all','individual','team','group','challenge']; track cat) {
             <button [class.active]="categoryFilter() === cat" (click)="categoryFilter.set($any(cat))">
-                {{ cat | titlecase }}
+                {{ cat === 'challenge' ? '⚡ Challenge' : (cat | titlecase) }}
             </button>
             }
         </div>
@@ -139,16 +139,57 @@
     </div>
     }
 
+    <!-- ── STEP 4: Club Draw (challenge games) ── -->
+    @if (step() === 'clubs') {
+    <div class="animate-fade-up">
+        <p class="step-hint">Here are the randomly assigned clubs for this round. Tap Re-Roll to draw again.</p>
+
+        @if (clubDraw()?.type === 'per_player') {
+        <div class="list">
+            @for (pid of selectedPlayerIds(); track pid) {
+            <div class="list-item club-draw-row">
+                <div class="list-item-info">
+                    <p class="list-item-title">{{ playerName(pid) }}</p>
+                    <p class="club-list">{{ (clubDraw()?.perPlayer ?? {})[pid]?.join(' · ') }}</p>
+                </div>
+            </div>
+            }
+        </div>
+        }
+
+        @if (clubDraw()?.type === 'per_hole') {
+        <div class="list">
+            @for (club of (clubDraw()?.perHole ?? []); track $index) {
+            <div class="list-item club-draw-row">
+                <span class="hole-badge">{{ $index + 1 }}</span>
+                <div class="list-item-info">
+                    <p class="list-item-title">{{ club }}</p>
+                </div>
+            </div>
+            }
+        </div>
+        }
+
+        <button class="btn btn-outline btn-full" style="margin-top:12px" (click)="rerollClubs()" type="button">
+            🎲 Re-Roll Clubs
+        </button>
+    </div>
+    }
+
     <!-- Footer CTA -->
     <div class="footer">
-        @if (step() !== 'game') {
+        @if (step() === 'game') {
+        <button class="btn btn-green btn-full btn-lg" (click)="next()" [disabled]="!canStartRound()">
+            {{ needsClubDraw() ? 'Draw Clubs →' : '▶ Start Round' }}
+        </button>
+        } @else if (step() === 'clubs') {
+        <button class="btn btn-green btn-full btn-lg" (click)="start()" [disabled]="!canStartRound()">
+            ▶ Start Round
+        </button>
+        } @else {
         <button class="btn btn-primary btn-full btn-lg" (click)="next()"
             [disabled]="step() === 'course' && !selectedCourseId()">
             Continue →
-        </button>
-        } @else {
-        <button class="btn btn-green btn-full btn-lg" (click)="start()" [disabled]="!canStartRound()">
-            ▶ Start Round
         </button>
         }
     </div>

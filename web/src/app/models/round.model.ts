@@ -12,7 +12,17 @@ export type GameType =
     | 'bingo_bango_bongo'
     | 'vegas'
     | 'chairman'
-    | 'quota';
+    | 'quota'
+    // Challenges
+    | 'one_club'
+    | 'three_club_challenge'
+    | 'iron_man'
+    | 'random_bag'
+    | 'club_of_the_hole'
+    | 'worst_ball'
+    | 'nines'
+    | 'snake'
+    | 'speed_golf';
 
 export interface GameTypeMeta {
     id: GameType;
@@ -39,6 +49,16 @@ export const GAME_TYPES: GameTypeMeta[] = [
     { id: 'vegas', label: 'Vegas', description: 'Combine two-digit scores — big swings possible.', minPlayers: 4, maxPlayers: 4, icon: '🎲', category: 'team' },
     { id: 'chairman', label: 'Chairman', description: 'Lose a hole, you\'re out. Last player standing wins.', minPlayers: 3, maxPlayers: 8, icon: '👑', category: 'group' },
     { id: 'quota', label: 'Quota', description: 'Beat your handicap-based point quota.', minPlayers: 1, maxPlayers: 8, icon: '📊', category: 'individual' },
+    // Challenges
+    { id: 'one_club', label: 'One Club', description: 'Each player uses a single randomly assigned club for the entire round — plus the putter.', minPlayers: 1, maxPlayers: 8, icon: '🪄', category: 'individual' },
+    { id: 'three_club_challenge', label: '3-Club Challenge', description: 'Each player gets 3 randomly drawn clubs + putter for the whole round.', minPlayers: 1, maxPlayers: 8, icon: '3️⃣', category: 'individual' },
+    { id: 'iron_man', label: 'Iron Man', description: 'No woods, no wedges. Irons and putter only.', minPlayers: 1, maxPlayers: 8, icon: '🔩', category: 'individual' },
+    { id: 'random_bag', label: 'Random Bag', description: 'Each player\'s bag is randomly assembled before the round — 7 clubs + putter.', minPlayers: 1, maxPlayers: 8, icon: '🎲', category: 'individual' },
+    { id: 'club_of_the_hole', label: 'Club of the Hole', description: 'A club is randomly drawn before each hole. Everyone must use only that club (putter on the green allowed).', minPlayers: 1, maxPlayers: 8, icon: '🃏', category: 'group' },
+    { id: 'worst_ball', label: 'Worst Ball', description: 'Always play your worst shot. A test of true scrambling skill.', minPlayers: 1, maxPlayers: 4, icon: '😬', category: 'individual' },
+    { id: 'nines', label: 'Nines', description: '9 points are distributed each hole by finish order — fight for every stroke.', minPlayers: 3, maxPlayers: 4, icon: '9️⃣', category: 'group' },
+    { id: 'snake', label: 'Snake', description: 'Three-putt and you hold the snake. Carry it to the end of the round and you pay.', minPlayers: 2, maxPlayers: 8, icon: '🐍', category: 'group' },
+    { id: 'speed_golf', label: 'Speed Golf', description: 'Your score is strokes + minutes on course. Fewest combined points wins.', minPlayers: 1, maxPlayers: 8, icon: '⚡', category: 'individual' },
 ];
 
 export interface HoleScore {
@@ -72,6 +92,16 @@ export interface Round {
     tee: string;
     winner?: string;
     notes?: string;
+    /**
+     * Club draw data for club-challenge game types.
+     * - per_player: each player key maps to their assigned club list
+     * - per_hole: an array of clubs, one per hole index
+     */
+    clubDraw?: {
+        type: 'per_player' | 'per_hole';
+        perPlayer?: Record<string, string[]>;  // playerId → club names
+        perHole?: string[];                    // index → club name
+    };
 }
 
 export function newRound(overrides: Partial<Round> & Pick<Round, 'courseId' | 'courseName' | 'holes' | 'gameType'>): Round {

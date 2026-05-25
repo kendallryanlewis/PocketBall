@@ -6,6 +6,7 @@ import { CoursesService } from '../../services/courses.service';
 import { RoundsService } from '../../services/rounds.service';
 import { PlayersService } from '../../services/players.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { ClubRandomizerService } from '../../services/club-randomizer.service';
 import { GAME_TYPES } from '../../models/round.model';
 import { ReplacePipe } from '../../pipes/pipes';
 
@@ -22,6 +23,7 @@ export class NewRoundComponent {
     private coursesService = inject(CoursesService);
     private roundsService = inject(RoundsService);
     private analytics = inject(AnalyticsService);
+    readonly clubRandomizer = inject(ClubRandomizerService);
     playersService = inject(PlayersService);
 
     courses = this.coursesService.courses;
@@ -36,16 +38,27 @@ export class NewRoundComponent {
     selectedPlayerIds = signal<string[]>([this.playersService.me()?.id ?? ''].filter(Boolean));
     newFriendName = signal('');
     addingFriend = signal(false);
-    step = signal<'resume' | 'course' | 'players' | 'game'>(
-        // If an active round exists, show the resume prompt first
+    step = signal<'resume' | 'course' | 'players' | 'game' | 'clubs'>(
         this.roundsService.active() ? 'resume' : 'course'
     );
 
+    /** Club draw generated on the clubs step. */
+    clubDraw = signal<{ type: 'per_player' | 'per_hole'; perPlayer?: Record<string, string[]>; perHole?: string[] } | null>(null);
+
     selectedCourse = computed(() => this.coursesService.getById(this.selectedCourseId()));
 
-    categoryFilter = signal<'all' | 'individual' | 'team' | 'group'>('all');
+    categoryFilter = signal<'all' | 'individual' | 'team' | 'group' | 'challenge'>('all');
     filteredGameTypes = computed(() => {
         const f = this.categoryFilter();
+        if (f === 'challenge') {
+            return this.gameTypes.filter(g => g.category === 'individual' && [
+                'one_club', 'three_club_challenge', 'iron_man', 'random_bag',
+                'club_of_the_hole', 'worst_ball', 'speed_golf',
+            ].includes(g.id));
+        }
+        if (f === 'group') {
+            return this.gameTypes.filter(g => ['group', 'team'].includes(g.category));
+        }
         return f === 'all' ? this.gameTypes : this.gameTypes.filter(g => g.category === f);
     });
 
@@ -54,6 +67,32 @@ export class NewRoundComponent {
         const players = this.selectedPlayerIds().length;
         return !!this.selectedCourseId() && !!gt && players >= gt.minPlayers && players <= gt.maxPlayers;
     });
+
+    needsClubDraw = computed(() => this.clubRandomizer.requiresClubDraw(this.selectedGameType() as any));
+
+    /** Names for each player in club draw view. */
+    playerName(id: string): string {
+        return this.playersService.getById(id)?.name ?? id;
+    }
+
+    /** Re-roll all club draws. */
+    rerollClubs(): void {
+        this.generateClubDraw();
+    }
+
+    private generateClubDraw(): void {
+        const gt = this.selectedGameType() as any;
+        const course = this.selectedCourse();
+        if (!course) return;
+
+        if (this.clubRandomizer.isPerPlayerDraw(gt)) {
+            const perPlayer = this.clubRandomizer.drawPerPlayer(gt, this.selectedPlayerIds());
+            this.clubDraw.set({ type: 'per_player', perPlayer });
+        } else {
+            const perHole = this.clubRandomizer.drawPerHole(course.holes.length);
+            this.clubDraw.set({ type: 'per_hole', perHole });
+        }
+    }
 
     resumeRound(): void {
         const r = this.activeRound();
@@ -91,12 +130,15 @@ export class NewRoundComponent {
             scores: Array.from({ length: holes }, () => ({ strokes: null })),
         }));
 
+        const draw = this.clubDraw();
+
         const round = this.roundsService.create({
             courseId: course.id,
             courseName: course.name,
             holes,
             gameType: this.selectedGameType() as any,
             playerRounds,
+            ...(draw ? { clubDraw: draw } : {}),
         });
 
         this.analytics.track('round_start', {
@@ -111,12 +153,23 @@ export class NewRoundComponent {
         const s = this.step();
         if (s === 'resume' || s === 'course') this.router.navigate(['/app/home']);
         else if (s === 'players') this.step.set('course');
-        else this.step.set('players');
+        else if (s === 'game') this.step.set('players');
+        else if (s === 'clubs') this.step.set('game');
     }
 
     next(): void {
         const s = this.step();
         if (s === 'course' && this.selectedCourseId()) this.step.set('players');
         else if (s === 'players') this.step.set('game');
+        else if (s === 'game') {
+            if (this.needsClubDraw()) {
+                this.generateClubDraw();
+                this.step.set('clubs');
+            } else {
+                this.start();
+            }
+        } else if (s === 'clubs') {
+            this.start();
+        }
     }
 }

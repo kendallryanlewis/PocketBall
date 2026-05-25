@@ -1,4 +1,4 @@
-import{K as u}from"./chunk-GOXX7W26.js";var g="https://overpass-api.de/api/interpreter",d=class l{_holesAbort=null;async fetchHoles(s,n){this._holesAbort?.abort(),this._holesAbort=new AbortController;let o=`
+import{K as u}from"./chunk-ISJAMKJA.js";var g="https://overpass-api.de/api/interpreter",d=class l{_holesAbort=null;async fetchHoles(s,n){this._holesAbort?.abort(),this._holesAbort=new AbortController;let o=`
 [out:json][timeout:15];
 (
   way["golf"="hole"](around:3000,${s},${n});

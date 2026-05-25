@@ -285,3 +285,38 @@
     border-top: 1px solid var(--border);
     z-index: 10;
 }
+
+/* Club draw */
+.step-hint {
+    font-size: 13px;
+    color: var(--text-2);
+    text-align: center;
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.club-draw-row {
+    cursor: default;
+}
+
+.club-list {
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 600;
+    margin: 3px 0 0;
+    line-height: 1.6;
+}
+
+.hole-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--green);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
