@@ -173,6 +173,16 @@ final class WebBridge: NSObject,
                     userInfo: ["theme": theme]
                 )
             }
+        case "analytics":
+            // Forward analytics events to the native logger.
+            // Swap this body for any analytics SDK call (Firebase, Amplitude, etc.)
+            if let p = payload as? [String: Any] {
+                let event = p["event"] as? String ?? "unknown"
+                var params = p
+                params.removeValue(forKey: "event")
+                let paramsStr = params.isEmpty ? "" : " \(params)"
+                log.info("[Analytics] \(event)\(paramsStr)")
+            }
         case "scanScorecard":
             handleScanScorecard(payload: payload)
         case "log":

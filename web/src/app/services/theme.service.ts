@@ -15,12 +15,12 @@ export class ThemeService {
 
     constructor() {
         this.mq.addEventListener('change', () => this.apply());
+        // effect() fires immediately on construction, so no separate apply() needed.
         effect(() => {
             const pref = this.preference();
             this.storage.set('cg_theme', pref);
             this.apply();
         });
-        this.apply();
     }
 
     set(theme: Theme): void {
