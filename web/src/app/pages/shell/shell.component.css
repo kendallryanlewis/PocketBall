@@ -36,18 +36,15 @@
     overflow-x: clip;
     -webkit-overflow-scrolling: touch;
     min-height: 0;
-    /* Ensure the last item in every page can scroll above the nav */
+    /* Ensure the last item in every page can scroll clear of the nav */
     padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
-    /* Must be above .nav (z-index: 100) in the stacking order so that
-       position:fixed overlays rendered inside child routes (score sheets,
-       modals) are not clipped behind the nav bar. */
-    position: relative;
-    z-index: 101;
 }
 
 /* ── Bottom Navigation ────────────────────────── */
 .nav {
     /* Static flex item — no position:fixed so it never overlaps content */
+    position: relative; /* required for z-index to take effect */
+    z-index: 200;       /* paints above scrolling content; fixed overlays use 500+ */
     flex-shrink: 0;
     height: calc(var(--nav-height) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
@@ -55,7 +52,6 @@
     border-top: 1px solid var(--border);
     display: flex;
     align-items: stretch;
-    z-index: 100;
 }
 
 .nav-item {
