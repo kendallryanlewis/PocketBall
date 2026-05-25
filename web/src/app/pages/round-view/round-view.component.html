@@ -8,7 +8,14 @@
             <p class="round-course-name">{{ round()?.courseName }}</p>
             <p class="round-meta">{{ gameMeta()?.label }} · Hole {{ activeHoleIdx() + 1 }} of {{ round()?.holes }}</p>
         </div>
-        <button class="icon-btn" (click)="showMenu.set(!showMenu())">⋯</button>
+        <div class="header-actions">
+            @if (liveStatus() === 'live') {
+            <span class="live-badge live-badge--on" title="Live sync active">● LIVE</span>
+            } @else if (liveStatus() === 'connecting') {
+            <span class="live-badge live-badge--connecting" title="Connecting...">◌ LIVE</span>
+            }
+            <button class="icon-btn" (click)="showMenu.set(!showMenu())">⋯</button>
+        </div>
     </header>
 
     <!-- Menu dropdown -->
@@ -18,6 +25,9 @@
             <button class="menu-item" (click)="shareScorecard(); showMenu.set(false)">⬆ Share Scorecard</button>
             <button class="menu-item" (click)="showRoundQr.set(true); showMenu.set(false)">🔗 Share Round QR</button>
             @if (!round()?.completed) {
+            <button class="menu-item" (click)="toggleLiveSync(); showMenu.set(false)">
+                @if (round()?.liveSync) { 📡 Stop Live Sync } @else { 📡 Go Live — Sync Scores }
+            </button>
             <button class="menu-item menu-danger" (click)="showComplete.set(true); showMenu.set(false)">🏁 Complete
                 Round</button>
             }

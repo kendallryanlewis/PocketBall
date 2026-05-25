@@ -25,6 +25,39 @@
     color: var(--text);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Live sync indicator badge */
+.live-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 7px;
+    border-radius: var(--radius-full);
+    line-height: 1;
+}
+
+.live-badge--on {
+    background: #e5443420;
+    color: #e54434;
+    animation: live-pulse 2s ease-in-out infinite;
+}
+
+.live-badge--connecting {
+    background: #f5a62320;
+    color: #f5a623;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
+}
+
 .round-header-info {
     flex: 1;
 }

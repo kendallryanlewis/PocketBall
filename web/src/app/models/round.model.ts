@@ -110,6 +110,8 @@ export interface Round {
         perPlayer?: Record<string, string[]>;  // playerId → club names
         perHole?: string[];                    // index → club name
     };
+    /** When true this round is being broadcast live via Firestore */
+    liveSync?: boolean;
 }
 
 export function newRound(overrides: Partial<Round> & Pick<Round, 'courseId' | 'courseName' | 'holes' | 'gameType'>): Round {
