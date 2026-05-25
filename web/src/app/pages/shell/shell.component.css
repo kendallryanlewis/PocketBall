@@ -38,6 +38,11 @@
     min-height: 0;
     /* Ensure the last item in every page can scroll above the nav */
     padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
+    /* Must be above .nav (z-index: 100) in the stacking order so that
+       position:fixed overlays rendered inside child routes (score sheets,
+       modals) are not clipped behind the nav bar. */
+    position: relative;
+    z-index: 101;
 }
 
 /* ── Bottom Navigation ────────────────────────── */

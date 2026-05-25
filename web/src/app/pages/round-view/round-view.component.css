@@ -334,7 +334,7 @@
 .sheet {
     background: var(--surface-raised);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    padding: 24px 20px calc(var(--safe-bottom) + 20px);
+    padding: 24px 20px max(calc(var(--safe-bottom) + 20px), 32px);
     width: 100%;
 }
 
