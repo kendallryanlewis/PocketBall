@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { StorageService } from './storage.service';
-import { Round, newRound, roundTotal, GameType } from '../models/round.model';
+import { Round, newRound, roundTotal, GameType, HoleScore } from '../models/round.model';
 
 const KEY = 'cg_rounds';
 
@@ -55,6 +55,17 @@ export class RoundsService {
             if (pr.playerId !== playerId) return pr;
             const scores = [...pr.scores];
             scores[holeIdx] = { ...scores[holeIdx], strokes };
+            return { ...pr, scores };
+        });
+        return { ...round, playerRounds };
+    }
+
+    /** Replace the entire HoleScore for a player/hole in one call. */
+    setHoleScore(round: Round, playerId: string, holeIdx: number, score: HoleScore): Round {
+        const playerRounds = round.playerRounds.map(pr => {
+            if (pr.playerId !== playerId) return pr;
+            const scores = [...pr.scores];
+            scores[holeIdx] = { ...score };
             return { ...pr, scores };
         });
         return { ...round, playerRounds };

@@ -61,11 +61,19 @@ export const GAME_TYPES: GameTypeMeta[] = [
     { id: 'speed_golf', label: 'Speed Golf', description: 'Your score is strokes + minutes on course. Fewest combined points wins.', minPlayers: 1, maxPlayers: 8, icon: '⚡', category: 'individual' },
 ];
 
+export interface StrokeDetail {
+    club?: string;          // club name from GOLF_CLUBS
+    distanceYards?: number; // estimated carry/total distance
+}
+
 export interface HoleScore {
     strokes: number | null;
     putts?: number | null;
-    fairwayHit?: boolean | null;
+    fairwayHit?: boolean | null;     // null = not applicable (par 3)
+    fairwayMiss?: 'left' | 'right'; // direction when fairwayHit === false
     gir?: boolean | null;
+    penalties?: number;              // penalty strokes
+    strokeDetails?: StrokeDetail[]; // optional per-shot breakdown
 }
 
 export interface PlayerRound {

@@ -4,18 +4,19 @@ import { TitleCasePipe } from '@angular/common';
 import { RoundsService } from '../../services/rounds.service';
 import { PlayersService } from '../../services/players.service';
 import { CoursesService } from '../../services/courses.service';
-import { Round, roundTotal, GAME_TYPES } from '../../models/round.model';
+import { Round, roundTotal, GAME_TYPES, HoleScore } from '../../models/round.model';
 import { Course } from '../../models/course.model';
 import { Player } from '../../models/player.model';
 import { BridgeService } from '../../services/bridge.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { QrService } from '../../services/qr.service';
 import { QrModalComponent } from '../../components/qr-modal/qr-modal.component';
+import { ScoreEntryComponent, ScoreEntryContext } from '../../components/score-entry/score-entry.component';
 import { ReplacePipe } from '../../pipes/pipes';
 
 @Component({
     selector: 'app-round-view',
-    imports: [ReplacePipe, TitleCasePipe, QrModalComponent],
+    imports: [ReplacePipe, TitleCasePipe, QrModalComponent, ScoreEntryComponent],
     templateUrl: './round-view.component.html',
     styleUrl: './round-view.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,10 +36,11 @@ export class RoundViewComponent implements OnInit {
     players = signal<Player[]>([]);
 
     activeHoleIdx = signal(0);
-    inputPlayerId = signal<string | null>(null);
-    inputValue = signal('');
     showComplete = signal(false);
     showMenu = signal(false);
+
+    /** Active score entry context — null when sheet is closed. */
+    scoreEntryCtx = signal<ScoreEntryContext | null>(null);
 
     showRoundQr = signal(false);
     roundQrValue = computed(() => {
@@ -47,15 +49,6 @@ export class RoundViewComponent implements OnInit {
         if (!r) return '';
         return this.qrSvc.roundQrValue(r, me?.name ?? 'Host');
     });
-
-    // Full-screen hole focus mode
-    focusPlayerId = signal<string | null>(null);
-    focusHoleIdx = signal(0);
-    focusStrokes = signal<number | null>(null);
-    focusPutts = signal<number | null>(null);
-    focusFairway = signal<boolean | null>(null); // null = n/a, true = hit, false = miss
-    focusFairwayMiss = signal<'left' | 'right' | null>(null);
-    focusGir = signal<boolean | null>(null);
 
     gameMeta = computed(() => {
         const r = this.round();
@@ -113,6 +106,11 @@ export class RoundViewComponent implements OnInit {
         return this.roundsService.scoreForHole(r, playerId, holeIdx);
     }
 
+    getHoleScore(playerId: string, holeIdx: number): HoleScore | undefined {
+        const r = this.round();
+        return r?.playerRounds.find(p => p.playerId === playerId)?.scores[holeIdx];
+    }
+
     scoreBadge(strokes: number | null, par: number): string {
         if (strokes === null) return '';
         const diff = strokes - par;
@@ -125,44 +123,40 @@ export class RoundViewComponent implements OnInit {
         return 'triple';
     }
 
-    openInput(playerId: string, holeIdx: number): void {
+    openScoreEntry(playerId: string, holeIdx: number): void {
         if (this.round()?.completed) return;
-        this.inputPlayerId.set(playerId);
         this.activeHoleIdx.set(holeIdx);
-        const s = this.getScore(playerId, holeIdx);
-        this.inputValue.set(s !== null ? String(s) : '');
+        const player = this.players().find(p => p.id === playerId);
+        if (!player) return;
+        const c = this.course();
+        const hole = c?.holes[holeIdx];
+        const existing = this.getHoleScore(playerId, holeIdx);
+        // Pass club restrictions for challenge game types
+        const r = this.round();
+        const availableClubs = r?.clubDraw?.type === 'per_player'
+            ? r.clubDraw.perPlayer?.[playerId]
+            : r?.clubDraw?.type === 'per_hole'
+                ? (r.clubDraw.perHole?.[holeIdx] ? [r.clubDraw.perHole[holeIdx]] : undefined)
+                : undefined;
+
+        this.scoreEntryCtx.set({
+            player,
+            holeIndex: holeIdx,
+            par: hole?.par ?? 4,
+            holeYardage: hole?.tees?.[0]?.yards,
+            existing,
+            availableClubs,
+        });
     }
 
-    confirmScore(): void {
-        const pid = this.inputPlayerId();
+    onScoreSaved(score: HoleScore): void {
+        const ctx = this.scoreEntryCtx();
         const r = this.round();
-        if (!pid || !r) return;
-        const strokes = this.inputValue() ? parseInt(this.inputValue()) : null;
-        const updated = this.roundsService.setScore(r, pid, this.activeHoleIdx(), strokes);
+        if (!ctx || !r) return;
+        const updated = this.roundsService.setHoleScore(r, ctx.player.id, ctx.holeIndex, score);
         this.round.set(updated);
         this.roundsService.update(updated);
-        this.inputPlayerId.set(null);
-    }
-
-    clearScore(): void {
-        const pid = this.inputPlayerId();
-        const r = this.round();
-        if (!pid || !r) return;
-        const updated = this.roundsService.setScore(r, pid, this.activeHoleIdx(), null);
-        this.round.set(updated);
-        this.roundsService.update(updated);
-        this.inputPlayerId.set(null);
-    }
-
-    quickScore(n: number): void {
-        this.inputValue.set(String(n));
-        const pid = this.inputPlayerId();
-        const r = this.round();
-        if (!pid || !r) return;
-        const updated = this.roundsService.setScore(r, pid, this.activeHoleIdx(), n);
-        this.round.set(updated);
-        this.roundsService.update(updated);
-        this.inputPlayerId.set(null);
+        this.scoreEntryCtx.set(null);
     }
 
     scrollToHole(idx: number): void {
@@ -180,9 +174,7 @@ export class RoundViewComponent implements OnInit {
         if (!r) return;
         const winner = this.determineWinner();
         this.roundsService.complete(r.id, winner ?? undefined);
-        if (winner) {
-            this.playersService.incrementWins(winner);
-        }
+        if (winner) this.playersService.incrementWins(winner);
         this.playersService.incrementRounds(r.playerRounds.map(p => p.playerId));
         this.analytics.track('round_complete', {
             game_type: r.gameType,
@@ -229,17 +221,10 @@ export class RoundViewComponent implements OnInit {
         const r = this.round();
         if (!r) return;
         const next = this.activeHoleIdx() + 1;
-        if (next < r.holes) {
-            this.scrollToHole(next);
-        }
+        if (next < r.holes) this.scrollToHole(next);
     }
 
     holePar(idx: number): number {
         return this.course()?.holes[idx]?.par ?? 4;
-    }
-
-    get quickScores(): number[] {
-        const par = this.holePar(this.activeHoleIdx());
-        return [1, 2, par - 1, par, par + 1, par + 2, par + 3].filter((v, i, a) => v > 0 && a.indexOf(v) === i);
     }
 }

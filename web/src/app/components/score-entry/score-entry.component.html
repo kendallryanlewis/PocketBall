@@ -1,0 +1,177 @@
+<div class="se-root" role="dialog" aria-modal="true" [attr.aria-label]="'Score for ' + ctx().player.name">
+
+    <!-- ── Drag handle / backdrop ── -->
+    <div class="se-backdrop" (click)="cancel()"></div>
+
+    <div class="se-panel">
+
+        <!-- ── Header ── -->
+        <div class="se-header">
+            <div class="se-drag-handle"></div>
+            <div class="se-header-row">
+                <div class="se-player">
+                    <div class="se-avatar" [style.background]="ctx().player.color + '22'"
+                        [style.color]="ctx().player.color">
+                        {{ ctx().player.initials }}
+                    </div>
+                    <div>
+                        <p class="se-player-name">{{ ctx().player.name }}</p>
+                        <p class="se-hole-label">Hole {{ ctx().holeIndex + 1 }} · Par {{ ctx().par }}
+                            @if (ctx().holeYardage) { · {{ ctx().holeYardage }}yd }
+                        </p>
+                    </div>
+                </div>
+                <button class="se-close" (click)="cancel()" aria-label="Cancel">✕</button>
+            </div>
+        </div>
+
+        <!-- ── Scrollable body ── -->
+        <div class="se-body">
+
+            <!-- ── Score stepper ── -->
+            <section class="se-section">
+                <label class="se-section-label">Strokes</label>
+                <div class="se-stepper-row">
+                    <button class="se-step-btn se-minus" (click)="removeStroke()" [disabled]="strokes() <= 0"
+                        aria-label="Remove stroke">−</button>
+
+                    <div class="se-score-display" [attr.data-class]="scoreClass()">
+                        <span class="se-score-num">{{ strokes() || '—' }}</span>
+                        @if (scoreName()) {
+                        <span class="se-score-name">{{ scoreName() }}</span>
+                        }
+                    </div>
+
+                    <button class="se-step-btn se-plus" (click)="addStroke()" aria-label="Add stroke">+</button>
+                </div>
+
+                <!-- Quick-tap shortcuts -->
+                <div class="se-quick-row">
+                    @for (n of [1,2,3,4,5,6,7,8,9,10]; track n) {
+                    @if (n > 0) {
+                    <button class="se-quick" [class.active]="strokes() === n" (click)="setStrokes(n)"
+                        [attr.data-badge]="scoreBadge(n)" aria-label="{{ n }}">{{ n }}</button>
+                    }
+                    }
+                </div>
+            </section>
+
+            <!-- ── Putts ── -->
+            <section class="se-section">
+                <label class="se-section-label">Putts</label>
+                <div class="se-stepper-row se-stepper-compact">
+                    <button class="se-step-btn se-minus" (click)="removePutt()" [disabled]="putts() <= 0"
+                        aria-label="Remove putt">−</button>
+                    <span class="se-count">{{ putts() }}</span>
+                    <button class="se-step-btn se-plus" (click)="addPutt()" aria-label="Add putt">+</button>
+                </div>
+            </section>
+
+            <!-- ── Fairway (par 4+) ── -->
+            @if (ctx().par >= 4) {
+            <section class="se-section">
+                <label class="se-section-label">Fairway</label>
+                <div class="se-toggle-group">
+                    <button class="se-toggle" [class.active]="fairwayHit() === false && fairwayMiss() === 'left'"
+                        (click)="setFairway(false); fairwayMiss.set('left')" aria-pressed="{{ fairwayHit() === false && fairwayMiss() === 'left' }}">
+                        ← Left
+                    </button>
+                    <button class="se-toggle se-toggle-hit" [class.active]="fairwayHit() === true"
+                        (click)="setFairway(true)" aria-pressed="{{ fairwayHit() === true }}">
+                        ✓ Hit
+                    </button>
+                    <button class="se-toggle" [class.active]="fairwayHit() === false && fairwayMiss() === 'right'"
+                        (click)="setFairway(false); fairwayMiss.set('right')" aria-pressed="{{ fairwayHit() === false && fairwayMiss() === 'right' }}">
+                        Right →
+                    </button>
+                </div>
+            </section>
+            }
+
+            <!-- ── GIR ── -->
+            <section class="se-section">
+                <label class="se-section-label">Green in Regulation</label>
+                <div class="se-toggle-group se-toggle-binary">
+                    <button class="se-toggle" [class.active]="gir() === false"
+                        (click)="setGir(false)" aria-pressed="{{ gir() === false }}">
+                        ✗ Missed
+                    </button>
+                    <button class="se-toggle se-toggle-hit" [class.active]="gir() === true"
+                        (click)="setGir(true)" aria-pressed="{{ gir() === true }}">
+                        ✓ Hit GIR
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── Penalties ── -->
+            <section class="se-section">
+                <label class="se-section-label">Penalty Strokes</label>
+                <div class="se-stepper-row se-stepper-compact">
+                    <button class="se-step-btn se-minus" (click)="removePenalty()" [disabled]="penalties() <= 0"
+                        aria-label="Remove penalty">−</button>
+                    <span class="se-count" [class.se-count-red]="penalties() > 0">{{ penalties() }}</span>
+                    <button class="se-step-btn se-plus" (click)="addPenalty()" aria-label="Add penalty">+</button>
+                </div>
+            </section>
+
+            <!-- ── Stroke details (expandable) ── -->
+            @if (strokes() > 0) {
+            <section class="se-section">
+                <button class="se-details-toggle" (click)="showDetails.set(!showDetails())" type="button">
+                    <span>Shot Details</span>
+                    <span class="se-details-chevron" [class.open]="showDetails()">›</span>
+                </button>
+
+                @if (showDetails()) {
+                <div class="se-details-list animate-fade-up">
+                    @for (detail of strokeDetails(); track $index) {
+                    <div class="se-detail-row">
+                        <span class="se-stroke-label">{{ strokeLabel($index) }}</span>
+
+                        <!-- Club picker -->
+                        <button class="se-club-btn" (click)="clubPickerIdx.set(clubPickerIdx() === $index ? null : $index)"
+                            type="button">
+                            {{ detail.club || 'Club' }}
+                            <span class="se-chevron">›</span>
+                        </button>
+
+                        <!-- Distance input -->
+                        <div class="se-dist-wrap">
+                            <input class="se-dist-input" type="number" min="0" max="400" placeholder="—"
+                                [value]="detail.distanceYards ?? ''"
+                                (input)="updateDetailDistance($index, $any($event.target).value)"
+                                aria-label="Distance in yards for shot {{ $index + 1 }}">
+                            <span class="se-dist-unit">yd</span>
+                        </div>
+                    </div>
+
+                    <!-- Inline club picker -->
+                    @if (clubPickerIdx() === $index) {
+                    <div class="se-club-picker animate-fade-up">
+                        @for (club of clubList(); track club) {
+                        <button class="se-club-option" [class.selected]="detail.club === club"
+                            (click)="updateDetailClub($index, club)" type="button">{{ club }}</button>
+                        }
+                    </div>
+                    }
+                    }
+                </div>
+                }
+            </section>
+            }
+
+        </div>
+
+        <!-- ── Footer actions ── -->
+        <div class="se-footer">
+            <button class="se-btn-cancel" (click)="cancel()" type="button">Cancel</button>
+            <button class="se-btn-save" (click)="save()" type="button" [disabled]="strokes() <= 0">
+                Save Score
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Computed helper (not rendered) -->
+<ng-template #nothing></ng-template>

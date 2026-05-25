@@ -320,6 +320,16 @@
     color: var(--red);
 }
 
+/* GIR dot in scorecard cell */
+.sc-gir-dot {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    margin: 2px auto 0;
+}
+
 /* Score input sheet */
 .sheet-overlay {
     position: fixed;

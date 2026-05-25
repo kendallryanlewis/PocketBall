@@ -65,11 +65,14 @@
 
                 @for (idx of holeNumbers(); track idx) {
                 <div class="sc-hole-col" [class.sc-active-col]="activeHoleIdx() === idx"
-                    (click)="openInput(player.id, idx)">
+                    (click)="openScoreEntry(player.id, idx)">
                     @if (getScore(player.id, idx); as s) {
                     <span class="score-badge" [attr.data-badge]="scoreBadge(s, holePar(idx))">{{ s }}</span>
                     } @else {
                     <span class="score-empty">—</span>
+                    }
+                    @if (getHoleScore(player.id, idx)?.gir === true) {
+                    <span class="sc-gir-dot" title="GIR"></span>
                     }
                 </div>
                 }
@@ -119,33 +122,12 @@
 </div>
 }
 
-<!-- Score input sheet -->
-@if (inputPlayerId()) {
-<div class="sheet-overlay animate-fade-in" (click)="inputPlayerId.set(null)">
-    <div class="score-sheet" (click)="$event.stopPropagation()">
-        <p class="score-sheet-title">
-            Hole {{ activeHoleIdx() + 1 }} — Par {{ holePar(activeHoleIdx()) }}
-            <span class="score-sheet-player">
-                {{ players()[players().findIndex(p => p.id === inputPlayerId())]?.name }}
-            </span>
-        </p>
-
-        <!-- Quick score buttons -->
-        <div class="quick-scores">
-            @for (n of quickScores; track n) {
-            <button class="quick-btn" [attr.data-badge]="scoreBadge(n, holePar(activeHoleIdx()))"
-                (click)="quickScore(n)">{{ n }}</button>
-            }
-        </div>
-
-        <div class="score-input-row">
-            <input class="score-input" type="number" min="1" placeholder="Score" [value]="inputValue()"
-                (input)="inputValue.set($any($event.target).value)">
-            <button class="btn btn-green" (click)="confirmScore()">Done</button>
-            <button class="btn btn-ghost" (click)="clearScore()">Clear</button>
-        </div>
-    </div>
-</div>
+<!-- ── Full-featured Score Entry ── -->
+@if (scoreEntryCtx()) {
+<app-score-entry
+    [ctx]="scoreEntryCtx()!"
+    (saved)="onScoreSaved($event)"
+    (cancelled)="scoreEntryCtx.set(null)" />
 }
 
 <!-- Complete round sheet -->
