@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CoursesService } from '../../services/courses.service';
 import { coursePar } from '../../models/course.model';
+import { NavService } from '../../services/nav.service';
 
 @Component({
     selector: 'app-courses',
@@ -12,9 +13,16 @@ import { coursePar } from '../../models/course.model';
 })
 export class CoursesComponent {
     coursesService = inject(CoursesService);
+    private navSvc = inject(NavService);
     courses = this.coursesService.courses;
     deleting = signal<string | null>(null);
     par = coursePar;
+
+    constructor() {
+        effect(() => {
+            this.deleting() ? this.navSvc.hide() : this.navSvc.show();
+        });
+    }
 
     confirmDelete(id: string): void {
         this.deleting.set(id);

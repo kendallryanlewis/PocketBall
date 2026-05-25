@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { PlayersService } from '../../services/players.service';
 import { ThemeService } from '../../services/theme.service';
+import { NavService } from '../../services/nav.service';
 
 @Component({
     selector: 'app-settings',
@@ -18,6 +19,8 @@ export class SettingsComponent {
     private router = inject(Router);
     theme = inject(ThemeService);
 
+    private navSvc = inject(NavService);
+
     authUser = this.auth.user;
     me = this.players.me;
 
@@ -26,6 +29,12 @@ export class SettingsComponent {
     preference = this.theme.preference;
 
     showDeleteConfirm = signal(false);
+
+    constructor() {
+        effect(() => {
+            this.showDeleteConfirm() ? this.navSvc.hide() : this.navSvc.show();
+        });
+    }
 
     saveName(): void {
         const name = this.newName().trim();

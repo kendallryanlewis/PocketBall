@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PlayersService } from '../../services/players.service';
@@ -7,6 +7,7 @@ import { BridgeService } from '../../services/bridge.service';
 import { QrService } from '../../services/qr.service';
 import { ToastService } from '../../services/toast.service';
 import { QrModalComponent } from '../../components/qr-modal/qr-modal.component';
+import { NavService } from '../../services/nav.service';
 
 @Component({
     selector: 'app-friends',
@@ -21,6 +22,7 @@ export class FriendsComponent {
     private bridge = inject(BridgeService);
     private qrSvc = inject(QrService);
     private toast = inject(ToastService);
+    private navSvc = inject(NavService);
 
     me = this.playersService.me;
     friends = this.playersService.friends;
@@ -31,6 +33,13 @@ export class FriendsComponent {
     newCode = signal('');
     addError = signal('');
     deleteTarget = signal<string | null>(null);
+
+    constructor() {
+        effect(() => {
+            const anyOpen = this.addMode() || !!this.deleteTarget() || this.showMyQr();
+            anyOpen ? this.navSvc.hide() : this.navSvc.show();
+        });
+    }
 
     /** Show the current user's own friend QR */
     showMyQr = signal(false);
