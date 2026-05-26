@@ -1,1 +1,0 @@
-import{Va as i}from"./chunk-UYSTCY5W.js";var n=class e{transform(t,r,s){return t?.split(r).join(s)??t}static \u0275fac=function(r){return new(r||e)};static \u0275pipe=i({name:"replace",type:e,pure:!0})};export{n as a};

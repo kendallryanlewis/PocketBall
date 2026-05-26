@@ -1,12 +1,16 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { collection, getDocs, setDoc, deleteDoc, doc } from 'firebase/firestore';
 import { StorageService } from './storage.service';
+import { AuthService } from './auth.service';
 import { Round, newRound, roundTotal, GameType, HoleScore } from '../models/round.model';
+import { getFirestoreDb } from '../firebase.config';
 
 const KEY = 'cg_rounds';
 
 @Injectable({ providedIn: 'root' })
 export class RoundsService {
     private storage = inject(StorageService);
+    private auth = inject(AuthService);
     private _rounds = signal<Round[]>(this.storage.get<Round[]>(KEY, []));
 
     readonly rounds = this._rounds.asReadonly();
@@ -14,6 +18,46 @@ export class RoundsService {
     readonly history = computed(() =>
         this._rounds().filter(r => r.completed).sort((a, b) => b.date - a.date)
     );
+
+    constructor() {
+        effect(() => {
+            const userId = this.auth.user()?.userId;
+            if (userId) this.syncFromFirestore(userId);
+        });
+    }
+
+    private async syncFromFirestore(userId: string): Promise<void> {
+        try {
+            const db = getFirestoreDb();
+            const snap = await getDocs(collection(db, 'users', userId, 'rounds'));
+            if (!snap.empty) {
+                const rounds = snap.docs.map(d => d.data() as Round)
+                    .sort((a, b) => b.date - a.date);
+                this._rounds.set(rounds);
+                this.storage.set(KEY, rounds);
+            } else {
+                for (const r of this._rounds()) {
+                    setDoc(doc(db, 'users', userId, 'rounds', r.id), r).catch(() => {});
+                }
+            }
+        } catch {
+            // Offline — localStorage data is already loaded.
+        }
+    }
+
+    private fsWrite(round: Round): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        setDoc(doc(getFirestoreDb(), 'users', userId, 'rounds', round.id), round)
+            .catch(() => {});
+    }
+
+    private fsDelete(id: string): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        deleteDoc(doc(getFirestoreDb(), 'users', userId, 'rounds', id))
+            .catch(() => {});
+    }
 
     getById(id: string): Round | undefined {
         return this._rounds().find(r => r.id === id);
@@ -24,6 +68,7 @@ export class RoundsService {
         const updated = [round, ...this._rounds()];
         this._rounds.set(updated);
         this.storage.set(KEY, updated);
+        this.fsWrite(round);
         return round;
     }
 
@@ -31,6 +76,7 @@ export class RoundsService {
         const updated = this._rounds().map(r => r.id === round.id ? round : r);
         this._rounds.set(updated);
         this.storage.set(KEY, updated);
+        this.fsWrite(round);
     }
 
     complete(id: string, winner?: string): void {
@@ -43,6 +89,7 @@ export class RoundsService {
         const updated = this._rounds().filter(r => r.id !== id);
         this._rounds.set(updated);
         this.storage.set(KEY, updated);
+        this.fsDelete(id);
     }
 
     scoreForHole(round: Round, playerId: string, holeIdx: number): number | null {

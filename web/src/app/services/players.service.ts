@@ -1,7 +1,9 @@
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { collection, getDocs, setDoc, deleteDoc, doc } from 'firebase/firestore';
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { Player, Trophy, newPlayer } from '../models/player.model';
+import { getFirestoreDb } from '../firebase.config';
 
 const PLAYERS_KEY = 'cg_players';
 const TROPHIES_KEY = 'cg_trophies';
@@ -25,8 +27,13 @@ export class PlayersService {
             this.savePlayer(me);
         }
 
-        // Whenever the auth user is set (login / signup), sync their display name
-        // to the "Me" player if it still holds the placeholder value "Me".
+        // Sync from Firestore when the user logs in.
+        effect(() => {
+            const userId = this.auth.user()?.userId;
+            if (userId) this.syncFromFirestore(userId);
+        });
+
+        // Whenever auth user is set (login / signup), sync display name to "Me".
         effect(() => {
             const authUser = this.auth.user();
             const me = this.me();
@@ -37,6 +44,59 @@ export class PlayersService {
                 this.savePlayer({ ...me, name: authName, initials });
             }
         });
+    }
+
+    private async syncFromFirestore(userId: string): Promise<void> {
+        try {
+            const db = getFirestoreDb();
+            const [pSnap, tSnap] = await Promise.all([
+                getDocs(collection(db, 'users', userId, 'players')),
+                getDocs(collection(db, 'users', userId, 'trophies')),
+            ]);
+
+            if (!pSnap.empty) {
+                const players = pSnap.docs.map(d => d.data() as Player);
+                this._players.set(players);
+                this.storage.set(PLAYERS_KEY, players);
+            } else {
+                for (const p of this._players()) {
+                    setDoc(doc(db, 'users', userId, 'players', p.id), p).catch(() => {});
+                }
+            }
+
+            if (!tSnap.empty) {
+                const trophies = tSnap.docs.map(d => d.data() as Trophy);
+                this._trophies.set(trophies);
+                this.storage.set(TROPHIES_KEY, trophies);
+            } else {
+                for (const t of this._trophies()) {
+                    setDoc(doc(db, 'users', userId, 'trophies', t.id), t).catch(() => {});
+                }
+            }
+        } catch {
+            // Offline — localStorage data is already loaded.
+        }
+    }
+
+    private fsWritePlayer(player: Player): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        setDoc(doc(getFirestoreDb(), 'users', userId, 'players', player.id), player)
+            .catch(() => {});
+    }
+
+    private fsDeletePlayer(id: string): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        deleteDoc(doc(getFirestoreDb(), 'users', userId, 'players', id))
+            .catch(() => {});
+    }
+
+    private fsWriteTrophy(trophy: Trophy): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        setDoc(doc(getFirestoreDb(), 'users', userId, 'trophies', trophy.id), trophy)
+            .catch(() => {});
     }
 
     getById(id: string): Player | undefined {
@@ -51,6 +111,7 @@ export class PlayersService {
             : [...list, player];
         this._players.set(updated);
         this.storage.set(PLAYERS_KEY, updated);
+        this.fsWritePlayer(player);
     }
 
     addFriend(name: string, friendCode?: string): Player {
@@ -80,12 +141,14 @@ export class PlayersService {
         const updated = this._players().filter(p => p.id !== id);
         this._players.set(updated);
         this.storage.set(PLAYERS_KEY, updated);
+        this.fsDeletePlayer(id);
     }
 
     addTrophy(trophy: Trophy): void {
         const updated = [trophy, ...this._trophies()];
         this._trophies.set(updated);
         this.storage.set(TROPHIES_KEY, updated);
+        this.fsWriteTrophy(trophy);
     }
 
     trophiesFor(playerId: string): Trophy[] {

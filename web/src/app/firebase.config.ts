@@ -1,4 +1,7 @@
 import { FirebaseApp, getApps, initializeApp } from 'firebase/app';
+import { Firestore, getFirestore } from 'firebase/firestore';
+
+let _db: Firestore | null = null;
 
 /**
  * Firebase project: pocketball-9e9f3
@@ -19,4 +22,10 @@ export const FIREBASE_CONFIG = {
 /** Returns the singleton FirebaseApp, initializing it if needed. */
 export function getFirebaseApp(): FirebaseApp {
     return getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+}
+
+/** Returns the singleton Firestore instance for pocketball-9e9f3. */
+export function getFirestoreDb(): Firestore {
+    if (!_db) _db = getFirestore(getFirebaseApp());
+    return _db;
 }

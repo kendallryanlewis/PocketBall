@@ -1,1 +1,0 @@
-import{a as n}from"./chunk-HS2XFVEP.js";import{L as a,Q as o,a as e}from"./chunk-UYSTCY5W.js";var c=class i{bridge=o(n);track(t,r){this.bridge.available&&this.bridge.send("analytics",e({event:t},r??{}))}static \u0275fac=function(r){return new(r||i)};static \u0275prov=a({token:i,factory:i.\u0275fac,providedIn:"root"})};export{c as a};

@@ -1,5 +1,8 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { StorageService } from './storage.service';
+import { AuthService } from './auth.service';
+import { getFirestoreDb } from '../firebase.config';
 
 export interface ClubYardage {
     id: string;       // e.g. 'driver', '3w', '7i', 'pw', etc.
@@ -32,6 +35,7 @@ const DEFAULT_CLUBS: ClubYardage[] = [
 @Injectable({ providedIn: 'root' })
 export class ClubsService {
     private storage = inject(StorageService);
+    private auth = inject(AuthService);
 
     private _clubs = signal<ClubYardage[]>(
         this.storage.get<ClubYardage[]>(STORAGE_KEY, DEFAULT_CLUBS)
@@ -41,6 +45,39 @@ export class ClubsService {
 
     /** Only clubs the user has filled in (yards set) */
     readonly filledClubs = computed(() => this._clubs().filter(c => c.yards !== null));
+
+    constructor() {
+        effect(() => {
+            const userId = this.auth.user()?.userId;
+            if (userId) this.syncFromFirestore(userId);
+        });
+    }
+
+    private async syncFromFirestore(userId: string): Promise<void> {
+        try {
+            const db = getFirestoreDb();
+            const snap = await getDoc(doc(db, 'users', userId, 'settings', 'clubs'));
+            if (snap.exists()) {
+                const clubs = (snap.data()['clubs'] ?? DEFAULT_CLUBS) as ClubYardage[];
+                this._clubs.set(clubs);
+                this.storage.set(STORAGE_KEY, clubs);
+            } else {
+                // First login — push current clubs (may have user's existing data).
+                await setDoc(doc(db, 'users', userId, 'settings', 'clubs'),
+                    { clubs: this._clubs() });
+            }
+        } catch {
+            // Offline — localStorage data is already loaded.
+        }
+    }
+
+    private fsPersist(): void {
+        const userId = this.auth.user()?.userId;
+        if (!userId) return;
+        setDoc(doc(getFirestoreDb(), 'users', userId, 'settings', 'clubs'),
+            { clubs: this._clubs() })
+            .catch(() => {});
+    }
 
     update(id: string, yards: number | null, notes: string): void {
         this._clubs.update(list =>
@@ -60,5 +97,6 @@ export class ClubsService {
 
     private persist(): void {
         this.storage.set(STORAGE_KEY, this._clubs());
+        this.fsPersist();
     }
 }
