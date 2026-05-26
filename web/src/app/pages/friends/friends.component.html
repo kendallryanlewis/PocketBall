@@ -30,9 +30,32 @@
     @if (searching()) {
     <p class="search-searching">Searching…</p>
     }
-    @if (searchError()) {
+    @if (searchError() && !searchResults().length) {
     <p class="search-error">{{ searchError() }}</p>
     }
+
+    <div class="my-code-card">
+        <div class="my-code-info">
+            <p class="my-code-label">Your Friend Code</p>
+            <p class="my-code-value">{{ myCode }}</p>
+            <p class="my-code-hint">Share this so friends can add you to rounds.</p>
+        </div>
+        <div class="my-code-actions">
+            <button class="share-btn" (click)="showMyQr.set(true)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" style="width:14px;height:14px" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <path d="M14 14h3v3M17 14v3h3" />
+                </svg>
+                My QR
+            </button>
+            <button class="share-btn" (click)="shareMyCode()">&#11014; Share Code</button>
+            <button class="invite-btn" (click)="inviteToDownload()">&#128242; Invite</button>
+        </div>
+    </div>
+
     @if (searchResults().length > 0) {
     <div class="search-results">
         @for (p of searchResults(); track p.userId) {
@@ -56,27 +79,6 @@
         }
     </div>
     }
-    <div class="my-code-card">
-        <div class="my-code-info">
-            <p class="my-code-label">Your Friend Code</p>
-            <p class="my-code-value">{{ myCode }}</p>
-            <p class="my-code-hint">Share this so friends can add you to rounds.</p>
-        </div>
-        <div class="my-code-actions">
-            <button class="share-btn" (click)="showMyQr.set(true)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" style="width:14px;height:14px" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                    <path d="M14 14h3v3M17 14v3h3" />
-                </svg>
-                My QR
-            </button>
-            <button class="share-btn" (click)="shareMyCode()">⬆ Share Code</button>
-            <button class="invite-btn" (click)="inviteToDownload()">📲 Invite</button>
-        </div>
-    </div>
 
     <!-- Friends list -->
     <section class="section">
