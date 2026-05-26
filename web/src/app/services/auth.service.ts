@@ -144,12 +144,23 @@ export class AuthService {
         const credential = await signInWithEmailAndPassword(this.auth, email, password);
 
         const existing = this._user();
+        // Try to recover friendCode from Firestore if not in localStorage
+        let friendCode = existing?.friendCode;
+        if (!friendCode) {
+            try {
+                const { getFirestoreDb } = await import('../firebase.config');
+                const { doc: fsDoc, getDoc: fsGetDoc } = await import('firebase/firestore');
+                const snap = await fsGetDoc(fsDoc(getFirestoreDb(), 'profiles', credential.user.uid));
+                if (snap.exists()) friendCode = (snap.data() as any).friendCode;
+            } catch { }
+        }
+
         const authUser: AuthUser = {
             userId: credential.user.uid,
             displayName: credential.user.displayName ?? existing?.displayName ?? 'Golfer',
             email: credential.user.email ?? undefined,
             username: existing?.username,
-            friendCode: existing?.friendCode ?? generateFriendCode(),
+            friendCode: friendCode ?? generateFriendCode(),
             provider: 'local',
         };
         this.storage.set(AUTH_KEY, authUser);

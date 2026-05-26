@@ -39,7 +39,7 @@ export class PlayersService {
             const me = this.me();
             if (!authUser || !me) return;
             const authName = authUser.displayName?.trim();
-            if (authName && authName !== 'Golfer' && me.name === 'Me') {
+            if (authName && authName !== 'Golfer' && authName !== me.name) {
                 const initials = authName.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
                 this.savePlayer({ ...me, name: authName, initials });
             }
