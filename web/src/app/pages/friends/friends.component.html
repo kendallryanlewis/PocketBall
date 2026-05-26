@@ -7,12 +7,9 @@
 
     <!-- Always-visible search bar -->
     <div class="search-row">
-        <input class="search-input" type="search"
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)"
-            (keydown.enter)="searchUsers()"
-            placeholder="Search by name, email or @username…"
-            autocomplete="off" autocapitalize="none" spellcheck="false">
+        <input class="search-input" type="search" [value]="searchQuery()" (input)="onSearchInput($event)"
+            (keydown.enter)="searchUsers()" placeholder="Search by name, email or @username…" autocomplete="off"
+            autocapitalize="none" spellcheck="false">
         <button class="qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button" aria-label="Scan QR code">
             @if (scanning()) {
             <span class="scan-spinner" style="border-color:var(--green);border-top-color:transparent"></span>
@@ -76,8 +73,36 @@
                     }
                     <span class="result-code">{{ p.friendCode }}</span>
                 </div>
-                <span class="result-add">＋ Add</span>
+                <span class="result-add">Send Request</span>
             </button>
+            }
+        </div>
+    </section>
+    }
+
+    <!-- Incoming Friend Requests -->
+    @if (incomingRequests().length > 0) {
+    <section class="section">
+        <h2 class="section-title">
+            Friend Requests
+            <span class="req-badge">{{ pendingCount() }}</span>
+        </h2>
+        <div class="friend-list">
+            @for (req of incomingRequests(); track req.id) {
+            <div class="friend-row request-row">
+                <div class="avatar"
+                    style="background:var(--green)22;color:var(--green);font-size:16px;font-weight:800;">
+                    {{ req.fromDisplayName.slice(0,2).toUpperCase() }}
+                </div>
+                <div class="friend-info">
+                    <p class="friend-name">{{ req.fromDisplayName }}</p>
+                    <p class="friend-code">{{ req.fromFriendCode }}</p>
+                </div>
+                <div class="req-actions">
+                    <button class="req-accept" (click)="acceptRequest(req)" type="button">Accept</button>
+                    <button class="req-decline" (click)="declineRequest(req)" type="button">Decline</button>
+                </div>
+            </div>
             }
         </div>
     </section>

@@ -122,7 +122,61 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
+
+.req-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: var(--radius-full);
+    background: var(--green);
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.request-row {
+    cursor: default;
+}
+
+.req-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.req-accept {
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    background: var(--green);
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+}
+
+.req-accept:active { opacity: 0.8; }
+
+.req-decline {
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    background: var(--surface-raised);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.req-decline:active { opacity: 0.7; }
 
 .friend-list {
     display: flex;
@@ -145,7 +199,9 @@
     border: none;
 }
 
-.friend-row:active { background: var(--surface-raised); }
+.friend-row:active {
+    background: var(--surface-raised);
+}
 
 .friend-info {
     flex: 1;
@@ -551,7 +607,9 @@
     border-right: 1px solid var(--border);
 }
 
-.fp-stat:last-child { border-right: none; }
+.fp-stat:last-child {
+    border-right: none;
+}
 
 .fp-stat-val {
     font-size: 22px;
@@ -597,8 +655,16 @@
     font-size: 13px;
 }
 
-.fp-club-name { color: var(--text); font-weight: 600; }
-.fp-club-yards { color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+.fp-club-name {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.fp-club-yards {
+    color: var(--green);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
 
 .fp-code {
     font-size: 12px;

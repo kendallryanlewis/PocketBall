@@ -10,6 +10,7 @@ import { ToastService } from '../../services/toast.service';
 import { QrModalComponent } from '../../components/qr-modal/qr-modal.component';
 import { NavService } from '../../services/nav.service';
 import { Player } from '../../models/player.model';
+import { FriendRequestService, FriendRequest } from '../../services/friend-request.service';
 
 @Component({
     selector: 'app-friends',
@@ -26,10 +27,15 @@ export class FriendsComponent {
     private qrSvc = inject(QrService);
     private toast = inject(ToastService);
     private navSvc = inject(NavService);
+    private friendReqSvc = inject(FriendRequestService);
 
     me = this.playersService.me;
     friends = this.playersService.friends;
     authUser = this.auth.user;
+
+    /** Incoming friend requests (real-time from Firestore) */
+    incomingRequests = this.friendReqSvc.incoming;
+    pendingCount = this.friendReqSvc.pendingCount;
 
     addMode = signal(false);
     deleteTarget = signal<string | null>(null);
@@ -107,16 +113,42 @@ export class FriendsComponent {
         }
     }
 
-    addFromProfile(profile: PublicProfile): void {
+    async addFromProfile(profile: PublicProfile): Promise<void> {
         if (this.playersService.getByFriendCode(profile.friendCode)) {
             this.toast.info(`${profile.displayName} is already in your list.`);
             return;
         }
-        this.playersService.addFriendFromProfile(profile);
-        this.toast.success(`${profile.displayName} added!`);
-        this.searchResults.set([]);
-        this.searchQuery.set('');
-        this.addMode.set(false);
+        try {
+            await this.friendReqSvc.sendRequest({
+                userId: profile.userId,
+                displayName: profile.displayName,
+                friendCode: profile.friendCode,
+                photoURL: profile.photoURL,
+            });
+            this.toast.success(`Friend request sent to ${profile.displayName}!`);
+            this.searchResults.set([]);
+            this.searchQuery.set('');
+        } catch {
+            this.toast.error('Failed to send request. Try again.');
+        }
+    }
+
+    async acceptRequest(req: FriendRequest): Promise<void> {
+        try {
+            await this.friendReqSvc.acceptRequest(req);
+            this.toast.success(`${req.fromDisplayName} added to your friends!`);
+        } catch {
+            this.toast.error('Failed to accept request.');
+        }
+    }
+
+    async declineRequest(req: FriendRequest): Promise<void> {
+        try {
+            await this.friendReqSvc.declineRequest(req);
+            this.toast.info('Request declined.');
+        } catch {
+            this.toast.error('Failed to decline request.');
+        }
     }
 
     /** Trigger the native QR scanner to add a friend. */
