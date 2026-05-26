@@ -240,8 +240,10 @@ export class CreateCourseComponent implements OnInit {
                 }),
             }));
         }).catch(() => {
+            // OSM hole data is optional — par-72 defaults are already applied.
+            // Suppress the error toast so the user isn't confused by a failure
+            // that has no impact on functionality.
             this.loadingHoles.set(false);
-            this.toast.error('Could not load hole data — using par-72 defaults');
         });
     }
 

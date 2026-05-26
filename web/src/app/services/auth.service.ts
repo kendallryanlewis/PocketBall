@@ -41,6 +41,8 @@ export class AuthService {
     private bridge = inject(BridgeService);
 
     private auth: Auth;
+    /** True once Firebase has confirmed at least one authenticated session. */
+    private _hadFirebaseSession = false;
 
     private _user = signal<AuthUser | null>(this.storage.get<AuthUser | null>(AUTH_KEY, null));
 
@@ -52,9 +54,14 @@ export class AuthService {
             const app = getFirebaseApp();
             this.auth = getAuth(app);
 
-            // Keep local signal in sync with Firebase Auth state
+            // Keep local signal in sync with Firebase Auth state.
+            // Only clear the user when Firebase transitions from an active session
+            // to null (e.g. token expired / deleted). On first load, if Firebase
+            // reports null and the user has a cached local session (pre-Firebase
+            // migration), leave them logged in so they aren't unexpectedly evicted.
             onAuthStateChanged(this.auth, (firebaseUser) => {
                 if (firebaseUser) {
+                    this._hadFirebaseSession = true;
                     const existing = this._user();
                     const authUser: AuthUser = {
                         userId: firebaseUser.uid,
@@ -66,14 +73,19 @@ export class AuthService {
                     };
                     this.storage.set(AUTH_KEY, authUser);
                     this._user.set(authUser);
-                } else {
-                    // Only clear if we don't have an Apple user (Apple auth is bridge-only)
+                } else if (this._hadFirebaseSession) {
+                    // Firebase confirmed a session existed, then it went away
+                    // (token expired, account deleted, or explicit sign-out).
+                    // Clear the local user — but leave Apple users alone since
+                    // their auth state is managed by the native bridge.
                     const current = this._user();
                     if (!current || current.provider !== 'apple') {
                         this.storage.remove(AUTH_KEY);
                         this._user.set(null);
                     }
                 }
+                // else: Firebase resolved null on first load and we never had a
+                // Firebase session — keep existing cached user as-is.
             });
         } catch (e) {
             console.warn('[Auth] Firebase init failed — running offline:', e);
@@ -168,7 +180,7 @@ export class AuthService {
 
         // Also update Firebase Auth profile if available
         if (this.auth?.currentUser) {
-            updateProfile(this.auth.currentUser, { displayName: name }).catch(() => {});
+            updateProfile(this.auth.currentUser, { displayName: name }).catch(() => { });
         }
     }
 
@@ -176,7 +188,7 @@ export class AuthService {
         this.storage.remove(AUTH_KEY);
         this._user.set(null);
         if (this.auth) {
-            firebaseSignOut(this.auth).catch(() => {});
+            firebaseSignOut(this.auth).catch(() => { });
         }
     }
 
