@@ -81,14 +81,28 @@
 
     <!-- Firestore user search -->
     <div class="search-row">
-        <input class="search-input" type="search" [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-        placeholder="Search by name, email or @username…"
-            (keydown.enter)="searchUsers()" autocomplete="off" autocapitalize="none">
-        <button class="search-btn" (click)="searchUsers()" [disabled]="searching()">
-            {{ searching() ? '⏳' : '🔍' }}
+        <input class="search-input" type="search"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            (keydown.enter)="searchUsers()"
+            placeholder="Search by name, email or @username…"
+            autocomplete="off" autocapitalize="none" spellcheck="false">
+        <button class="qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button" aria-label="Scan QR code">
+            @if (scanning()) {
+            <span class="scan-spinner" style="border-color:var(--green);border-top-color:transparent"></span>
+            } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+                <path d="M14 14h3v3M17 14v3h3"/>
+            </svg>
+            }
         </button>
     </div>
+    @if (searching()) {
+    <p class="search-searching">Searching…</p>
+    }
 
     @if (searchError()) {
     <p class="search-error">{{ searchError() }}</p>
@@ -118,22 +132,7 @@
     </div>
     }
 
-    <!-- Scan QR -->
-    <div class="sheet-divider"><span>or scan QR code</span></div>
-    <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
-        @if (scanning()) {
-        <span class="scan-spinner"></span> Scanning…
-        } @else {
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" style="width:18px;height:18px" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <path d="M14 14h3v3M17 14v3h3" />
-        </svg>
-        Scan Their QR Code
-        }
-    </button>
+
 
     @if (showPasteField()) {
     <div class="field" style="margin-top:0">

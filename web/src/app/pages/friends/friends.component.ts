@@ -38,6 +38,7 @@ export class FriendsComponent {
     searching = signal(false);
     searchResults = signal<PublicProfile[]>([]);
     searchError = signal('');
+    private _searchTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor() {
         effect(() => {
@@ -66,6 +67,14 @@ export class FriendsComponent {
         const code = this.myCode;
         const text = `Add me on Carnivore Golf! My friend code: ${code}`;
         this.bridge.shareText(text);
+    }
+
+    onSearchInput(e: Event): void {
+        const val = (e.target as HTMLInputElement).value;
+        this.searchQuery.set(val);
+        if (this._searchTimer) clearTimeout(this._searchTimer);
+        if (!val.trim()) { this.searchResults.set([]); this.searchError.set(''); return; }
+        this._searchTimer = setTimeout(() => this.searchUsers(), 400);
     }
 
     async searchUsers(): Promise<void> {
