@@ -83,7 +83,7 @@
     <div class="search-row">
         <input class="search-input" type="search" [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
-            placeholder="Search by @username or friend code…"
+        placeholder="Search by name, email or @username…"
             (keydown.enter)="searchUsers()" autocomplete="off" autocapitalize="none">
         <button class="search-btn" (click)="searchUsers()" [disabled]="searching()">
             {{ searching() ? '⏳' : '🔍' }}
@@ -118,8 +118,8 @@
     </div>
     }
 
-    <!-- Scan QR button -->
-    <div class="sheet-divider"><span>or scan / enter manually</span></div>
+    <!-- Scan QR -->
+    <div class="sheet-divider"><span>or scan QR code</span></div>
     <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
         @if (scanning()) {
         <span class="scan-spinner"></span> Scanning…
@@ -144,24 +144,12 @@
     </div>
     }
 
-    <div class="field">
-        <label>Name</label>
-        <input type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Buddy's name"
-            autocomplete="off">
-    </div>
-    <div class="field">
-        <label>Friend Code <span class="optional">(optional)</span></label>
-        <input type="text" [ngModel]="newCode()" (ngModelChange)="newCode.set($event)" placeholder="ACE-1234"
-            autocomplete="off" style="text-transform:uppercase">
-    </div>
-
-    @if (addError() || scanError()) {
-    <p class="form-error">{{ addError() || scanError() }}</p>
+    @if (scanError()) {
+    <p class="form-error">{{ scanError() }}</p>
     }
 
     <div class="sheet-actions">
         <button class="btn btn-ghost" (click)="addMode.set(false)">Cancel</button>
-        <button class="btn btn-green" (click)="addFriend()">Add Friend</button>
     </div>
 </div>
 }

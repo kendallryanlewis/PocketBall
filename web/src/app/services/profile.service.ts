@@ -13,6 +13,7 @@ export interface PublicProfile {
     displayName: string;
     /** Lowercase @handle, unique. Used for search. */
     username?: string;
+    /** Email address — stored lowercase for exact-match search. */
     email?: string;
     photoURL?: string;
     friendCode: string;
@@ -158,15 +159,20 @@ export class ProfileService {
     }
 
     /**
-     * Search the public profiles collection by @username prefix or exact friend code.
-     * Returns up to 10 matches.
+     * Search profiles by email (exact), username prefix, or displayName prefix.
+     * Tries all three in parallel and merges de-duped results.
      */
     async searchUsers(rawQuery: string): Promise<PublicProfile[]> {
         const term = rawQuery.trim().toLowerCase().replace(/^@/, '');
         if (!term) return [];
 
         const db = getFirestoreDb();
-        const results: PublicProfile[] = [];
+        const seen = new Set<string>();
+        const merged: PublicProfile[] = [];
+        const push = (d: any) => {
+            const p = d.data() as PublicProfile;
+            if (!seen.has(p.userId)) { seen.add(p.userId); merged.push(p); }
+        };
 
         try {
             // Exact friend-code match (format: ACE-1234)
@@ -175,35 +181,44 @@ export class ProfileService {
                     collection(db, 'profiles'),
                     where('friendCode', '==', term.toUpperCase()),
                 ));
-                snap.forEach(d => results.push(d.data() as PublicProfile));
-                return results;
+                snap.forEach(push);
+                return merged;
             }
 
-            // @username prefix search (usernames stored lowercase)
             const end = term + '\uf8ff';
-            const snap = await getDocs(fsQuery(
-                collection(db, 'profiles'),
-                where('username', '>=', term),
-                where('username', '<=', end),
-                limit(10),
-            ));
-            snap.forEach(d => results.push(d.data() as PublicProfile));
 
-            // Fall back to displayName prefix if no username results
-            if (results.length === 0) {
-                const nameSnap = await getDocs(fsQuery(
+            // Run email exact, username prefix, and displayName prefix in parallel
+            const [emailSnap, usernameSnap, nameSnap] = await Promise.allSettled([
+                // Exact email match (emails stored lowercase)
+                getDocs(fsQuery(
+                    collection(db, 'profiles'),
+                    where('email', '==', term),
+                    limit(5),
+                )),
+                // Username prefix
+                getDocs(fsQuery(
+                    collection(db, 'profiles'),
+                    where('username', '>=', term),
+                    where('username', '<=', end),
+                    limit(10),
+                )),
+                // DisplayName prefix
+                getDocs(fsQuery(
                     collection(db, 'profiles'),
                     where('displayName', '>=', rawQuery.trim()),
                     where('displayName', '<=', rawQuery.trim() + '\uf8ff'),
                     limit(10),
-                ));
-                nameSnap.forEach(d => results.push(d.data() as PublicProfile));
-            }
+                )),
+            ]);
+
+            if (emailSnap.status === 'fulfilled') emailSnap.value.forEach(push);
+            if (usernameSnap.status === 'fulfilled') usernameSnap.value.forEach(push);
+            if (nameSnap.status === 'fulfilled') nameSnap.value.forEach(push);
         } catch {
             // Firestore unavailable or rules error.
         }
 
-        return results;
+        return merged.slice(0, 10);
     }
 
     /** Fetch a single public profile by userId. */

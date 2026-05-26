@@ -120,6 +120,19 @@ export class PlayersService {
         return p;
     }
 
+    /** Add a friend from a Firestore public profile, preserving all known fields. */
+    addFriendFromProfile(profile: import('./profile.service').PublicProfile): Player {
+        const base = newPlayer(profile.displayName);
+        const p: Player = {
+            ...base,
+            friendCode: profile.friendCode,
+            username: profile.username,
+            email: profile.email,
+        };
+        this.savePlayer(p);
+        return p;
+    }
+
     /** Find a friend by their shared friend code (case-insensitive). */
     getByFriendCode(code: string): Player | undefined {
         return this._players().find(

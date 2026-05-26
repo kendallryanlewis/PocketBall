@@ -31,9 +31,6 @@ export class FriendsComponent {
     authUser = this.auth.user;
 
     addMode = signal(false);
-    newName = signal('');
-    newCode = signal('');
-    addError = signal('');
     deleteTarget = signal<string | null>(null);
 
     /** Firestore user search */
@@ -94,29 +91,11 @@ export class FriendsComponent {
             this.toast.info(`${profile.displayName} is already in your list.`);
             return;
         }
-        this.playersService.addFriend(profile.displayName, profile.friendCode);
+        this.playersService.addFriendFromProfile(profile);
         this.toast.success(`${profile.displayName} added!`);
         this.searchResults.set([]);
         this.searchQuery.set('');
-    }
-
-    addFriend(): void {
-        const name = this.newName().trim();
-        const code = this.newCode().trim().toUpperCase();
-
-        if (!name) { this.addError.set('Enter a name.'); return; }
-
-        if (code && this.playersService.getByFriendCode(code)) {
-            this.addError.set('A friend with that code already exists.');
-            return;
-        }
-
-        this.playersService.addFriend(name, code || undefined);
-        this.newName.set('');
-        this.newCode.set('');
-        this.addError.set('');
         this.addMode.set(false);
-        this.toast.success(`${name} added!`);
     }
 
     /** Trigger the native QR scanner to add a friend. */
