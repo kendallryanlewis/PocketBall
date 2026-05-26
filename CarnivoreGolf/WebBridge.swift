@@ -1,6 +1,7 @@
 import WebKit
 import OSLog
 import UIKit
+import AVFoundation
 import AuthenticationServices
 import CoreLocation
 
@@ -183,6 +184,8 @@ final class WebBridge: NSObject,
                 let paramsStr = params.isEmpty ? "" : " \(params)"
                 log.info("[Analytics] \(event)\(paramsStr)")
             }
+        case "scanQR":
+            handleScanQR()
         case "scanScorecard":
             handleScanScorecard(payload: payload)
         case "log":
@@ -199,6 +202,50 @@ final class WebBridge: NSObject,
         default:
             log.warning("Unhandled bridge action: \(action)")
         }
+    }
+
+    // MARK: - QR Scanning
+
+    private func handleScanQR() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch status {
+        case .authorized:
+            presentQRScanner()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                DispatchQueue.main.async {
+                    if granted { self?.presentQRScanner() } else { self?.dispatchQRResult(nil) }
+                }
+            }
+        default:
+            dispatchQRResult(nil)
+        }
+    }
+
+    private func presentQRScanner() {
+        guard let root = webView?.window?.rootViewController else { dispatchQRResult(nil); return }
+        let scanner = QRScannerViewController()
+        scanner.modalPresentationStyle = .fullScreen
+        scanner.onResult = { [weak self] value in self?.dispatchQRResult(value) }
+        var presenter = root
+        while let p = presenter.presentedViewController { presenter = p }
+        presenter.present(scanner, animated: true)
+    }
+
+    private func dispatchQRResult(_ value: String?) {
+        let detail: String
+        if let value {
+            let escaped = value
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+                .replacingOccurrences(of: "\n", with: "\\n")
+            detail = "{ \"value\": \"\(escaped)\" }"
+        } else {
+            detail = "{ \"value\": null }"
+        }
+        webView?.evaluateJavaScript(
+            "window.dispatchEvent(new CustomEvent('qrScanResult', { detail: \(detail) }))"
+        )
     }
 
     // MARK: - Scorecard Scanning

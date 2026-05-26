@@ -11,6 +11,8 @@ import { getFirestoreDb } from '../firebase.config';
 export interface PublicProfile {
     userId: string;
     displayName: string;
+    /** Lowercase version of displayName for case-insensitive prefix search. */
+    displayNameSearch?: string;
     /** Lowercase @handle, unique. Used for search. */
     username?: string;
     /** Email address — stored lowercase for exact-match search. */
@@ -34,8 +36,9 @@ export class ProfileService {
                 this.upsert({
                     userId: user.userId,
                     displayName: user.displayName,
+                    displayNameSearch: (user.displayName ?? '').toLowerCase(),
                     username: user.username?.toLowerCase(),
-                    email: user.email,
+                    email: user.email?.toLowerCase(),
                     photoURL: user.photoURL,
                     friendCode: user.friendCode,
                 });
@@ -46,7 +49,12 @@ export class ProfileService {
     /** Write or merge fields into the public profile document. */
     async upsert(data: Partial<PublicProfile> & { userId: string }): Promise<void> {
         const db = getFirestoreDb();
-        const payload = { ...data, updatedAt: Date.now() };
+        // Always include lowercase search field if displayName is provided
+        const payload = {
+            ...data,
+            ...(data.displayName ? { displayNameSearch: data.displayName.toLowerCase() } : {}),
+            updatedAt: Date.now(),
+        };
 
         // Always write to the private users/ path (guaranteed by existing rules)
         try {
@@ -64,7 +72,15 @@ export class ProfileService {
                 payload,
                 { merge: true },
             );
-        } catch { }
+        } catch (e: any) {
+            // Most likely cause: Firestore rules for profiles/ not configured.
+            // Firebase Console → Firestore → Rules — add:
+            //   match /profiles/{userId} {
+            //     allow read: if request.auth != null;
+            //     allow write: if request.auth != null && request.auth.uid == userId;
+            //   }
+            console.warn('[ProfileService] profiles/ write failed (check Firestore rules):', e?.code ?? e?.message);
+        }
     }
 
     /**
@@ -202,18 +218,21 @@ export class ProfileService {
                     where('username', '<=', end),
                     limit(10),
                 )),
-                // DisplayName prefix
+                // DisplayName prefix (case-insensitive via displayNameSearch field)
                 getDocs(fsQuery(
                     collection(db, 'profiles'),
-                    where('displayName', '>=', rawQuery.trim()),
-                    where('displayName', '<=', rawQuery.trim() + '\uf8ff'),
+                    where('displayNameSearch', '>=', term),
+                    where('displayNameSearch', '<=', term + '\uf8ff'),
                     limit(10),
                 )),
             ]);
 
             if (emailSnap.status === 'fulfilled') emailSnap.value.forEach(push);
+            else console.warn('[ProfileService] email search failed:', (emailSnap as any).reason?.code);
             if (usernameSnap.status === 'fulfilled') usernameSnap.value.forEach(push);
+            else console.warn('[ProfileService] username search failed:', (usernameSnap as any).reason?.code);
             if (nameSnap.status === 'fulfilled') nameSnap.value.forEach(push);
+            else console.warn('[ProfileService] displayName search failed:', (nameSnap as any).reason?.code);
         } catch {
             // Firestore unavailable or rules error.
         }
