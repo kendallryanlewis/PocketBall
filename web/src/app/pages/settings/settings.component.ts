@@ -55,17 +55,31 @@ export class SettingsComponent {
         const handle = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
         if (handle.length >= 3) this.auth.updateUsername(handle);
         this.editingName.set(false);
+
+        // Push directly to Firestore — don't rely on the effect re-running
+        const user = this.authUser();
+        if (user?.userId) {
+            this.profileSvc.upsert({
+                userId: user.userId,
+                displayName: name,
+                username: handle.length >= 3 ? handle : user.username,
+                email: user.email,
+                photoURL: user.photoURL,
+                friendCode: user.friendCode,
+            });
+        }
     }
 
     async onPhotoSelected(event: Event): Promise<void> {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
-        const userId = this.authUser()?.userId;
-        if (!userId) return;
+        const user = this.authUser();
+        if (!user?.userId) return;
         this.uploadingPhoto.set(true);
         try {
-            const url = await this.profileSvc.uploadPhoto(userId, file);
+            const url = await this.profileSvc.uploadPhoto(user.userId, file);
             this.auth.updatePhotoURL(url);
+            // uploadPhoto already writes photoURL to Firestore profiles doc
             this.toast.success('Profile photo updated');
         } catch {
             this.toast.error('Photo upload failed. Try again.');
