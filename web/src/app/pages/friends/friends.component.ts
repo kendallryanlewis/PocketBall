@@ -230,7 +230,11 @@ export class FriendsComponent {
 
     removeSelectedFriend(): void {
         const f = this.selectedFriend();
-        if (f) this.deleteTarget.set(f.id);
+        if (f) {
+            this.selectedFriend.set(null);
+            this.selectedProfile.set(null);
+            this.deleteTarget.set(f.id);
+        }
     }
 
     updateName(id: string, name: string): void {
