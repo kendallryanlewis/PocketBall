@@ -60,7 +60,7 @@ export class PlayersService {
                 this.storage.set(PLAYERS_KEY, players);
             } else {
                 for (const p of this._players()) {
-                    setDoc(doc(db, 'users', userId, 'players', p.id), p).catch(() => {});
+                    setDoc(doc(db, 'users', userId, 'players', p.id), p).catch(() => { });
                 }
             }
 
@@ -70,7 +70,7 @@ export class PlayersService {
                 this.storage.set(TROPHIES_KEY, trophies);
             } else {
                 for (const t of this._trophies()) {
-                    setDoc(doc(db, 'users', userId, 'trophies', t.id), t).catch(() => {});
+                    setDoc(doc(db, 'users', userId, 'trophies', t.id), t).catch(() => { });
                 }
             }
         } catch {
@@ -82,21 +82,21 @@ export class PlayersService {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         setDoc(doc(getFirestoreDb(), 'users', userId, 'players', player.id), player)
-            .catch(() => {});
+            .catch(() => { });
     }
 
     private fsDeletePlayer(id: string): void {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         deleteDoc(doc(getFirestoreDb(), 'users', userId, 'players', id))
-            .catch(() => {});
+            .catch(() => { });
     }
 
     private fsWriteTrophy(trophy: Trophy): void {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         setDoc(doc(getFirestoreDb(), 'users', userId, 'trophies', trophy.id), trophy)
-            .catch(() => {});
+            .catch(() => { });
     }
 
     getById(id: string): Player | undefined {

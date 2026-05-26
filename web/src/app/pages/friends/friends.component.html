@@ -3,10 +3,59 @@
     <header class="page-header">
         <a routerLink="/app/home" class="back-btn">‹</a>
         <h1 class="page-title">Friends</h1>
-        <button class="btn-icon" (click)="addMode.set(true)" aria-label="Add friend">＋</button>
     </header>
 
-    <!-- My code card -->
+    <!-- Always-visible search bar -->
+    <div class="search-row">
+        <input class="search-input" type="search"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            (keydown.enter)="searchUsers()"
+            placeholder="Search by name, email or @username…"
+            autocomplete="off" autocapitalize="none" spellcheck="false">
+        <button class="qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button" aria-label="Scan QR code">
+            @if (scanning()) {
+            <span class="scan-spinner" style="border-color:var(--green);border-top-color:transparent"></span>
+            } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="width:20px;height:20px" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <path d="M14 14h3v3M17 14v3h3" />
+            </svg>
+            }
+        </button>
+    </div>
+    @if (searching()) {
+    <p class="search-searching">Searching…</p>
+    }
+    @if (searchError()) {
+    <p class="search-error">{{ searchError() }}</p>
+    }
+    @if (searchResults().length > 0) {
+    <div class="search-results">
+        @for (p of searchResults(); track p.userId) {
+        <button class="search-result-row" (click)="addFromProfile(p)" type="button">
+            @if (p.photoURL) {
+            <img class="result-avatar" [src]="p.photoURL" alt="{{ p.displayName }}">
+            } @else {
+            <div class="result-avatar result-avatar-initials">
+                {{ p.displayName.slice(0, 2).toUpperCase() }}
+            </div>
+            }
+            <div class="result-info">
+                <span class="result-name">{{ p.displayName }}</span>
+                @if (p.username) {
+                <span class="result-username">@{{ p.username }}</span>
+                }
+                <span class="result-code">{{ p.friendCode }}</span>
+            </div>
+            <span class="result-add">＋ Add</span>
+        </button>
+        }
+    </div>
+    }
     <div class="my-code-card">
         <div class="my-code-info">
             <p class="my-code-label">Your Friend Code</p>
@@ -73,66 +122,26 @@
     (closed)="showMyQr.set(false)" />
 }
 
-<!-- Add Friend Sheet -->
+<!-- Add Friend Sheet (QR only) -->
 @if (addMode()) {
 <div class="overlay" (click)="addMode.set(false)"></div>
-<div class="sheet animate-fade-up" role="dialog" aria-modal="true" aria-label="Add Friend">
-    <h3 class="sheet-title">Add Friend</h3>
+<div class="sheet animate-fade-up" role="dialog" aria-modal="true" aria-label="Scan QR Code">
+    <h3 class="sheet-title">Scan QR Code</h3>
 
-    <!-- Firestore user search -->
-    <div class="search-row">
-        <input class="search-input" type="search"
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)"
-            (keydown.enter)="searchUsers()"
-            placeholder="Search by name, email or @username…"
-            autocomplete="off" autocapitalize="none" spellcheck="false">
-        <button class="qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button" aria-label="Scan QR code">
-            @if (scanning()) {
-            <span class="scan-spinner" style="border-color:var(--green);border-top-color:transparent"></span>
-            } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7"/>
-                <rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/>
-                <path d="M14 14h3v3M17 14v3h3"/>
-            </svg>
-            }
-        </button>
-    </div>
-    @if (searching()) {
-    <p class="search-searching">Searching…</p>
-    }
-
-    @if (searchError()) {
-    <p class="search-error">{{ searchError() }}</p>
-    }
-
-    @if (searchResults().length > 0) {
-    <div class="search-results">
-        @for (p of searchResults(); track p.userId) {
-        <button class="search-result-row" (click)="addFromProfile(p)" type="button">
-            @if (p.photoURL) {
-            <img class="result-avatar" [src]="p.photoURL" alt="{{ p.displayName }}">
-            } @else {
-            <div class="result-avatar result-avatar-initials">
-                {{ p.displayName.slice(0, 2).toUpperCase() }}
-            </div>
-            }
-            <div class="result-info">
-                <span class="result-name">{{ p.displayName }}</span>
-                @if (p.username) {
-                <span class="result-username">@{{ p.username }}</span>
-                }
-                <span class="result-code">{{ p.friendCode }}</span>
-            </div>
-            <span class="result-add">＋ Add</span>
-        </button>
+    <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
+        @if (scanning()) {
+        <span class="scan-spinner"></span> Scanning…
+        } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" style="width:18px;height:18px" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <path d="M14 14h3v3M17 14v3h3" />
+        </svg>
+        Scan Their QR Code
         }
-    </div>
-    }
-
-
+    </button>
 
     @if (showPasteField()) {
     <div class="field" style="margin-top:0">

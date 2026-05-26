@@ -29,7 +29,8 @@
                 <div class="profile-info">
                     @if (!editingName()) {
                     <p class="profile-name">{{ me()?.name }}</p>
-                    <p class="profile-sub">{{ authUser()?.username ? '@' + authUser()!.username : (authUser()?.email ?? 'Signed in with Apple') }}</p>
+                    <p class="profile-sub">{{ authUser()?.username ? '@' + authUser()!.username : (authUser()?.email ??
+                        'Signed in with Apple') }}</p>
                     } @else {
                     <input class="name-input" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)"
                         (keydown.enter)="saveName()" autocomplete="off">

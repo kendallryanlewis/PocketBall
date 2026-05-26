@@ -74,21 +74,27 @@ export class FriendsComponent {
         this.searchQuery.set(val);
         if (this._searchTimer) clearTimeout(this._searchTimer);
         if (!val.trim()) { this.searchResults.set([]); this.searchError.set(''); return; }
+        console.log('[Friends] input changed, scheduling search for:', val);
         this._searchTimer = setTimeout(() => this.searchUsers(), 400);
     }
 
     async searchUsers(): Promise<void> {
         const q = this.searchQuery().trim();
         if (!q) { this.searchResults.set([]); return; }
+        console.log('[Friends] searchUsers() firing with query:', q);
         this.searching.set(true);
         this.searchError.set('');
         try {
             const results = await this.profileSvc.searchUsers(q);
+            console.log('[Friends] raw results:', results.length, results.map(r => r.displayName));
             // Exclude self
             const myId = this.authUser()?.userId;
-            this.searchResults.set(results.filter(r => r.userId !== myId));
-            if (results.length === 0) this.searchError.set('No users found.');
-        } catch {
+            const filtered = results.filter(r => r.userId !== myId);
+            console.log('[Friends] after self-filter:', filtered.length);
+            this.searchResults.set(filtered);
+            if (filtered.length === 0) this.searchError.set('No users found.');
+        } catch (err) {
+            console.error('[Friends] searchUsers error:', err);
             this.searchError.set('Search failed. Check your connection.');
         } finally {
             this.searching.set(false);

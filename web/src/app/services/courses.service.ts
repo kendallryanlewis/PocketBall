@@ -38,7 +38,7 @@ export class CoursesService {
             } else {
                 // First login — migrate any local courses up to Firestore.
                 for (const c of this._courses()) {
-                    setDoc(doc(db, 'users', userId, 'courses', c.id), c).catch(() => {});
+                    setDoc(doc(db, 'users', userId, 'courses', c.id), c).catch(() => { });
                 }
             }
         } catch {
@@ -50,14 +50,14 @@ export class CoursesService {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         setDoc(doc(getFirestoreDb(), 'users', userId, 'courses', course.id), course)
-            .catch(() => {});
+            .catch(() => { });
     }
 
     private fsDelete(id: string): void {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         deleteDoc(doc(getFirestoreDb(), 'users', userId, 'courses', id))
-            .catch(() => {});
+            .catch(() => { });
     }
 
     getById(id: string): Course | undefined {

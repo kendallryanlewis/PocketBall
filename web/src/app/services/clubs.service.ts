@@ -78,7 +78,7 @@ export class ClubsService {
         if (!userId) return;
         setDoc(doc(getFirestoreDb(), 'users', userId, 'settings', 'clubs'),
             { clubs: this._clubs() })
-            .catch(() => {});
+            .catch(() => { });
     }
 
     update(id: string, yards: number | null, notes: string): void {

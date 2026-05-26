@@ -37,7 +37,7 @@ export class RoundsService {
                 this.storage.set(KEY, rounds);
             } else {
                 for (const r of this._rounds()) {
-                    setDoc(doc(db, 'users', userId, 'rounds', r.id), r).catch(() => {});
+                    setDoc(doc(db, 'users', userId, 'rounds', r.id), r).catch(() => { });
                 }
             }
         } catch {
@@ -49,14 +49,14 @@ export class RoundsService {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         setDoc(doc(getFirestoreDb(), 'users', userId, 'rounds', round.id), round)
-            .catch(() => {});
+            .catch(() => { });
     }
 
     private fsDelete(id: string): void {
         const userId = this.auth.user()?.userId;
         if (!userId) return;
         deleteDoc(doc(getFirestoreDb(), 'users', userId, 'rounds', id))
-            .catch(() => {});
+            .catch(() => { });
     }
 
     getById(id: string): Round | undefined {
