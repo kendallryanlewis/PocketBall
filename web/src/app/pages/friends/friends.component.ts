@@ -9,6 +9,7 @@ import { QrService } from '../../services/qr.service';
 import { ToastService } from '../../services/toast.service';
 import { QrModalComponent } from '../../components/qr-modal/qr-modal.component';
 import { NavService } from '../../services/nav.service';
+import { Player } from '../../models/player.model';
 
 @Component({
     selector: 'app-friends',
@@ -33,6 +34,11 @@ export class FriendsComponent {
     addMode = signal(false);
     deleteTarget = signal<string | null>(null);
 
+    /** Friend profile sheet */
+    selectedFriend = signal<Player | null>(null);
+    selectedProfile = signal<PublicProfile | null>(null);
+    loadingProfile = signal(false);
+
     /** Firestore user search */
     searchQuery = signal('');
     searching = signal(false);
@@ -42,7 +48,7 @@ export class FriendsComponent {
 
     constructor() {
         effect(() => {
-            const anyOpen = this.addMode() || !!this.deleteTarget() || this.showMyQr();
+            const anyOpen = this.addMode() || !!this.deleteTarget() || this.showMyQr() || !!this.selectedFriend();
             anyOpen ? this.navSvc.hide() : this.navSvc.show();
         });
     }
@@ -163,6 +169,36 @@ export class FriendsComponent {
         const id = this.deleteTarget();
         if (id) this.playersService.deletePlayer(id);
         this.deleteTarget.set(null);
+        this.selectedFriend.set(null);
+        this.selectedProfile.set(null);
+    }
+
+    async openFriendProfile(f: Player): Promise<void> {
+        this.selectedFriend.set(f);
+        this.selectedProfile.set(null);
+        if (f.friendCode || f.username || f.email) {
+            this.loadingProfile.set(true);
+            try {
+                // Try fetching their Firestore profile for clubs / photo
+                const code = f.friendCode;
+                if (code) {
+                    const results = await this.profileSvc.searchUsers(code);
+                    const match = results.find(r => r.friendCode === code);
+                    if (match) this.selectedProfile.set(match);
+                }
+            } catch { }
+            finally { this.loadingProfile.set(false); }
+        }
+    }
+
+    closeFriendProfile(): void {
+        this.selectedFriend.set(null);
+        this.selectedProfile.set(null);
+    }
+
+    removeSelectedFriend(): void {
+        const f = this.selectedFriend();
+        if (f) this.deleteTarget.set(f.id);
     }
 
     updateName(id: string, name: string): void {

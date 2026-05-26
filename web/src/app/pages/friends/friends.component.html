@@ -85,7 +85,7 @@
         @if (friends().length) {
         <div class="friend-list animate-fade-up">
             @for (f of friends(); track f.id) {
-            <div class="friend-row">
+            <button class="friend-row" (click)="openFriendProfile(f)" type="button">
                 <div class="avatar" [style.background]="f.color + '22'" [style.color]="f.color">
                     {{ f.initials }}
                 </div>
@@ -101,8 +101,8 @@
                     <span class="meta-val">{{ f.roundsPlayed }}</span>
                     <span class="meta-lbl">rounds</span>
                 </div>
-                <button class="remove-btn" (click)="confirmDelete(f.id)" aria-label="Remove {{ f.name }}">✕</button>
-            </div>
+                <span class="friend-chevron">›</span>
+            </button>
             }
         </div>
         } @else {
@@ -171,6 +171,74 @@
     <div class="sheet-actions">
         <button class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
         <button class="btn btn-red" (click)="doDelete()">Remove</button>
+    </div>
+</div>
+}
+
+<!-- Friend Profile Sheet -->
+@if (selectedFriend(); as f) {
+<div class="overlay" (click)="closeFriendProfile()"></div>
+<div class="sheet animate-fade-up" role="dialog" aria-modal="true" aria-label="Friend Profile">
+
+    <div class="fp-header">
+        @if (selectedProfile()?.photoURL) {
+        <img class="fp-avatar-img" [src]="selectedProfile()!.photoURL" [alt]="f.name">
+        } @else {
+        <div class="fp-avatar" [style.background]="f.color + '22'" [style.color]="f.color">{{ f.initials }}</div>
+        }
+        <div class="fp-info">
+            <h3 class="fp-name">{{ f.name }}</h3>
+            @if (f.username) {
+            <p class="fp-username">@{{ f.username }}</p>
+            }
+            @if (f.email) {
+            <p class="fp-email">{{ f.email }}</p>
+            }
+        </div>
+    </div>
+
+    <div class="fp-stats">
+        <div class="fp-stat">
+            <span class="fp-stat-val">{{ f.roundsPlayed }}</span>
+            <span class="fp-stat-lbl">Rounds</span>
+        </div>
+        <div class="fp-stat">
+            <span class="fp-stat-val">{{ f.wins }}</span>
+            <span class="fp-stat-lbl">Wins</span>
+        </div>
+        @if (f.handicap) {
+        <div class="fp-stat">
+            <span class="fp-stat-val">{{ f.handicap }}</span>
+            <span class="fp-stat-lbl">Handicap</span>
+        </div>
+        }
+    </div>
+
+    @if (loadingProfile()) {
+    <p class="fp-loading">Loading profile…</p>
+    } @else if (selectedProfile()?.clubs?.length) {
+    <div class="fp-clubs">
+        <p class="fp-section-lbl">Clubs</p>
+        <div class="fp-club-list">
+            @for (c of selectedProfile()!.clubs; track c.id) {
+            <div class="fp-club-row">
+                <span class="fp-club-name">{{ c.name }}</span>
+                @if (c.yards) {
+                <span class="fp-club-yards">{{ c.yards }}y</span>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    @if (f.friendCode) {
+    <p class="fp-code">Code: <strong>{{ f.friendCode }}</strong></p>
+    }
+
+    <div class="sheet-actions">
+        <button class="btn btn-ghost" (click)="closeFriendProfile()">Close</button>
+        <button class="btn btn-red" (click)="removeSelectedFriend()">Remove</button>
     </div>
 </div>
 }
