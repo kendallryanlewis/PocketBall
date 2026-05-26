@@ -31,9 +31,6 @@ export class SettingsComponent {
     editingName = signal(false);
     newName = signal(this.me()?.name ?? '');
 
-    editingUsername = signal(false);
-    newUsername = signal(this.authUser()?.username ?? '');
-
     uploadingPhoto = signal(false);
     preference = this.theme.preference;
 
@@ -54,15 +51,10 @@ export class SettingsComponent {
             this.players.savePlayer({ ...me, name, initials });
         }
         this.auth.updateDisplayName(name);
+        // Derive @handle from the display name (lowercase, alphanumeric + underscore)
+        const handle = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        if (handle.length >= 3) this.auth.updateUsername(handle);
         this.editingName.set(false);
-    }
-
-    saveUsername(): void {
-        const raw = this.newUsername().trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-        if (raw.length < 3) { this.toast.error('Username must be at least 3 characters.'); return; }
-        this.auth.updateUsername(raw);
-        this.editingUsername.set(false);
-        this.toast.success(`@${raw} saved`);
     }
 
     async onPhotoSelected(event: Event): Promise<void> {

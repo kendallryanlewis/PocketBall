@@ -29,7 +29,7 @@
                 <div class="profile-info">
                     @if (!editingName()) {
                     <p class="profile-name">{{ me()?.name }}</p>
-                    <p class="profile-sub">{{ authUser()?.email ?? 'Signed in with Apple' }}</p>
+                    <p class="profile-sub">{{ authUser()?.username ? '@' + authUser()!.username : (authUser()?.email ?? 'Signed in with Apple') }}</p>
                     } @else {
                     <input class="name-input" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)"
                         (keydown.enter)="saveName()" autocomplete="off">
@@ -39,22 +39,6 @@
                 <button class="edit-btn" (click)="editingName.set(true); newName.set(me()?.name ?? '')">Edit</button>
                 } @else {
                 <button class="edit-btn edit-btn-save" (click)="saveName()">Save</button>
-                }
-            </div>
-
-            <!-- Username -->
-            <div class="divider"></div>
-            <div class="username-row">
-                <span class="code-label">Username</span>
-                @if (!editingUsername()) {
-                <span class="username-val">{{ authUser()?.username ? '@' + authUser()!.username : 'Not set' }}</span>
-                <button class="edit-btn edit-btn-sm" (click)="editingUsername.set(true); newUsername.set(authUser()?.username ?? '')">Edit</button>
-                } @else {
-                <span class="username-at">@</span>
-                <input class="username-input" type="text" [ngModel]="newUsername()"
-                    (ngModelChange)="newUsername.set($event)" (keydown.enter)="saveUsername()"
-                    placeholder="yourhandle" autocomplete="off" autocapitalize="none">
-                <button class="edit-btn edit-btn-save" (click)="saveUsername()">Save</button>
                 }
             </div>
 

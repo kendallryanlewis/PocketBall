@@ -4,9 +4,8 @@ import {
     collection, where, limit,
     query as fsQuery,
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AuthService } from './auth.service';
-import { getFirestoreDb, getFirebaseApp } from '../firebase.config';
+import { getFirestoreDb } from '../firebase.config';
 
 /** Public profile stored in `profiles/{userId}`. Anyone authenticated can read; only owner writes. */
 export interface PublicProfile {
@@ -72,14 +71,38 @@ export class ProfileService {
     }
 
     /**
-     * Upload a profile photo to Firebase Storage and return the public download URL.
-     * The caller should then persist the URL via `AuthService.updatePhotoURL()`.
+     * Resize a profile photo to 200×200, encode as base64 JPEG, store in Firestore,
+     * and return the data URL. Works inside WKWebView (no Firebase Storage needed).
      */
     async uploadPhoto(userId: string, file: File): Promise<string> {
-        const storage = getStorage(getFirebaseApp());
-        const photoRef = ref(storage, `profile-photos/${userId}`);
-        await uploadBytes(photoRef, file);
-        return getDownloadURL(photoRef);
+        const dataUrl = await this.resizeToDataUrl(file, 200);
+        // Persist into the public profile so others can see it
+        await setDoc(
+            doc(getFirestoreDb(), 'profiles', userId),
+            { photoURL: dataUrl, updatedAt: Date.now() },
+            { merge: true },
+        );
+        return dataUrl;
+    }
+
+    private resizeToDataUrl(file: File, maxPx: number): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+                const w = Math.round(img.width * scale);
+                const h = Math.round(img.height * scale);
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.75));
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
     }
 
     /**
