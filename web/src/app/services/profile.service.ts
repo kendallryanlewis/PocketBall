@@ -44,16 +44,26 @@ export class ProfileService {
 
     /** Write or merge fields into the public profile document. */
     async upsert(data: Partial<PublicProfile> & { userId: string }): Promise<void> {
+        const db = getFirestoreDb();
+        const payload = { ...data, updatedAt: Date.now() };
+
+        // Always write to the private users/ path (guaranteed by existing rules)
         try {
-            const db = getFirestoreDb();
             await setDoc(
-                doc(db, 'profiles', data.userId),
-                { ...data, updatedAt: Date.now() },
+                doc(db, 'users', data.userId, 'settings', 'profile'),
+                payload,
                 { merge: true },
             );
-        } catch {
-            // Offline or Firestore not yet enabled — fail silently.
-        }
+        } catch { }
+
+        // Best-effort write to the public profiles/ collection
+        try {
+            await setDoc(
+                doc(db, 'profiles', data.userId),
+                payload,
+                { merge: true },
+            );
+        } catch { }
     }
 
     /**
@@ -81,16 +91,30 @@ export class ProfileService {
         // Persist locally so the photo appears instantly, even offline
         try { localStorage.setItem(`profile_photo_${userId}`, dataUrl); } catch { }
 
-        // Write to Firestore — failures are non-fatal (local copy already saved)
+        const db = getFirestoreDb();
+        const now = Date.now();
+
+        // Primary write: users/{userId}/settings — same path as clubs, always works
         try {
             await setDoc(
-                doc(getFirestoreDb(), 'profiles', userId),
-                { photoURL: dataUrl, updatedAt: Date.now() },
+                doc(db, 'users', userId, 'settings', 'profile'),
+                { photoURL: dataUrl, updatedAt: now },
                 { merge: true },
             );
-        } catch (e) {
-            console.warn('[ProfileService] Firestore photo write failed:', e);
-            // Return local data URL anyway so the UI updates
+        } catch (e: any) {
+            console.warn('[ProfileService] Private photo write failed:', e?.code ?? e);
+        }
+
+        // Secondary write: profiles/{userId} — public, needs Firestore rules to be set up
+        try {
+            await setDoc(
+                doc(db, 'profiles', userId),
+                { photoURL: dataUrl, updatedAt: now },
+                { merge: true },
+            );
+        } catch (e: any) {
+            // Silently skip — likely missing Firestore rules for profiles collection
+            console.warn('[ProfileService] Public profile photo write failed:', e?.code ?? e?.message ?? e);
         }
 
         return dataUrl;

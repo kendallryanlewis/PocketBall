@@ -65,6 +65,8 @@ export class AuthService {
                 if (firebaseUser) {
                     this._hadFirebaseSession = true;
                     const existing = this._user();
+                    // Also check the dedicated photo cache key written by ProfileService
+                    const cachedPhoto = (() => { try { return localStorage.getItem(`profile_photo_${firebaseUser.uid}`); } catch { return null; } })();
                     const authUser: AuthUser = {
                         userId: firebaseUser.uid,
                         displayName: firebaseUser.displayName ?? existing?.displayName ?? 'Golfer',
@@ -72,7 +74,7 @@ export class AuthService {
                         username: existing?.username,
                         friendCode: existing?.friendCode ?? generateFriendCode(),
                         provider: existing?.provider ?? 'local',
-                        photoURL: firebaseUser.photoURL ?? existing?.photoURL,
+                        photoURL: firebaseUser.photoURL ?? existing?.photoURL ?? cachedPhoto ?? undefined,
                     };
                     this.storage.set(AUTH_KEY, authUser);
                     this._user.set(authUser);
