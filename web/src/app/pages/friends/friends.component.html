@@ -57,27 +57,30 @@
     </div>
 
     @if (searchResults().length > 0) {
-    <div class="search-results">
-        @for (p of searchResults(); track p.userId) {
-        <button class="search-result-row" (click)="addFromProfile(p)" type="button">
-            @if (p.photoURL) {
-            <img class="result-avatar" [src]="p.photoURL" alt="{{ p.displayName }}">
-            } @else {
-            <div class="result-avatar result-avatar-initials">
-                {{ p.displayName.slice(0, 2).toUpperCase() }}
-            </div>
-            }
-            <div class="result-info">
-                <span class="result-name">{{ p.displayName }}</span>
-                @if (p.username) {
-                <span class="result-username">@{{ p.username }}</span>
+    <section class="section">
+        <h2 class="section-title">Search Results</h2>
+        <div class="search-results">
+            @for (p of searchResults(); track p.userId) {
+            <button class="search-result-row" (click)="addFromProfile(p)" type="button">
+                @if (p.photoURL) {
+                <img class="result-avatar" [src]="p.photoURL" alt="{{ p.displayName }}">
+                } @else {
+                <div class="result-avatar result-avatar-initials">
+                    {{ p.displayName.slice(0, 2).toUpperCase() }}
+                </div>
                 }
-                <span class="result-code">{{ p.friendCode }}</span>
-            </div>
-            <span class="result-add">＋ Add</span>
-        </button>
-        }
-    </div>
+                <div class="result-info">
+                    <span class="result-name">{{ p.displayName }}</span>
+                    @if (p.username) {
+                    <span class="result-username">@{{ p.username }}</span>
+                    }
+                    <span class="result-code">{{ p.friendCode }}</span>
+                </div>
+                <span class="result-add">＋ Add</span>
+            </button>
+            }
+        </div>
+    </section>
     }
 
     <!-- Friends list -->
