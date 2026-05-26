@@ -3,8 +3,10 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { PlayersService } from '../../services/players.service';
+import { ProfileService } from '../../services/profile.service';
 import { ThemeService } from '../../services/theme.service';
 import { NavService } from '../../services/nav.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
     selector: 'app-settings',
@@ -16,7 +18,9 @@ import { NavService } from '../../services/nav.service';
 export class SettingsComponent {
     private auth = inject(AuthService);
     private players = inject(PlayersService);
+    private profileSvc = inject(ProfileService);
     private router = inject(Router);
+    private toast = inject(ToastService);
     theme = inject(ThemeService);
 
     private navSvc = inject(NavService);
@@ -26,6 +30,11 @@ export class SettingsComponent {
 
     editingName = signal(false);
     newName = signal(this.me()?.name ?? '');
+
+    editingUsername = signal(false);
+    newUsername = signal(this.authUser()?.username ?? '');
+
+    uploadingPhoto = signal(false);
     preference = this.theme.preference;
 
     showDeleteConfirm = signal(false);
@@ -46,6 +55,31 @@ export class SettingsComponent {
         }
         this.auth.updateDisplayName(name);
         this.editingName.set(false);
+    }
+
+    saveUsername(): void {
+        const raw = this.newUsername().trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        if (raw.length < 3) { this.toast.error('Username must be at least 3 characters.'); return; }
+        this.auth.updateUsername(raw);
+        this.editingUsername.set(false);
+        this.toast.success(`@${raw} saved`);
+    }
+
+    async onPhotoSelected(event: Event): Promise<void> {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        const userId = this.authUser()?.userId;
+        if (!userId) return;
+        this.uploadingPhoto.set(true);
+        try {
+            const url = await this.profileSvc.uploadPhoto(userId, file);
+            this.auth.updatePhotoURL(url);
+            this.toast.success('Profile photo updated');
+        } catch {
+            this.toast.error('Photo upload failed. Try again.');
+        } finally {
+            this.uploadingPhoto.set(false);
+        }
     }
 
     setTheme(pref: string): void {

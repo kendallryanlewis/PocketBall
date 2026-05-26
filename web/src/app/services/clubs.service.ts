@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
+import { ProfileService } from './profile.service';
 import { getFirestoreDb } from '../firebase.config';
 
 export interface ClubYardage {
@@ -36,6 +37,7 @@ const DEFAULT_CLUBS: ClubYardage[] = [
 export class ClubsService {
     private storage = inject(StorageService);
     private auth = inject(AuthService);
+    private profileSvc = inject(ProfileService);
 
     private _clubs = signal<ClubYardage[]>(
         this.storage.get<ClubYardage[]>(STORAGE_KEY, DEFAULT_CLUBS)
@@ -98,5 +100,13 @@ export class ClubsService {
     private persist(): void {
         this.storage.set(STORAGE_KEY, this._clubs());
         this.fsPersist();
+        // Also mirror clubs into the public profile for sharing / search.
+        const userId = this.auth.user()?.userId;
+        if (userId) {
+            this.profileSvc.updateClubs(
+                userId,
+                this._clubs().map(c => ({ id: c.id, name: c.name, yards: c.yards })),
+            );
+        }
     }
 }

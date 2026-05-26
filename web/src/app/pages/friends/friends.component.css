@@ -334,3 +334,122 @@
     font-weight: 600;
     margin: 2px 0 0;
 }
+
+/* Firestore user search */
+.search-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    min-width: 0;
+}
+
+.search-input:focus { border-color: var(--green); }
+
+.search-btn {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: var(--green);
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.search-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+.search-error {
+    font-size: 12px;
+    color: var(--text-3);
+    margin: 4px 0 8px;
+    text-align: center;
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.search-result-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+}
+
+.search-result-row:active { background: var(--surface-raised); }
+
+.result-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.result-avatar-initials {
+    background: var(--surface-raised);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-2);
+}
+
+.result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.result-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.result-username {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 600;
+}
+
+.result-code {
+    font-size: 11px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.result-add {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+}
+}

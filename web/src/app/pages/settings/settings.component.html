@@ -11,10 +11,21 @@
         <div class="card">
 
             <div class="profile-row">
-                <div class="avatar avatar-lg" [style.background]="(me()?.color ?? '#888') + '22'"
-                    [style.color]="me()?.color ?? '#888'">
-                    {{ me()?.initials }}
-                </div>
+                <!-- Avatar / Photo -->
+                <label class="avatar-wrap" [class.uploading]="uploadingPhoto()" title="Change photo">
+                    @if (authUser()?.photoURL) {
+                    <img class="avatar avatar-lg avatar-photo" [src]="authUser()!.photoURL" alt="Profile photo">
+                    } @else {
+                    <div class="avatar avatar-lg" [style.background]="(me()?.color ?? '#888') + '22'"
+                        [style.color]="me()?.color ?? '#888'">
+                        {{ me()?.initials }}
+                    </div>
+                    }
+                    <div class="avatar-overlay">{{ uploadingPhoto() ? '⏳' : '📷' }}</div>
+                    <input type="file" accept="image/*" capture="environment" style="display:none"
+                        (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()">
+                </label>
+
                 <div class="profile-info">
                     @if (!editingName()) {
                     <p class="profile-name">{{ me()?.name }}</p>
@@ -25,9 +36,25 @@
                     }
                 </div>
                 @if (!editingName()) {
-                <button class="edit-btn" (click)="editingName.set(true)">Edit</button>
+                <button class="edit-btn" (click)="editingName.set(true); newName.set(me()?.name ?? '')">Edit</button>
                 } @else {
                 <button class="edit-btn edit-btn-save" (click)="saveName()">Save</button>
+                }
+            </div>
+
+            <!-- Username -->
+            <div class="divider"></div>
+            <div class="username-row">
+                <span class="code-label">Username</span>
+                @if (!editingUsername()) {
+                <span class="username-val">{{ authUser()?.username ? '@' + authUser()!.username : 'Not set' }}</span>
+                <button class="edit-btn edit-btn-sm" (click)="editingUsername.set(true); newUsername.set(authUser()?.username ?? '')">Edit</button>
+                } @else {
+                <span class="username-at">@</span>
+                <input class="username-input" type="text" [ngModel]="newUsername()"
+                    (ngModelChange)="newUsername.set($event)" (keydown.enter)="saveUsername()"
+                    placeholder="yourhandle" autocomplete="off" autocapitalize="none">
+                <button class="edit-btn edit-btn-save" (click)="saveUsername()">Save</button>
                 }
             </div>
 

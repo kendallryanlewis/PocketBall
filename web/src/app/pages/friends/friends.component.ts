@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PlayersService } from '../../services/players.service';
 import { AuthService } from '../../services/auth.service';
+import { ProfileService, PublicProfile } from '../../services/profile.service';
 import { BridgeService } from '../../services/bridge.service';
 import { QrService } from '../../services/qr.service';
 import { ToastService } from '../../services/toast.service';
@@ -19,6 +20,7 @@ import { NavService } from '../../services/nav.service';
 export class FriendsComponent {
     private playersService = inject(PlayersService);
     private auth = inject(AuthService);
+    private profileSvc = inject(ProfileService);
     private bridge = inject(BridgeService);
     private qrSvc = inject(QrService);
     private toast = inject(ToastService);
@@ -33,6 +35,12 @@ export class FriendsComponent {
     newCode = signal('');
     addError = signal('');
     deleteTarget = signal<string | null>(null);
+
+    /** Firestore user search */
+    searchQuery = signal('');
+    searching = signal(false);
+    searchResults = signal<PublicProfile[]>([]);
+    searchError = signal('');
 
     constructor() {
         effect(() => {
@@ -61,6 +69,35 @@ export class FriendsComponent {
         const code = this.myCode;
         const text = `Add me on Carnivore Golf! My friend code: ${code}`;
         this.bridge.shareText(text);
+    }
+
+    async searchUsers(): Promise<void> {
+        const q = this.searchQuery().trim();
+        if (!q) { this.searchResults.set([]); return; }
+        this.searching.set(true);
+        this.searchError.set('');
+        try {
+            const results = await this.profileSvc.searchUsers(q);
+            // Exclude self
+            const myId = this.authUser()?.userId;
+            this.searchResults.set(results.filter(r => r.userId !== myId));
+            if (results.length === 0) this.searchError.set('No users found.');
+        } catch {
+            this.searchError.set('Search failed. Check your connection.');
+        } finally {
+            this.searching.set(false);
+        }
+    }
+
+    addFromProfile(profile: PublicProfile): void {
+        if (this.playersService.getByFriendCode(profile.friendCode)) {
+            this.toast.info(`${profile.displayName} is already in your list.`);
+            return;
+        }
+        this.playersService.addFriend(profile.displayName, profile.friendCode);
+        this.toast.success(`${profile.displayName} added!`);
+        this.searchResults.set([]);
+        this.searchQuery.set('');
     }
 
     addFriend(): void {

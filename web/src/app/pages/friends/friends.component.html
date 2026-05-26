@@ -79,7 +79,47 @@
 <div class="sheet animate-fade-up" role="dialog" aria-modal="true" aria-label="Add Friend">
     <h3 class="sheet-title">Add Friend</h3>
 
+    <!-- Firestore user search -->
+    <div class="search-row">
+        <input class="search-input" type="search" [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by @username or friend code…"
+            (keydown.enter)="searchUsers()" autocomplete="off" autocapitalize="none">
+        <button class="search-btn" (click)="searchUsers()" [disabled]="searching()">
+            {{ searching() ? '⏳' : '🔍' }}
+        </button>
+    </div>
+
+    @if (searchError()) {
+    <p class="search-error">{{ searchError() }}</p>
+    }
+
+    @if (searchResults().length > 0) {
+    <div class="search-results">
+        @for (p of searchResults(); track p.userId) {
+        <button class="search-result-row" (click)="addFromProfile(p)" type="button">
+            @if (p.photoURL) {
+            <img class="result-avatar" [src]="p.photoURL" alt="{{ p.displayName }}">
+            } @else {
+            <div class="result-avatar result-avatar-initials">
+                {{ p.displayName.slice(0, 2).toUpperCase() }}
+            </div>
+            }
+            <div class="result-info">
+                <span class="result-name">{{ p.displayName }}</span>
+                @if (p.username) {
+                <span class="result-username">@{{ p.username }}</span>
+                }
+                <span class="result-code">{{ p.friendCode }}</span>
+            </div>
+            <span class="result-add">＋ Add</span>
+        </button>
+        }
+    </div>
+    }
+
     <!-- Scan QR button -->
+    <div class="sheet-divider"><span>or scan / enter manually</span></div>
     <button class="scan-qr-btn" (click)="scanFriendQr()" [disabled]="scanning()" type="button">
         @if (scanning()) {
         <span class="scan-spinner"></span> Scanning…
@@ -103,8 +143,6 @@
         <button class="btn btn-green btn-sm" style="margin-top:8px" (click)="applyPaste()">Apply</button>
     </div>
     }
-
-    <div class="sheet-divider"><span>or add manually</span></div>
 
     <div class="field">
         <label>Name</label>

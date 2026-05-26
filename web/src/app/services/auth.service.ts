@@ -25,6 +25,8 @@ export interface AuthUser {
     friendCode: string;
     /** Whether this account was created via Apple Sign In */
     provider: 'apple' | 'local';
+    /** Firebase Storage URL for the user's profile photo */
+    photoURL?: string;
 }
 
 const AUTH_KEY = 'cg_auth_user';
@@ -70,6 +72,7 @@ export class AuthService {
                         username: existing?.username,
                         friendCode: existing?.friendCode ?? generateFriendCode(),
                         provider: existing?.provider ?? 'local',
+                        photoURL: firebaseUser.photoURL ?? existing?.photoURL,
                     };
                     this.storage.set(AUTH_KEY, authUser);
                     this._user.set(authUser);
@@ -181,6 +184,26 @@ export class AuthService {
         // Also update Firebase Auth profile if available
         if (this.auth?.currentUser) {
             updateProfile(this.auth.currentUser, { displayName: name }).catch(() => { });
+        }
+    }
+
+    updateUsername(username: string): void {
+        const u = this._user();
+        if (!u) return;
+        const updated = { ...u, username: username.toLowerCase().trim() };
+        this.storage.set(AUTH_KEY, updated);
+        this._user.set(updated);
+    }
+
+    updatePhotoURL(photoURL: string): void {
+        const u = this._user();
+        if (!u) return;
+        const updated = { ...u, photoURL };
+        this.storage.set(AUTH_KEY, updated);
+        this._user.set(updated);
+
+        if (this.auth?.currentUser) {
+            updateProfile(this.auth.currentUser, { photoURL }).catch(() => { });
         }
     }
 
