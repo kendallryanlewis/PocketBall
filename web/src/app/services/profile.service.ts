@@ -71,37 +71,65 @@ export class ProfileService {
     }
 
     /**
-     * Resize a profile photo to 200×200, encode as base64 JPEG, store in Firestore,
-     * and return the data URL. Works inside WKWebView (no Firebase Storage needed).
+     * Resize a profile photo to 160×160 JPEG, persist in localStorage immediately
+     * (so it shows even offline), then write to Firestore for cross-device sync.
+     * Uses FileReader instead of createObjectURL for WKWebView compatibility.
      */
     async uploadPhoto(userId: string, file: File): Promise<string> {
-        const dataUrl = await this.resizeToDataUrl(file, 200);
-        // Persist into the public profile so others can see it
-        await setDoc(
-            doc(getFirestoreDb(), 'profiles', userId),
-            { photoURL: dataUrl, updatedAt: Date.now() },
-            { merge: true },
-        );
+        const dataUrl = await this.resizeToDataUrl(file, 160);
+
+        // Persist locally so the photo appears instantly, even offline
+        try { localStorage.setItem(`profile_photo_${userId}`, dataUrl); } catch { }
+
+        // Write to Firestore — failures are non-fatal (local copy already saved)
+        try {
+            await setDoc(
+                doc(getFirestoreDb(), 'profiles', userId),
+                { photoURL: dataUrl, updatedAt: Date.now() },
+                { merge: true },
+            );
+        } catch (e) {
+            console.warn('[ProfileService] Firestore photo write failed:', e);
+            // Return local data URL anyway so the UI updates
+        }
+
         return dataUrl;
+    }
+
+    /** Read the locally cached photo for a userId (fallback when offline). */
+    getCachedPhoto(userId: string): string | null {
+        try { return localStorage.getItem(`profile_photo_${userId}`); } catch { return null; }
     }
 
     private resizeToDataUrl(file: File, maxPx: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            const img = new Image();
-            const url = URL.createObjectURL(file);
-            img.onload = () => {
-                URL.revokeObjectURL(url);
-                const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-                const w = Math.round(img.width * scale);
-                const h = Math.round(img.height * scale);
-                const canvas = document.createElement('canvas');
-                canvas.width = w;
-                canvas.height = h;
-                canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-                resolve(canvas.toDataURL('image/jpeg', 0.75));
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('FileReader failed to read image'));
+            reader.onload = (readerEvt) => {
+                const src = readerEvt.target?.result as string;
+                if (!src) { reject(new Error('Empty image data')); return; }
+
+                const img = new Image();
+                img.onerror = () => reject(new Error('Image failed to decode'));
+                img.onload = () => {
+                    try {
+                        const scale = Math.min(1, maxPx / Math.max(img.width, img.height, 1));
+                        const w = Math.max(1, Math.round(img.width * scale));
+                        const h = Math.max(1, Math.round(img.height * scale));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) { reject(new Error('Canvas 2D context unavailable')); return; }
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.72));
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+                img.src = src;
             };
-            img.onerror = reject;
-            img.src = url;
+            reader.readAsDataURL(file);
         });
     }
 

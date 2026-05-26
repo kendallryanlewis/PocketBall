@@ -81,8 +81,9 @@ export class SettingsComponent {
             this.auth.updatePhotoURL(url);
             // uploadPhoto already writes photoURL to Firestore profiles doc
             this.toast.success('Profile photo updated');
-        } catch {
-            this.toast.error('Photo upload failed. Try again.');
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : 'Unknown error';
+            this.toast.error(`Photo failed: ${msg}`);
         } finally {
             this.uploadingPhoto.set(false);
         }
